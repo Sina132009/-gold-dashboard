@@ -2,6 +2,8 @@ import json
 import os
 import time
 import urllib.request
+import datetime
+import zoneinfo
 
 NA = 'https://nerkhara.com/api/v1'
 IM_CDN = 'https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data'
@@ -99,17 +101,54 @@ def main():
             prices[a["id"]] = p
             sources[a["id"]] = s
 
+    # --- منطق ذخیره‌سازی تاریخچه روزانه (Intraday) ---
+    tehran_tz = zoneinfo.ZoneInfo("Asia/Tehran")
+    now = datetime.datetime.now(tehran_tz)
+    today_str = now.strftime("%Y-%m-%d")
+    now_ms = int(now.timestamp() * 1000)
+
+    intraday_file = "data/intraday.json"
+    intraday_data = {}
+
+    # اگر فایل وجود داشت، بخوان
+    if os.path.exists(intraday_file):
+        try:
+            with open(intraday_file, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+                # اگر تاریخ ذخیره شده مربوط به امروز بود، نگه دار. وگرنه (ساعت ۱۲ شب) ریست کن
+                if saved.get("date") == today_str:
+                    intraday_data = saved.get("data", {})
+        except Exception:
+            pass
+
+    # اضافه کردن قیمت‌های جدید به تاریخچه
+    for k, v in prices.items():
+        if k.startswith("_"): 
+            continue
+        if k not in intraday_data:
+            intraday_data[k] = []
+        
+        # برای جلوگیری از سنگین شدن، فقط اگر آخرین قیمت با قیمت جدید فرق داشت اضافه کن
+        last_point = intraday_data[k][-1] if intraday_data[k] else None
+        if not last_point or last_point.get("price") != v:
+            intraday_data[k].append({"time": now_ms, "price": v})
+
+    os.makedirs("data", exist_ok=True)
+    
+    # ذخیره فایل قیمت‌های لحظه‌ای
     data = {
-        "updated_at": int(time.time() * 1000),
+        "updated_at": now_ms,
         "prices": prices,
         "sources": sources,
     }
-
-    os.makedirs("data", exist_ok=True)
     with open("data/latest-prices.json", "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print("Updated", len([k for k in prices if not k.startswith("_")]), "prices")
+    # ذخیره فایل تاریخچه روزانه
+    with open(intraday_file, "w", encoding="utf-8") as f:
+        json.dump({"date": today_str, "data": intraday_data}, f, ensure_ascii=False, indent=2)
+
+    print(f"Updated {len([k for k in prices if not k.startswith('_')])} prices. Intraday records saved.")
 
 
 if __name__ == "__main__":
