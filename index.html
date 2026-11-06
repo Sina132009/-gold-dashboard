@@ -27,107 +27,121 @@
  --green:#62f3d0; --red:#ff7898; --accent:#83a8ff;
  --shadow:0 22px 55px rgba(0,0,0,.48), 0 8px 24px rgba(35,94,180,.12);
 }
-/* --- AURORA 3D THEME --- */
+/* --- AURORA 3D THEME (Cyberpunk Style) --- */
 [data-theme="aurora"]{
- --bg1:#02040a; --bg2:#060b19;
- --card1:rgba(12,20,40,.85); --card2:rgba(5,10,25,.95);
- --line:rgba(0,255,255,.15); --txt:#e0f7ff; --muted:#6b8cba;
- --green:#00f0ff; --red:#ff007f; --accent:#4a00e0;
- --shadow:0 25px 50px -12px rgba(0,0,0,.8), 0 0 30px rgba(0,240,255,.15);
+ --bg1:#020004; --bg2:#0a0410;
+ --card1:rgba(20, 10, 30, 0.85); --card2:rgba(10, 5, 15, 0.95);
+ --line:rgba(255, 0, 128, 0.2); --txt:#f0f0ff; --muted:#a070a0;
+ --green:#00ffcc; --red:#ff0055; --accent:#ff007f;
+ --shadow:0 25px 50px -12px rgba(255,0,127,.3), 0 0 30px rgba(255,0,127,.15);
 }
 [data-theme="aurora"] body{
  background: 
-  radial-gradient(circle at 15% 0%, rgba(74,0,224,.35), transparent 40%),
-  radial-gradient(circle at 85% 15%, rgba(0,240,255,.2), transparent 45%),
-  radial-gradient(circle at 50% 100%, rgba(255,0,127,.15), transparent 50%),
-  linear-gradient(145deg, #02040a 0%, #060b19 100%);
+  radial-gradient(circle at 0% 0%, rgba(255,0,127,.25), transparent 40%),
+  radial-gradient(circle at 100% 100%, rgba(0,255,204,.2), transparent 40%),
+  linear-gradient(145deg, #05010a 0%, #12021f 100%);
  background-attachment: fixed;
 }
 [data-theme="aurora"] .card,
 [data-theme="aurora"] .mini-card{
  position:relative;overflow:hidden;
- background: linear-gradient(145deg, rgba(20,30,60,.7), rgba(5,10,25,.9));
- border: 1px solid rgba(0,240,255,.2);
+ background: linear-gradient(145deg, rgba(30, 15, 45, 0.7), rgba(10, 5, 20, 0.9));
+ border: 1px solid rgba(255, 0, 127, 0.25);
  backdrop-filter: blur(15px) saturate(120%);
  -webkit-backdrop-filter: blur(15px) saturate(120%);
- box-shadow: var(--shadow), inset 0 1px 1px rgba(255,255,255,.1);
+ box-shadow: var(--shadow), inset 0 1px 1px rgba(255,255,255,.05);
  transition: transform .3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow .3s ease;
  transform-style: preserve-3d;
 }
 [data-theme="aurora"] .card::after,
 [data-theme="aurora"] .mini-card::after{
  content:''; position:absolute; inset:-2px; z-index:-1;
- background: linear-gradient(120deg, #00f0ff, #4a00e0, #ff007f);
- border-radius: inherit; opacity: 0.15; filter: blur(10px);
+ background: linear-gradient(120deg, #ff007f, #ff5e00, #00ffcc);
+ border-radius: inherit; opacity: 0.15; filter: blur(12px);
  transition: opacity .3s ease;
 }
 [data-theme="aurora"] .card:hover::after,
 [data-theme="aurora"] .mini-card:hover::after{
- opacity: 0.5; filter: blur(15px);
+ opacity: 0.6; filter: blur(18px);
 }
 [data-theme="aurora"] .card:hover,
 [data-theme="aurora"] .mini-card:hover{
- border-color: rgba(0,240,255,.5);
- box-shadow: 0 30px 60px -12px rgba(0,0,0,.9), 0 0 40px rgba(0,240,255,.3);
+ border-color: rgba(255, 0, 127, 0.6);
+ box-shadow: 0 30px 60px -12px rgba(0,0,0,.9), 0 0 40px rgba(255, 0, 127, 0.3);
 }
 [data-theme="aurora"] .btn{
- background: linear-gradient(145deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
- border-color: rgba(0,240,255,.2);
- color: #a9c3e6;
+ background: linear-gradient(145deg, rgba(255,0,127,.1), rgba(255,0,127,.02));
+ border-color: rgba(255, 0, 127, 0.3);
+ color: #ff80bf;
 }
 [data-theme="aurora"] .btn:hover{
- border-color: rgba(0,240,255,.6);
+ border-color: rgba(255, 0, 127, 0.8);
  color: #fff;
- box-shadow: 0 0 20px rgba(0,240,255,.2);
+ box-shadow: 0 0 20px rgba(255, 0, 127, 0.3);
 }
 [data-theme="aurora"] .btn.active{
- background: linear-gradient(135deg, #00f0ff, #4a00e0);
+ background: linear-gradient(135deg, #ff007f, #ff5e00);
  border-color: transparent; color: #fff; font-weight: bold;
- box-shadow: 0 10px 25px -5px rgba(0,240,255,.5);
+ box-shadow: 0 10px 25px -5px rgba(255, 0, 127, 0.6);
 }
 [data-theme="aurora"] .logo{
- background: linear-gradient(135deg, #00f0ff, #4a00e0);
- box-shadow: 0 0 25px rgba(0,240,255,.4);
+ background: linear-gradient(135deg, #ff007f, #ff5e00);
+ box-shadow: 0 0 25px rgba(255, 0, 127, 0.5);
+ color:#fff;
+}
+[data-theme="aurora"] .brand h1{
+ background:linear-gradient(90deg,#ff007f,#ff5e00,#00ffcc);
+ -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 [data-theme="aurora"] .price,
 [data-theme="aurora"] .mini-price{
  color: #fff;
- text-shadow: 0 0 15px rgba(0,240,255,.4);
+ text-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
 }
-[data-theme="aurora"] .chg{background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.2);color:var(--green)}
-[data-theme="aurora"] .chg.neg{background:rgba(255,0,127,.1);border-color:rgba(255,0,127,.2);color:var(--red)}
+[data-theme="aurora"] .chg{background:rgba(0,255,204,.1);border:1px solid rgba(0,255,204,.2);color:var(--green)}
+[data-theme="aurora"] .chg.neg{background:rgba(255,0,85,.1);border-color:rgba(255,0,85,.2);color:var(--red)}
 [data-theme="aurora"] .range{
- background:rgba(0,0,0,.3);border-color:rgba(0,240,255,.15);color:#6b8cba;
+ background:rgba(0,0,0,.4);border-color:rgba(255,0,127,.15);color:#a070a0;
 }
 [data-theme="aurora"] .range.active{
- background: linear-gradient(135deg, #00f0ff, #4a00e0);
+ background: linear-gradient(135deg, #ff007f, #ff5e00);
  color: #fff; border-color: transparent;
- box-shadow: 0 5px 15px rgba(0,240,255,.3);
+ box-shadow: 0 5px 15px rgba(255,0,127,.4);
 }
 [data-theme="aurora"] .field input,[data-theme="aurora"] .field select,
 [data-theme="aurora"] .add-row select,[data-theme="aurora"] .add-row input{
- background:rgba(0,0,0,.4);border-color:rgba(0,240,255,.2);color:#fff;
+ background:rgba(5,0,10,.5);border-color:rgba(255,0,127,.2);color:#fff;
 }
 [data-theme="aurora"] .result,
 [data-theme="aurora"] .total-box{
- background:linear-gradient(135deg, rgba(0,240,255,.15), rgba(74,0,224,.15));
- border:1px solid rgba(0,240,255,.3);
- box-shadow:0 10px 30px rgba(0,240,255,.1);
+ background:linear-gradient(135deg, rgba(255,0,127,.15), rgba(0,255,204,.15));
+ border:1px solid rgba(255,0,127,.3);
+ box-shadow:0 10px 30px rgba(255,0,127,.15);
 }
 [data-theme="aurora"] .holding{
- background:rgba(255,255,255,.03);border-color:rgba(0,240,255,.15);
+ background:rgba(255,255,255,.03);border-color:rgba(255,0,127,.15);
 }
 [data-theme="aurora"] .add-row button{
- background:linear-gradient(135deg,#00f0ff,#4a00e0);color:#fff;
- box-shadow:0 5px 15px rgba(0,240,255,.3);
+ background:linear-gradient(135deg,#ff007f,#ff5e00);color:#fff;
+ box-shadow:0 5px 15px rgba(255,0,127,.4);
 }
 [data-theme="aurora"] .btn-mini{
- background:rgba(255,255,255,.05);border-color:rgba(0,240,255,.2);
+ background:rgba(255,255,255,.05);border-color:rgba(255,0,127,.2);
 }
 [data-theme="aurora"] .btn-mini:hover{
- background:linear-gradient(135deg,#00f0ff,#4a00e0);color:#fff;border-color:transparent;
- box-shadow:0 5px 15px rgba(0,240,255,.3);
+ background:linear-gradient(135deg,#ff007f,#ff5e00);color:#fff;border-color:transparent;
+ box-shadow:0 5px 15px rgba(255,0,127,.4);
 }
+[data-theme="aurora"] .chart-wrap{
+ perspective:1100px;filter:drop-shadow(0 14px 18px rgba(0,0,0,.3));
+}
+[data-theme="aurora"] canvas{
+ transform:perspective(1100px) rotateX(4deg);
+ transform-origin:center bottom;
+ transition:transform .4s;
+}
+[data-theme="aurora"] .card:hover canvas{transform:perspective(1100px) rotateX(0deg) translateY(-2px)}
+
 /* --- End of AURORA Theme --- */
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -169,10 +183,6 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  background:linear-gradient(145deg,#8cf3e5 0%,#8faeff 55%,#b79aff 100%);
  box-shadow:0 10px 28px rgba(94,171,230,.3),inset 0 1px 2px rgba(255,255,255,.65);
  color:#101a36;
-}
-[data-theme="aurora"] .logo{
- background:linear-gradient(135deg,#00f0ff,#4a00e0);
- box-shadow:0 0 25px rgba(0,240,255,.4);
 }
 .brand h1{font-size:19px}
 [data-theme="neon"] .brand h1{
@@ -323,16 +333,6 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  transition:transform .4s;
 }
 [data-theme="glass"] .card:hover canvas{transform:perspective(1100px) rotateX(1deg) translateY(-2px)}
-
-[data-theme="aurora"] .chart-wrap{
- perspective:1100px;filter:drop-shadow(0 14px 18px rgba(0,0,0,.3));
-}
-[data-theme="aurora"] canvas{
- transform:perspective(1100px) rotateX(4deg);
- transform-origin:center bottom;
- transition:transform .4s;
-}
-[data-theme="aurora"] .card:hover canvas{transform:perspective(1100px) rotateX(0deg) translateY(-2px)}
 
 .mini-card{
  background:linear-gradient(160deg,var(--card1),var(--card2));
@@ -960,8 +960,8 @@ function bindRanges(grid, prefix=''){
 function updateChartTheme(chartInstance, a, isUp) {
  const neon=theme==='neon', glass=theme==='glass', aurora=theme==='aurora';
  const light=theme==='light';
- const gc=light?'rgba(40,60,100,.12)':neon?'rgba(168,85,247,.15)':glass?'rgba(145,190,235,.12)':aurora?'rgba(0,240,255,.1)':'rgba(160,185,225,.1)';
- const tc=light?'#5a6b88':neon?'#b39ddb':glass?'rgba(205,222,250,.82)':aurora?'#6b8cba':'#8fa0bd';
+ const gc=light?'rgba(40,60,100,.12)':neon?'rgba(168,85,247,.15)':glass?'rgba(145,190,235,.12)':aurora?'rgba(255,0,127,.1)':'rgba(160,185,225,.1)';
+ const tc=light?'#5a6b88':neon?'#b39ddb':glass?'rgba(205,222,250,.82)':aurora?'#a070a0':'#8fa0bd';
  
  chartInstance.options.scales.y.grid.color = gc;
  chartInstance.options.scales.y.ticks.color = tc;
@@ -995,14 +995,14 @@ function updateChartTheme(chartInstance, a, isUp) {
    }
  } else if (aurora) {
    const lineGrad = ctx.createLinearGradient(0, 0, width, 0);
-   lineGrad.addColorStop(0,    '#00f0ff');
-   lineGrad.addColorStop(.5,  '#4a00e0');
-   lineGrad.addColorStop(1,    '#ff007f');
+   lineGrad.addColorStop(0,    '#ff007f');
+   lineGrad.addColorStop(.5,  '#ff5e00');
+   lineGrad.addColorStop(1,    '#00ffcc');
 
    const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
-   fillGrad.addColorStop(0, 'rgba(0,240,255,.15)');
-   fillGrad.addColorStop(.5, 'rgba(74,0,224,.08)');
-   fillGrad.addColorStop(1, 'rgba(255,0,127,0)');
+   fillGrad.addColorStop(0, 'rgba(255,0,127,.2)');
+   fillGrad.addColorStop(.5, 'rgba(255,94,0,.1)');
+   fillGrad.addColorStop(1, 'rgba(0,255,204,0)');
 
    if(chartInstance.data.datasets.length === 1) {
       chartInstance.data.datasets[0].borderColor = lineGrad;
@@ -1030,7 +1030,7 @@ function updateChartTheme(chartInstance, a, isUp) {
  }
  
  chartInstance.options.plugins.tooltip.backgroundColor = neon?'rgba(10,4,28,.96)':glass?'rgba(9,18,39,.97)':aurora?'rgba(5,10,25,.97)':'rgba(5,12,25,.96)';
- chartInstance.options.plugins.tooltip.borderColor = neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(126,210,231,.55)':aurora?'rgba(0,240,255,.5)':'#70a4ff88';
+ chartInstance.options.plugins.tooltip.borderColor = neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(126,210,231,.55)':aurora?'rgba(255,0,127,.5)':'#70a4ff88';
  chartInstance.options.plugins.tooltip.callbacks.label = c=> (isUSD ? '$' : '') + num(c.parsed.y, isUSD ? 2 : 0) + ' ' + (isUSD ? '' : t('tomanUnit'));
  chartInstance.options.scales.y.ticks.callback = v=> (isUSD ? '$' : '') + num(v, isUSD ? 2 : 0);
 }
@@ -1096,16 +1096,16 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
   datasets.push({ data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad, fill:true,tension:.32,borderWidth:3.2, pointRadius:0,pointHoverRadius:5, pointBackgroundColor:'#ffffff',pointBorderColor:'#a855f7', pointHoverBorderColor:'#22d3ee',pointBorderWidth:2,spanGaps:true, borderCapStyle:'round',borderJoinStyle:'round' });
  } else if (aurora) {
   const lineGrad = ctx.createLinearGradient(0, 0, cv.offsetWidth || 500, 0);
-  lineGrad.addColorStop(0,    '#00f0ff');
-  lineGrad.addColorStop(.5,  '#4a00e0');
-  lineGrad.addColorStop(1,    '#ff007f');
+  lineGrad.addColorStop(0,    '#ff007f');
+  lineGrad.addColorStop(.5,  '#ff5e00');
+  lineGrad.addColorStop(1,    '#00ffcc');
 
   const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
-  fillGrad.addColorStop(0, 'rgba(0,240,255,.15)');
-  fillGrad.addColorStop(.5, 'rgba(74,0,224,.08)');
-  fillGrad.addColorStop(1, 'rgba(255,0,127,0)');
+  fillGrad.addColorStop(0, 'rgba(255,0,127,.2)');
+  fillGrad.addColorStop(.5, 'rgba(255,94,0,.1)');
+  fillGrad.addColorStop(1, 'rgba(0,255,204,0)');
 
-  datasets.push({ data:dataVals, borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35, borderWidth:3, pointRadius:0, pointHoverRadius:6, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:'#00f0ff', spanGaps: true });
+  datasets.push({ data:dataVals, borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35, borderWidth:3, pointRadius:0, pointHoverRadius:6, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:'#ff007f', spanGaps: true });
  } else {
   let color = isUp ? '#2ee6a8' : '#ff6b81';
   if (neon) color = isUp ? '#00ffc6' : '#ff2e88';
@@ -1123,8 +1123,8 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
  }
 
  const light=theme==='light';
- const gc=light?'rgba(40,60,100,.12)':neon?'rgba(168,85,247,.15)':glass?'rgba(145,190,235,.12)':aurora?'rgba(0,240,255,.1)':'rgba(160,185,225,.1)';
- const tc=light?'#5a6b88':neon?'#b39ddb':glass?'rgba(205,222,250,.82)':aurora?'#6b8cba':'#8fa0bd';
+ const gc=light?'rgba(40,60,100,.12)':neon?'rgba(168,85,247,.15)':glass?'rgba(145,190,235,.12)':aurora?'rgba(255,0,127,.1)':'rgba(160,185,225,.1)';
+ const tc=light?'#5a6b88':neon?'#b39ddb':glass?'rgba(205,222,250,.82)':aurora?'#a070a0':'#8fa0bd';
 
  const newChart = new Chart(ctx,{
   type:'line',
@@ -1139,7 +1139,7 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
     tooltip:{
      filter: item => !glass || item.datasetIndex === 2,
      backgroundColor:neon?'rgba(10,4,28,.96)':glass?'rgba(9,18,39,.97)':aurora?'rgba(5,10,25,.97)':'rgba(5,12,25,.96)',
-     borderColor:neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(126,210,231,.55)':aurora?'rgba(0,240,255,.5)':'#70a4ff88',borderWidth:1,
+     borderColor:neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(126,210,231,.55)':aurora?'rgba(255,0,127,.5)':'#70a4ff88',borderWidth:1,
      titleFont:{family:'Tahoma',size:11},bodyFont:{family:'Tahoma',size:11},
      callbacks:{label:c=> (isUSD ? '$' : '') + num(c.parsed.y, isUSD ? 2 : 0) + ' ' + (isUSD ? '' : t('tomanUnit'))}
     }
@@ -1196,7 +1196,12 @@ function renderFeatured(){
   renderExpandedChart();
  }
  
- apply3DTilt();
+ // فقط برای تم الماسی افکت کج شدن اعمال شود
+ if (theme === 'glass') {
+  setTimeout(apply3DTilt, 100);
+ } else {
+  remove3DTilt();
+ }
 }
 
 function toggleExpandedChart(id) {
@@ -1230,7 +1235,7 @@ function openExpandedChart(id) {
   if(!charts[chartKey]) drawOrUpdateChart(a, null, 'exp-');
   else drawOrUpdateChart(a, charts[chartKey], 'exp-');
   container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  apply3DTilt();
+  if (theme === 'glass') apply3DTilt();
  }, 50);
  
  updateMiniCardButtons();
@@ -1256,7 +1261,7 @@ function renderExpandedChart() {
   const chartKey = 'exp-' + a.id;
   if(!charts[chartKey]) drawOrUpdateChart(a, null, 'exp-');
   else drawOrUpdateChart(a, charts[chartKey], 'exp-');
-  apply3DTilt();
+  if (theme === 'glass') apply3DTilt();
  }, 50);
 }
 
@@ -1295,7 +1300,12 @@ function renderAll(){
  }
  
  renderCharts(grid, null, 'all-');
- apply3DTilt();
+ 
+ if (theme === 'glass') {
+  setTimeout(apply3DTilt, 100);
+ } else {
+  remove3DTilt();
+ }
 }
 
 function updateChange(a){
@@ -1357,7 +1367,7 @@ function addHolding(){
  renderHoldings();
 }
 
-// === 3D TILT EFFECT ===
+// === 3D TILT EFFECT (فقط برای تم الماسی) ===
 function apply3DTilt() {
  if (window.innerWidth < 800) return; // Disable on mobile
  const cards = document.querySelectorAll('.card, .mini-card');
@@ -1457,7 +1467,8 @@ function applyTheme(){
     }
  }
  
- if (theme === 'glass' || theme === 'aurora') {
+ // افکت سه بعدی فقط برای تم الماسی
+ if (theme === 'glass') {
     setTimeout(apply3DTilt, 100);
  } else {
     remove3DTilt();
@@ -1523,7 +1534,7 @@ window.addEventListener('resize',()=>{
  clearTimeout(rt);
  rt=setTimeout(()=>{
    if (window.innerWidth < 800) remove3DTilt();
-   else if (theme === 'glass' || theme === 'aurora') apply3DTilt();
+   else if (theme === 'glass') apply3DTilt();
  },200);
 });
 
