@@ -23,12 +23,10 @@ ASSETS = [
     {"id": "oil",     "symbol": "OIL",             "nid": "oil", "currency": "USD"},
 ]
 
-
 def fetch_json(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (prices-bot)"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode("utf-8"))
-
 
 def iran_rows(p):
     c = (p or {}).get("data", {}).get("categories")
@@ -40,6 +38,14 @@ def iran_rows(p):
             out.extend(arr)
     return out
 
+def downsample(points, max_pts):
+    if len(points) <= max_pts:
+        return points
+    step = max(1, len(points) // max_pts)
+    out = points[::step]
+    if out[-1] != points[-1]:
+        out.append(points[-1])
+    return out
 
 def main():
     n_items, i_items = [], []
@@ -60,7 +66,6 @@ def main():
 
     for a in ASSETS:
         p, s = None, ""
-
         ni = next(
             (x for x in n_items
              if x.get("id") == a["nid"]
@@ -101,55 +106,68 @@ def main():
             prices[a["id"]] = p
             sources[a["id"]] = s
 
-    # --- منطق ذخیره‌سازی تاریخچه روزانه (Intraday) ---
     tehran_tz = zoneinfo.ZoneInfo("Asia/Tehran")
     now = datetime.datetime.now(tehran_tz)
     today_str = now.strftime("%Y-%m-%d")
     now_ms = int(now.timestamp() * 1000)
 
+    # --- بارگذاری همه روزهای ذخیره‌شده ---
     intraday_file = "data/intraday.json"
-    intraday_data = {}
+    all_days = {}
 
-    # اگر فایل وجود داشت، بخوان
     if os.path.exists(intraday_file):
         try:
             with open(intraday_file, "r", encoding="utf-8") as f:
                 saved = json.load(f)
-                # اگر تاریخ ذخیره شده مربوط به امروز بود، نگه دار. وگرنه (ساعت ۱۲ شب) ریست کن
-                if saved.get("date") == today_str:
-                    intraday_data = saved.get("data", {})
+                if "days" in saved:
+                    all_days = saved["days"]
+                elif "date" in saved and "data" in saved:
+                    all_days = {saved["date"]: saved["data"]}
         except Exception:
             pass
 
-    # اضافه کردن قیمت‌های جدید به تاریخچه
+    # اضافه کردن قیمت‌های جدید به سبد امروز
+    today_data = all_days.get(today_str, {})
     for k, v in prices.items():
-        if k.startswith("_"): 
+        if k.startswith("_"):
             continue
-        if k not in intraday_data:
-            intraday_data[k] = []
-        
-        # برای جلوگیری از سنگین شدن، فقط اگر آخرین قیمت با قیمت جدید فرق داشت اضافه کن
-        last_point = intraday_data[k][-1] if intraday_data[k] else None
+        if k not in today_data:
+            today_data[k] = []
+        last_point = today_data[k][-1] if today_data[k] else None
         if not last_point or last_point.get("price") != v:
-            intraday_data[k].append({"time": now_ms, "price": v})
+            today_data[k].append({"time": now_ms, "price": v})
+    all_days[today_str] = today_data
+
+    # --- نگه‌داری دقیقاً ۳۰ روز اخیر و حذف مابقی ---
+    cut_7   = (now - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+    cut_30  = (now - datetime.timedelta(days=30)).strftime("%Y-%m-%d")
+
+    for day_str in list(all_days.keys()):
+        if day_str < cut_30:
+            del all_days[day_str] # حذف روزهای قدیمی‌تر از ۳۰ روز
+            continue
+        if day_str < cut_7:
+            max_pts = 24     # ۱ نقطه در هر ساعت
+        else:
+            max_pts = 96     # ۱ نقطه در هر ۱۵ دقیقه
+        for asset_id in list(all_days[day_str].keys()):
+            all_days[day_str][asset_id] = downsample(all_days[day_str][asset_id], max_pts)
 
     os.makedirs("data", exist_ok=True)
-    
-    # ذخیره فایل قیمت‌های لحظه‌ای
-    data = {
-        "updated_at": now_ms,
-        "prices": prices,
-        "sources": sources,
-    }
+
     with open("data/latest-prices.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump({
+            "updated_at": now_ms,
+            "prices": prices,
+            "sources": sources,
+        }, f, ensure_ascii=False, indent=2)
 
-    # ذخیره فایل تاریخچه روزانه
     with open(intraday_file, "w", encoding="utf-8") as f:
-        json.dump({"date": today_str, "data": intraday_data}, f, ensure_ascii=False, indent=2)
+        json.dump({"days": all_days}, f, ensure_ascii=False, indent=2)
 
-    print(f"Updated {len([k for k in prices if not k.startswith('_')])} prices. Intraday records saved.")
-
+    total_pts = sum(len(pts) for d in all_days.values() for pts in d.values())
+    print(f"Updated {len([k for k in prices if not k.startswith('_')])} prices. "
+          f"Saved {len(all_days)} days, {total_pts} total points.")
 
 if __name__ == "__main__":
     main()
