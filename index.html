@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد بازار | Market Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- استفاده از سرور سریع‌تر برای Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
  --bg1:#0a0f1f; --bg2:#131b33;
@@ -539,15 +540,14 @@ function saveHoldings(){
  try{localStorage.setItem(HOLDINGS_KEY,JSON.stringify(holdings));}catch(e){}
 }
 
+// فقط و فقط از فایل محلی می‌خواند (سریع)
 async function refreshPrices(){
  $('status').textContent=t('loading');
  try{
-  let data=null, intraData=null;
-  
-  // خواندن فایل‌های محلی
-  const p1 = fetchJson(LOCAL_PRICES_URL,10000).catch(()=>null);
-  const p2 = fetchJson(LOCAL_INTRADAY_URL,10000).catch(()=>null);
-  [data, intraData] = await Promise.all([p1, p2]);
+  const [data, intraData] = await Promise.all([
+   fetchJson(LOCAL_PRICES_URL, 5000).catch(()=>null),
+   fetchJson(LOCAL_INTRADAY_URL, 5000).catch(()=>null)
+  ]);
 
   if(intraData && intraData.data){
    remoteIntraday = intraData.data;
@@ -562,54 +562,16 @@ async function refreshPrices(){
     const p=data.prices[a.id];
     if(p>0)record(a.id,p,updatedAt);
    }
-  } else {
-   // حالت پشتیبان (فقط در اولین راه‌اندازی)
-   const built=await buildPricesFromSources();
-   for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k];}
-   Object.assign(prices,built.prices);
-   Object.assign(sources,built.sources);
-   for(const a of assets){
-    const p=built.prices[a.id];
-    if(p>0)record(a.id,p,Date.now());
-   }
   }
   saveIntraday();
   const ok=Object.keys(prices).filter(k=>!k.startsWith('_')).length>0;
   $('dot').classList.toggle('bad',!ok);
   $('status').textContent=ok?t('connected'):t('failed');
   updatePricesOnly();
- }catch(e){$('dot').classList.add('bad');$('status').textContent=t('failed');}
-}
-
-async function buildPricesFromSources(){
- let nItems=[],iItems=[];
- const p1=fetchJson(NA+'/latest.json').catch(()=>null);
- const p2=fetchJson(IM_CDN+'/latest-toman.json').catch(()=>null);
- const [n,i]=await Promise.all([p1,p2]);
- if(n&&Array.isArray(n?.items))nItems=n.items;
- if(i)iItems=iranRows(i);
-
- const newPrices={},newSources={};
- for(const a of assets){
-  let p=null,s='';
-  const ni=nItems.find(x=>x.id===a.nid&&Number(x.price)>0&&(!x.unit||x.unit==='IRT'));
-  if(ni){
-   p=Number(ni.price);s='n';
-   const lo=Number(ni.low_24h||ni.low24h||ni['24h_low']||ni.min_24h||ni['24hour']?.low||0);
-   const hi=Number(ni.high_24h||ni.high24h||ni['24h_high']||ni.max_24h||ni['24hour']?.high||0);
-   if(lo>0&&hi>0){newPrices['_low_'+a.id]=lo;newPrices['_high_'+a.id]=hi;}
-  }
-  if(!(p>0)){
-   const ii=iItems.find(x=>x.symbol===a.symbol&&Number(x.price)>0);
-   if(ii){p=Number(ii.price);s='i';}
-  }
-  if(a.id==='btc'&&p>0&&s==='i'){
-   const u=newPrices['usd'];
-   if(u>0)p=p*u;else p=null;
-  }
-  if(p>0){newPrices[a.id]=p;newSources[a.id]=s;}
+ }catch(e){
+  $('dot').classList.add('bad');
+  $('status').textContent=t('failed');
  }
- return {updated_at:Date.now(),prices:newPrices,sources:newSources};
 }
 
 function todayOHLC(id){
@@ -702,20 +664,23 @@ function updatePricesOnly(){
  calc();
 }
 
+// این تابع دیگر بلاک نمی‌کند
 async function loadHistories(){
- await Promise.allSettled(assets.map(async a=>{
-  const cands=[IM_CDN+'/history/'+encodeURIComponent(a.symbol)+'.json'];
-  for(const u of cands){
-   try{
-    const pl=await fetchJson(u,20000);
-    const rows=Array.isArray(pl?.data)?pl.data:Array.isArray(pl)?pl:[];
-    const pts=rows.map(r=>({time:parseTime(r.t_tehran||r.t||r.timestamp||r.date),date:r.date_jalali||r.date||'',price:Number(r.close??r.price??r.value),low:Number(r.low??r.min??0),high:Number(r.high??r.max??0)})).filter(p=>Number.isFinite(p.time)&&p.price>0).sort((a,b)=>a.time-b.time);
-    if(pts.length>=1){history[a.id]=pts;return;}
-   }catch(e){}
-  }
-  history[a.id]=[];
- }));
- renderCards();
+ try {
+  await Promise.allSettled(assets.map(async a=>{
+   const cands=[IM_CDN+'/history/'+encodeURIComponent(a.symbol)+'.json'];
+   for(const u of cands){
+    try{
+     const pl=await fetchJson(u,10000);
+     const rows=Array.isArray(pl?.data)?pl.data:Array.isArray(pl)?pl:[];
+     const pts=rows.map(r=>({time:parseTime(r.t_tehran||r.t||r.timestamp||r.date),date:r.date_jalali||r.date||'',price:Number(r.close??r.price??r.value),low:Number(r.low??r.min??0),high:Number(r.high??r.max??0)})).filter(p=>Number.isFinite(p.time)&&p.price>0).sort((a,b)=>a.time-b.time);
+     if(pts.length>=1){history[a.id]=pts;return;}
+    }catch(e){}
+   }
+   history[a.id]=[];
+  }));
+  renderCards();
+ } catch(e) {}
 }
 
 function calParts(p){
@@ -743,14 +708,11 @@ function sampleByStep(pts,step){
 function pointsFor(id){
  const all=history[id]||[];
  const mode=ranges[id]||'daily';
- if(!all.length) return [];
  
  if(mode==='daily'){
-  // اولویت با دیتای گیت‌هاب
   const remoteIntr = (remoteIntraday[id] || []).filter(p=>dayKey(p.time)===dayKey());
   if(remoteIntr.length >= 2) return remoteIntr;
   
-  // بعدی: دیتای مرورگر
   const localIntr = (intraday[id]||[]).filter(p=>dayKey(p.time)===dayKey());
   if(localIntr.length >= 2) return localIntr;
   
@@ -761,11 +723,13 @@ function pointsFor(id){
   if(localIntr.length > 0) return localIntr;
   if(histToday.length > 0) return histToday;
   
-  return all.slice(-2);
+  if(prices[id] > 0) return [{time: Date.now(), price: prices[id]}];
+  return [];
  }
  
- if(mode==='all')return sampleByStep(all,Math.ceil(all.length/120));
+ if(!all.length) return [];
  const latest=calParts(all[all.length-1]);
+ if(mode==='all')return sampleByStep(all,Math.ceil(all.length/120));
  if(mode==='weekly'){
   const lastTime=all[all.length-1].time;
   return sampleByDay(all.filter(p=>p.time>=lastTime-7*24*60*60*1000),7);
@@ -1313,6 +1277,7 @@ $('assetSelect').onchange=calc;
 let rt;
 window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>renderCards(),200);});
 
+// بخش راه‌اندازی بهینه شده
 (async function init(){
  try{
   const s=localStorage.getItem('mktLang');if(s==='fa'||s==='en')lang=s;
@@ -1322,8 +1287,17 @@ window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>renderC
  loadHoldings();
  applyTheme();
  applyLang();
- await Promise.allSettled([refreshPrices(),loadHistories()]);
+ 
+ // 1. دریافت و نمایش سریع قیمت‌ها و نمودارهای امروز
+ await refreshPrices();
  applyLang();
+ 
+ // 2. دریافت تاریخچه نمودارها در پس‌زمینه (بلاک نمی‌کند)
+ loadHistories().then(() => {
+    // وقتی تاریخچه لود شد، دوباره رندر کن تا اگر کاربر روی هفتگی/ماهانه بود، آپدیت شود
+    renderCards();
+ });
+
  setInterval(refreshPrices,5*60*1000);
  setInterval(loadHistories,30*60*1000);
 })();
