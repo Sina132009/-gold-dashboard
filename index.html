@@ -920,7 +920,7 @@ function bindRanges(grid, prefix=''){
          dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
        }
      }
-     updateChange(a); // آپدیت درصد تغییرات در بالای کارت
+     updateChange(a); // آپدیت درصد تغییرات بالای کارت
    }
    grid.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
    b.classList.add('active');
@@ -1130,6 +1130,7 @@ function renderCharts(grid, filterIds, prefix=''){
    }
    updateChange(a);
    
+   // تاخیر 10 میلی‌ثانیه‌ای برای جلوگیری از فریز شدن
    setTimeout(drawNext, 10); 
  }
  drawNext();
