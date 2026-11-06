@@ -6,7 +6,6 @@
 <title>داشبورد بازار | Market Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ==== OBSIDIAN (DEFAULT DARK) ==== */
 :root,[data-theme="obsidian"]{
  --bg1:#000000; --bg2:#050505;
  --card1:#111111; --card2:#0a0a0a;
@@ -14,7 +13,6 @@
  --green:#00e676; --red:#ff1744; --accent:#f3c623;
  --shadow:0 25px 50px -12px rgba(0,0,0,1), inset 0 1px 0 rgba(255,255,255,0.03);
 }
-/* ==== NEON ==== */
 [data-theme="neon"]{
  --bg1:#05010f; --bg2:#0d0420;
  --card1:rgba(20,8,45,.92); --card2:rgba(10,4,28,.95);
@@ -22,7 +20,6 @@
  --green:#00ffc6; --red:#ff2e88; --accent:#a855f7;
  --shadow:0 0 30px rgba(168,85,247,.35), 0 0 70px rgba(0,255,198,.12);
 }
-/* ==== GLASS (DIAMOND) ==== */
 [data-theme="glass"]{
  --bg1:#070d20; --bg2:#111d3b;
  --card1:rgba(23,38,70,.72); --card2:rgba(10,20,43,.82);
@@ -30,8 +27,6 @@
  --green:#62f3d0; --red:#ff7898; --accent:#83a8ff;
  --shadow:0 22px 55px rgba(0,0,0,.48), 0 8px 24px rgba(35,94,180,.12);
 }
-
-/* ==== BASE ==== */
 *{box-sizing:border-box;margin:0;padding:0}
 body{
  min-height:100vh; color:var(--txt); font-family:Tahoma,Arial,sans-serif;
@@ -66,7 +61,6 @@ body{
  background-size:46px 46px;
  mask-image:linear-gradient(to bottom,black,transparent 82%);
 }
-
 .app{max-width:1400px;margin:auto;padding:20px;position:relative;z-index:1}
 header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
 .brand{display:flex;align-items:center;gap:12px}
@@ -227,9 +221,8 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  background:linear-gradient(120deg,#73e9df,#9eb8ff 65%,#b7a5ff);
  color:#08152b;border-color:transparent;
 }
-.chart-wrap{height:190px;position:relative}
+.chart-wrap{height:190px;position:relative;min-height:190px}
 canvas{width:100%!important;height:100%!important;display:block;transition:transform .4s}
-/* === Canvas transforms per theme === */
 [data-theme="neon"] canvas{ transform:perspective(800px) rotateX(6deg); transform-origin:center bottom; }
 [data-theme="neon"] .card:hover canvas{ transform:perspective(800px) rotateX(2deg) scale(1.02); }
 [data-theme="glass"] canvas{ transform:perspective(1100px) rotateX(5deg); transform-origin:center bottom; }
@@ -258,7 +251,6 @@ canvas{width:100%!important;height:100%!important;display:block;transition:trans
 }
 .result small{font-size:11px;opacity:.85}
 .result .total{font-size:24px;font-weight:bold;direction:ltr;text-align:right;margin-top:8px}
-
 .add-row{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:16px}
 .add-row select,.add-row input{
  width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;
@@ -299,7 +291,6 @@ canvas{width:100%!important;height:100%!important;display:block;transition:trans
 }
 .total-box small{font-size:12px;opacity:.9}
 .total-box .total-val{font-size:28px;font-weight:bold;direction:ltr;margin-top:8px}
-
 .footer{text-align:center;font-size:10px;color:var(--muted);line-height:2;margin:24px 0 6px}
 .footer a{color:var(--accent)}
 .hidden{display:none!important}
@@ -442,7 +433,6 @@ async function fetchJson(url,tm=10000){
  try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json();}
  finally{clearTimeout(id);}
 }
-function iranRows(p){const c=p?.data?.categories;if(!c||typeof c!=='object')return[];return Object.values(c).flatMap(x=>Array.isArray(x)?x:[]);}
 
 function loadIntraday(){
  try{const s=JSON.parse(localStorage.getItem(INTRADAY_KEY)||'{}'),today=dayKey();
@@ -458,7 +448,8 @@ function record(id,price,time){
  if(!(price>0)||!Number.isFinite(time))return;
  const rows=(intraday[id]||[]).filter(p=>dayKey(p.time)===dayKey(time));
  const last=rows[rows.length-1];
- if(last&&time-last.time<30000)return;
+ // FIX: debounce 15s to fill chart faster
+ if(last&&time-last.time<15000)return;
  rows.push({time,price});intraday[id]=rows.slice(-1000);
 }
 function loadHoldings(){
@@ -482,6 +473,9 @@ async function refreshPrices(){
    remoteIntraday = intraData.days;
   } else if(intraData && intraData.date && intraData.data){
    remoteIntraday = { [intraData.date]: intraData.data };
+  } else if(intraData && !intraData.days && !intraData.date){
+   // maybe direct map { id: [{time,price}] }
+   remoteIntraday = { [dayKey()]: intraData };
   }
 
   if(data && data.prices && Object.keys(data.prices).length>0){
@@ -518,6 +512,7 @@ function getTomanValue(id){
  return p;
 }
 
+// جمع‌آوری همه نقاط ذخیره‌شده از فایل سرور (remote intraday)
 function getSavedPoints(id, days){
  const cutoff = Date.now() - days * 86400000;
  const out = [];
@@ -531,24 +526,33 @@ function getSavedPoints(id, days){
  return out.sort((a,b)=>a.time-b.time);
 }
 
-// === سیستم ادغام هوشمند داده‌های ذخیره‌شده با داده‌های منبع ===
 function mergeWithSource(savedPts, sourcePts, daysRange) {
   const cutoff = Date.now() - daysRange * 86400000;
   const sourceInRange = sourcePts.filter(p => p.time >= cutoff);
-  
   if (savedPts.length === 0) return sourceInRange;
   if (sourceInRange.length === 0) return savedPts;
-  
   const earliestSaved = savedPts[0].time;
   const olderSource = sourceInRange.filter(p => p.time < earliestSaved);
-  
   return [...olderSource, ...savedPts].sort((a,b) => a.time - b.time);
 }
 
 function getMergedRawPoints(id, days) {
   const all = history[id] || [];
   const saved = getSavedPoints(id, days);
-  return mergeWithSource(saved, all, days);
+  let merged = mergeWithSource(saved, all, days);
+
+  // FIX: include today's local session points too (useful for weekly/monthly last point)
+  const local = (intraday[id] || []).filter(p => p.price > 0 && p.time >= Date.now() - days*86400000);
+  if (local.length) {
+    const seen = new Set(merged.map(p => Math.floor(p.time/60000)));
+    for (const p of local) {
+      const k = Math.floor(p.time/60000);
+      if (!seen.has(k)) { merged.push(p); seen.add(k); }
+    }
+    merged.sort((a,b) => a.time - b.time);
+  }
+
+  return merged;
 }
 
 function todayOHLC(id){
@@ -563,7 +567,10 @@ function todayOHLC(id){
   }
  }
  if(vals.length)return {low:Math.min(...vals),high:Math.max(...vals)};
- const rows=(intraday[id]||[]).filter(p=>dayKey(p.time)===today&&Number(p.price)>0);
+ // FIX: also check remote intraday
+ const remote = (remoteIntraday[id]||[]).filter(p=>dayKey(p.time)===today&&Number(p.price)>0);
+ const local = (intraday[id]||[]).filter(p=>dayKey(p.time)===today&&Number(p.price)>0);
+ const rows = [...remote, ...local];
  if(!rows.length)return {low:0,high:0};
  const v=rows.map(p=>p.price);
  return {low:Math.min(...v),high:Math.max(...v)};
@@ -588,7 +595,6 @@ function getRangeOHLC(id){
  return { low: Math.min(...vals), high: Math.max(...vals) };
 }
 
-// === محاسبه درصد تغییرات نسبت به ابتدای بازه انتخاب شده ===
 function getRangeChange(id){
  const mode = ranges[id] || 'daily';
  let rawPts = [];
@@ -712,6 +718,14 @@ function updateChartData(a, chartInstance) {
  chartInstance.options.scales.y.min = yMin;
  chartInstance.options.scales.y.max = yMax;
  
+ // FIX: show points when data is very sparse so mobile users see something
+ const sparse = pts.length < 3;
+ chartInstance.data.datasets.forEach((ds, i) => {
+   if (ds.pointRadius !== undefined) {
+     ds.pointRadius = sparse ? 4 : 0;
+   }
+ });
+ 
  const isUp = pts.length > 1 ? (pts[pts.length-1].price >= pts[0].price) : true;
  updateChartTheme(chartInstance, a, isUp);
  chartInstance.update('none');
@@ -764,6 +778,11 @@ async function loadHistories(){
            chartInstance.options.scales.y.min = yMin;
            chartInstance.options.scales.y.max = yMax;
            
+           const sparse = pts.length < 3;
+           chartInstance.data.datasets.forEach(ds => {
+             if (ds.pointRadius !== undefined) ds.pointRadius = sparse ? 4 : 0;
+           });
+           
            const isUp = pts.length > 1 ? (pts[pts.length-1].price >= pts[0].price) : true;
            updateChartTheme(chartInstance, a, isUp);
            chartInstance.update('none');
@@ -773,13 +792,6 @@ async function loadHistories(){
  } catch(e) {}
 }
 
-function calParts(p){
- const raw=String(p.date||'').trim();
- const m=raw.match(/^(\d{4})[\/-](\d{1,2})/);
- if(m)return{year:+m[1],month:+m[2]};
- const d=new Date(p.time);
- return{year:d.getFullYear(),month:d.getMonth()+1};
-}
 function sampleByDay(pts,max){
  if(pts.length<=max)return pts;
  const byDay={};
@@ -796,25 +808,43 @@ function sampleByStep(pts,step){
  return out;
 }
 
+// === FIX: Daily pointsFor merges all today's sources ===
 function pointsFor(id){
  const all = history[id] || [];
  const mode = ranges[id] || 'daily';
  
  if(mode==='daily'){
-  const remoteIntr = (remoteIntraday[id] || []).filter(p=>dayKey(p.time)===dayKey());
-  if(remoteIntr.length >= 2) return remoteIntr;
+  const today = dayKey();
+  const merged = [];
+  const seen = new Set();
   
-  const localIntr = (intraday[id]||[]).filter(p=>dayKey(p.time)===dayKey());
-  if(localIntr.length >= 2) return localIntr;
+  const addPts = (pts) => {
+    if (!pts) return;
+    for (const p of pts) {
+      if (!p || !(Number(p.price) > 0) || !Number.isFinite(Number(p.time))) continue;
+      if (dayKey(Number(p.time)) !== today) continue;
+      const key = Math.floor(Number(p.time) / 60000);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push({ time: Number(p.time), price: Number(p.price) });
+    }
+  };
   
-  const histToday = all.filter(p=>dayKey(p.time)===dayKey());
-  if(histToday.length >= 2) return histToday;
+  // 1. Local session + saved (localStorage)
+  addPts(intraday[id] || []);
   
-  if(remoteIntr.length > 0) return remoteIntr;
-  if(localIntr.length > 0) return localIntr;
-  if(histToday.length > 0) return histToday;
+  // 2. Remote intraday from server file (اطلاعات ذخیره شده)
+  addPts(remoteIntraday[id] || []);
   
-  if(prices[id] > 0) return [{time: Date.now(), price: prices[id]}];
+  // 3. History data (CDN / منبع پشتیبان)
+  addPts(all);
+  
+  if (merged.length > 0) {
+    return merged.sort((a,b)=>a.time-b.time);
+  }
+  
+  // fallback: single current price
+  if (prices[id] > 0) return [{ time: Date.now(), price: prices[id] }];
   return [];
  }
  
@@ -920,7 +950,7 @@ function bindRanges(grid, prefix=''){
          dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
        }
      }
-     updateChange(a); // آپدیت درصد تغییرات بالای کارت
+     updateChange(a);
    }
    grid.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
    b.classList.add('active');
@@ -971,7 +1001,7 @@ function updateChartTheme(chartInstance, a, isUp) {
    const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
    fillGrad.addColorStop(0, 'rgba(243, 198, 35, 0.15)');
    fillGrad.addColorStop(1, 'rgba(255, 143, 0, 0)');
-   if(chartInstance.data.datasets.length === 1) {
+   if(chartInstance.data.datasets.length >= 1) {
       chartInstance.data.datasets[0].borderColor = lineGrad;
       chartInstance.data.datasets[0].backgroundColor = fillGrad;
       chartInstance.data.datasets[0].shadowColor = 'transparent';
@@ -987,7 +1017,7 @@ function updateChartTheme(chartInstance, a, isUp) {
       grad.addColorStop(0,isUp?'rgba(46,230,168,.45)':'rgba(255,107,129,.4)');
       grad.addColorStop(1,'rgba(20,30,50,0)');
    }
-   if(chartInstance.data.datasets.length === 1) {
+   if(chartInstance.data.datasets.length >= 1) {
       chartInstance.data.datasets[0].borderColor = color;
       chartInstance.data.datasets[0].backgroundColor = grad;
       chartInstance.data.datasets[0].shadowColor = neon?(isUp?'rgba(0,255,198,.6)':'rgba(255,46,136,.6)'):'transparent';
@@ -1023,9 +1053,16 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
     :(p.date||new Date(p.time).toLocaleDateString(lang==='fa'?'fa-IR':'en-US')));
  const dataVals = pts.map(p=>p.price);
 
+ // FIX: show points when sparse (mobile visibility)
+ const sparse = dataVals.length < 3;
+ const pointR = sparse ? 4 : 0;
+
  if(chartInstance) {
     chartInstance.data.labels = labels;
-    chartInstance.data.datasets.forEach(ds => { ds.data = dataVals; });
+    chartInstance.data.datasets.forEach(ds => {
+      ds.data = dataVals;
+      if (ds.pointRadius !== undefined) ds.pointRadius = pointR;
+    });
     chartInstance.options.scales.y.min = yMin;
     chartInstance.options.scales.y.max = yMax;
     updateChartTheme(chartInstance, a, isUp);
@@ -1058,7 +1095,7 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
 
   datasets.push({ data:dataVals,borderColor:'rgba(4,12,30,.48)',borderWidth:5, pointRadius:0,pointHoverRadius:0,fill:false,tension:.32,spanGaps:true, borderCapStyle:'round',borderJoinStyle:'round' });
   datasets.push({ data:dataVals,borderColor:'rgba(111,145,255,.22)',borderWidth:9, pointRadius:0,pointHoverRadius:0,fill:false,tension:.32,spanGaps:true, borderCapStyle:'round',borderJoinStyle:'round' });
-  datasets.push({ data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad, fill:true,tension:.32,borderWidth:3.2, pointRadius:0,pointHoverRadius:5, pointBackgroundColor:'#ffffff',pointBorderColor:'#a855f7', pointHoverBorderColor:'#22d3ee',pointBorderWidth:2,spanGaps:true, borderCapStyle:'round',borderJoinStyle:'round' });
+  datasets.push({ data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad, fill:true,tension:.32,borderWidth:3.2, pointRadius:pointR,pointHoverRadius:5, pointBackgroundColor:'#ffffff',pointBorderColor:'#a855f7', pointHoverBorderColor:'#22d3ee',pointBorderWidth:2,spanGaps:true, borderCapStyle:'round',borderJoinStyle:'round' });
  } else if (obsidian) {
   const lineGrad = ctx.createLinearGradient(0, 0, cv.offsetWidth || 500, 0);
   lineGrad.addColorStop(0,    '#f3c623');
@@ -1066,7 +1103,7 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
   const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
   fillGrad.addColorStop(0, 'rgba(243, 198, 35, 0.15)');
   fillGrad.addColorStop(1, 'rgba(255, 143, 0, 0)');
-  datasets.push({ data:dataVals, borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35, borderWidth:3, pointRadius:0, pointHoverRadius:6, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:'#f3c623', spanGaps: true });
+  datasets.push({ data:dataVals, borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35, borderWidth:3, pointRadius:pointR, pointHoverRadius:6, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:'#f3c623', spanGaps: true });
  } else {
   let color = isUp ? '#2ee6a8' : '#ff6b81';
   if (neon) color = isUp ? '#00ffc6' : '#ff2e88';
@@ -1078,7 +1115,7 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
    grad.addColorStop(0,isUp?'rgba(46,230,168,.45)':'rgba(255,107,129,.4)');
    grad.addColorStop(1,'rgba(20,30,50,0)');
   }
-  datasets.push({ data:dataVals, borderColor:color,backgroundColor:grad,fill:true,tension:.35, borderWidth:neon?2.8:2.2, pointRadius:dataVals.length<3?4:0, pointHoverRadius:neon?7:5, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:color, shadowOffsetX:0,shadowOffsetY:neon?4:0, shadowBlur:neon?15:0,shadowColor:neon?(isUp?'rgba(0,255,198,.6)':'rgba(255,46,136,.6)'):'transparent', spanGaps: true });
+  datasets.push({ data:dataVals, borderColor:color,backgroundColor:grad,fill:true,tension:.35, borderWidth:neon?2.8:2.2, pointRadius:pointR, pointHoverRadius:neon?7:5, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:color, shadowOffsetX:0,shadowOffsetY:neon?4:0, shadowBlur:neon?15:0,shadowColor:neon?(isUp?'rgba(0,255,198,.6)':'rgba(255,46,136,.6)'):'transparent', spanGaps: true });
  }
 
  const light=theme==='light';
@@ -1130,7 +1167,6 @@ function renderCharts(grid, filterIds, prefix=''){
    }
    updateChange(a);
    
-   // تاخیر 10 میلی‌ثانیه‌ای برای جلوگیری از فریز شدن
    setTimeout(drawNext, 10); 
  }
  drawNext();
@@ -1411,7 +1447,6 @@ function addHolding(){
  renderHoldings();
 }
 
-// === 3D TILT EFFECT (فقط برای تم الماسی) ===
 function apply3DTilt() {
  if (window.innerWidth < 800) return;
  const cards = document.querySelectorAll('.card, .mini-card');
@@ -1456,7 +1491,6 @@ function remove3DTilt() {
   }
  });
 }
-// =======================
 
 function applyLang(){
  document.documentElement.lang=lang;
@@ -1497,18 +1531,32 @@ function applyLang(){
  updateMiniCardButtons();
 }
 
+// === FIX: destroy + recreate charts on theme switch so glass 3-layer / neon glow apply properly ===
 function applyTheme(){
  document.documentElement.setAttribute('data-theme',theme);
  $('themeBtn').textContent = theme==='obsidian' ? '👑' : theme==='neon' ? '⚡' : '💎';
  
- for (const chartKey in charts) {
-    let aId = chartKey;
-    if (chartKey.includes('-')) aId = chartKey.split('-')[1];
-    const a = assets.find(x=>x.id===aId);
-    if(a) {
-       updateChartTheme(charts[chartKey], a, true);
-       charts[chartKey].update('none');
-    }
+ const existingKeys = Object.keys(charts);
+ for (const key of existingKeys) {
+   try { charts[key].destroy(); } catch(e) {}
+   delete charts[key];
+ }
+ 
+ // rebuild based on active page
+ if(!$('homePage').classList.contains('hidden')) {
+   // grid featured may already have DOM; just redraw canvases
+   if($('gridFeatured').innerHTML) {
+     setTimeout(()=>{
+       renderCharts($('gridFeatured'), ['usd','usdt'], 'feat-');
+       if(expandedAssetId) {
+         const a = assets.find(x=>x.id===expandedAssetId);
+         if(a) setTimeout(()=>{ if(expandedAssetId===a.id) drawOrUpdateChart(a, null, 'exp-'); }, 20);
+       }
+     }, 20);
+   }
+ }
+ if(!$('allPage').classList.contains('hidden') && $('gridAll').innerHTML) {
+   setTimeout(()=>renderCharts($('gridAll'), null, 'all-'), 20);
  }
  
  if (theme === 'glass') {
@@ -1578,4 +1626,4 @@ window.addEventListener('resize',()=>{
 })();
 </script>
 </body>
-</html>
+ </html>
