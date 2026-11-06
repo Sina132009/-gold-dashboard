@@ -721,7 +721,7 @@ async function loadHistories(){
     }catch(e){}
    }
    
-   const savedPts = getSavedPoints(a.id, 365);
+   const savedPts = getSavedPoints(a.id, 30);
    if (savedPts.length > 0) {
      history[a.id] = savedPts;
      return;
@@ -786,9 +786,11 @@ function sampleByStep(pts,step){
  if(out[out.length-1]!==pts[pts.length-1])out.push(pts[pts.length-1]);
  return out;
 }
+
+// === تابع کلیدی برای انتخاب منبع داده بر اساس بازه زمانی ===
 function pointsFor(id){
- const all=history[id]||[];
- const mode=ranges[id]||'daily';
+ const all = history[id] || []; // تاریخچه اصلی (سال و از اول)
+ const mode = ranges[id] || 'daily';
  
  if(mode==='daily'){
   const remoteIntr = (remoteIntraday[id] || []).filter(p=>dayKey(p.time)===dayKey());
@@ -808,20 +810,33 @@ function pointsFor(id){
   return [];
  }
  
- if(!all.length) return [];
- const latest=calParts(all[all.length-1]);
- if(mode==='all')return sampleByStep(all,Math.ceil(all.length/120));
  if(mode==='weekly'){
-  const lastTime=all[all.length-1].time;
+  const saved = getSavedPoints(id, 7);
+  if (saved.length > 0) return sampleByDay(saved, 7);
+  // در صورت نبود دیتای گیت‌هاب، از تاریخچه اصلی استفاده کن
+  const lastTime = all.length > 0 ? all[all.length-1].time : Date.now();
   return sampleByDay(all.filter(p=>p.time>=lastTime-7*24*60*60*1000),7);
  }
+ 
  if(mode==='monthly'){
-  return sampleByDay(all.filter(p=>{const d=calParts(p);return d.year===latest.year&&d.month===latest.month;}),30);
+  const saved = getSavedPoints(id, 30);
+  if (saved.length > 0) return sampleByDay(saved, 30);
+  // در صورت نبود دیتای گیت‌هاب، از تاریخچه اصلی استفاده کن
+  const lastTime = all.length > 0 ? all[all.length-1].time : Date.now();
+  return sampleByDay(all.filter(p=>p.time>=lastTime-30*24*60*60*1000),30);
  }
+ 
+ // برای سال و از اول، همیشه از تاریخچه اصلی (منبع) استفاده کن
  if(mode==='yearly'){
-  const year=all.filter(p=>calParts(p).year===latest.year);
-  return sampleByStep(year,Math.max(1,Math.floor(year.length/24)));
+  const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
+  const yearData = all.filter(p=>p.time >= oneYearAgo);
+  if(yearData.length > 0) return sampleByStep(yearData, Math.max(1, Math.floor(yearData.length/24)));
  }
+ 
+ if(mode==='all'){
+  if(all.length > 0) return sampleByStep(all, Math.ceil(all.length/120));
+ }
+ 
  return all;
 }
 
