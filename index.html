@@ -438,7 +438,6 @@ function dayKey(time=Date.now()){
  return `${g('year')}-${g('month')}-${g('day')}`;
 }
 
-// تبدیل دقیق زمان (پشتیبانی از متن، ثانیه و میلی‌ثانیه)
 function parseTime(v){
  if(v==null||v==='')return NaN;
  if(typeof v==='number') return v<1e12?v*1000:v;
@@ -455,15 +454,12 @@ async function fetchJson(url,tm=10000){
  finally{clearTimeout(id);}
 }
 
-// تابع هوشمند برای خواندن فایل از چند مسیر مختلف
 async function fetchFirstSuccess(urls, tm=5000) {
   for (const url of urls) {
     try {
       const data = await fetchJson(url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now(), tm);
       if (data) return data;
-    } catch (e) {
-      // ادامه بده به مسیر بعدی
-    }
+    } catch (e) {}
   }
   return null;
 }
@@ -510,7 +506,6 @@ function saveHoldings(){
 async function refreshPrices(){
  $('status').textContent=t('loading');
  try{
-  // تلاش همزمان برای خواندن فایل‌ها از لوکال و گیت‌هاب
   const [data, intraData] = await Promise.all([
    fetchFirstSuccess(GITHUB_URLS_PRICES),
    fetchFirstSuccess(GITHUB_URLS_INTRADAY)
@@ -736,6 +731,7 @@ function updatePricesOnly(){
   }
  }
  
+ // فقط نمودارهایی که روی صفحه هستند و ساخته شده‌اند را آپدیت کن
  for (const chartKey in charts) {
   if (!charts.hasOwnProperty(chartKey)) continue;
   let aId = chartKey;
@@ -860,7 +856,6 @@ function sampleByStep(pts,step){
  return out;
 }
 
-// === تابع اصلاح شده برای خواندن دقیق دیتای امروز ===
 function pointsFor(id){
  const all = history[id] || [];
  const mode = ranges[id] || 'daily';
@@ -888,23 +883,18 @@ function pointsFor(id){
     }
   };
   
-  // ۱. دیتای ذخیره شده در لوکال
   addPts(intraday[id] || []);
   
-  // ۲. دیتای ذخیره شده در گیت‌هاب (حالا با موفقیت خوانده می‌شود)
   if (remoteIntraday[today]) {
     addPts(remoteIntraday[today][id] || []);
   }
   
-  // ۳. دیتای پشتیبان (تاریخچه)
   addPts(all);
 
-  // مرتب‌سازی نهایی
   if (merged.length > 0) {
     return merged.sort((a,b)=>a.time-b.time);
   }
   
-  // اگر واقعاً هیچ دیتایی نبود، فقط قیمت لحظه‌ای رو به عنوان یک نقطه نشون بده (بدون خط صاف تقلبی)
   if (prices[id] > 0) {
       return [{ time: Date.now(), price: prices[id] }];
   }
@@ -1213,25 +1203,55 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
  charts[chartKey] = newChart;
 }
 
+// ==========================================
+// بهینه‌سازی: استفاده از Intersection Observer
+// ==========================================
+const chartObserver = new IntersectionObserver((entries, observer) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const wrap = entry.target;
+      const canvas = wrap.querySelector('canvas');
+      if (canvas) {
+        const aId = canvas.dataset.id;
+        const prefix = canvas.dataset.prefix;
+        if (aId && prefix !== undefined) {
+          const a = assets.find(x => x.id === aId);
+          if (a) {
+            const chartKey = prefix + a.id;
+            if (!charts[chartKey]) {
+              // نمودار هنوز ساخته نشده، حالا که دیده شد می‌سازیمش
+              drawOrUpdateChart(a, null, prefix);
+            } else {
+              // اگر قبلا ساخته شده، فقط آپدیتش می‌کنیم
+              drawOrUpdateChart(a, charts[chartKey], prefix);
+            }
+          }
+        }
+      }
+      observer.unobserve(wrap); // دیگه نیازی به رصد این کارت نیست
+    }
+  });
+}, { rootMargin: '150px' }); // 150 پیکسل قبل از رسیدن به دید کاربر، شروع به لود می‌کند
+
 function renderCharts(grid, filterIds, prefix=''){
  const assetsToRender = assets.filter(a => !filterIds || filterIds.includes(a.id));
- let i = 0;
  
- function drawNext() {
-   if (i >= assetsToRender.length) return;
-   const a = assetsToRender[i++];
-   const chartKey = prefix + a.id;
-   
-   if(!charts[chartKey]) {
-       drawOrUpdateChart(a, null, prefix);
-   } else {
-       drawOrUpdateChart(a, charts[chartKey], prefix);
+ assetsToRender.forEach(a => {
+   const canvas = $(`ch-${prefix}${a.id}`);
+   if (canvas && canvas.parentElement) {
+     // ذخیره اطلاعات روی canvas برای استفاده در Observer
+     canvas.dataset.id = a.id;
+     canvas.dataset.prefix = prefix;
+     
+     if (charts[prefix + a.id]) {
+       // اگر نمودار از قبل وجود دارد، فقط رفرش کن
+       drawOrUpdateChart(a, charts[prefix + a.id], prefix);
+     } else {
+       // اگر وجود ندارد، به Observer بگو وقتی به دید کاربر رسید بسازدش
+       chartObserver.observe(canvas.parentElement);
+     }
    }
-   updateChange(a);
-   
-   setTimeout(drawNext, 10); 
- }
- drawNext();
+ });
 }
 
 function renderFeatured(){
@@ -1625,12 +1645,21 @@ function applyTheme(){
  }
 }
 
+// ==========================================
+// پاکسازی حافظه هنگام تغییر صفحه
+// ==========================================
 function hideAllPages(){
  $('homePage').classList.add('hidden');
  $('allPage').classList.add('hidden');
  $('calcPage').classList.remove('show');
  $('assetsPage').classList.remove('show');
  ['homeBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
+ 
+ // آزادسازی حافظه: تمام نمودارهای قبلی را نابود کن
+ for (const key in charts) {
+   try { charts[key].destroy(); } catch(e) {}
+   delete charts[key];
+ }
 }
 
 $('langBtn').onclick=()=>{lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang();};
