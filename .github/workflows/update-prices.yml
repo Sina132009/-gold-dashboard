@@ -1,33 +1,32 @@
-name: Update Prices Data
+name: Update Market Prices
 
 on:
   schedule:
-    # هر ۱۵ دقیقه یک‌بار اجرا می‌شود (UTC)
-    - cron: '*/15 * * * *'
-  workflow_dispatch:  # اجرای دستی از تب Actions
-
-permissions:
-  contents: write
+    - cron: '*/15 * * * *' # هر ۱۵ دقیقه اجرا می‌شود
+  workflow_dispatch: # امکان اجرای دستی هم وجود دارد
 
 jobs:
-  update-data:
+  update:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.10'
 
-      - name: Run update script
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run price update script
         run: python update_prices.py
 
       - name: Commit and push changes
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'action@github.com'
           git add data/latest-prices.json data/intraday.json
-          git diff --staged --quiet || git commit -m "Auto-update prices $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "Auto-update market prices" || exit 0
           git push
