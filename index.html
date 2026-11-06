@@ -6,13 +6,15 @@
 <title>داشبورد بازار | Market Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{
- --bg1:#0a0f1f; --bg2:#131b33;
- --card1:#1a2640ee; --card2:#101a2dee;
- --line:rgba(255,255,255,.1); --txt:#eef4ff; --muted:#8fa0bd;
- --green:#2ee6a8; --red:#ff6b81; --accent:#315da8;
- --shadow:0 18px 45px #0005;
+/* ==== OBSIDIAN (DEFAULT DARK) ==== */
+:root,[data-theme="obsidian"]{
+ --bg1:#000000; --bg2:#050505;
+ --card1:#111111; --card2:#0a0a0a;
+ --line:rgba(255,255,255,0.06); --txt:#ffffff; --muted:#888888;
+ --green:#00e676; --red:#ff1744; --accent:#f3c623;
+ --shadow:0 25px 50px -12px rgba(0,0,0,1), inset 0 1px 0 rgba(255,255,255,0.03);
 }
+/* ==== NEON ==== */
 [data-theme="neon"]{
  --bg1:#05010f; --bg2:#0d0420;
  --card1:rgba(20,8,45,.92); --card2:rgba(10,4,28,.95);
@@ -20,6 +22,7 @@
  --green:#00ffc6; --red:#ff2e88; --accent:#a855f7;
  --shadow:0 0 30px rgba(168,85,247,.35), 0 0 70px rgba(0,255,198,.12);
 }
+/* ==== GLASS (DIAMOND) ==== */
 [data-theme="glass"]{
  --bg1:#070d20; --bg2:#111d3b;
  --card1:rgba(23,38,70,.72); --card2:rgba(10,20,43,.82);
@@ -27,96 +30,20 @@
  --green:#62f3d0; --red:#ff7898; --accent:#83a8ff;
  --shadow:0 22px 55px rgba(0,0,0,.48), 0 8px 24px rgba(35,94,180,.12);
 }
-/* --- OBSIDIAN (LUXURY BLACK & GOLD) THEME --- */
-[data-theme="obsidian"]{
- --bg1:#000000; --bg2:#050505;
- --card1:#111111; --card2:#0a0a0a;
- --line:rgba(255,255,255,0.06); --txt:#ffffff; --muted:#888888;
- --green:#00e676; --red:#ff1744; --accent:#f3c623; /* Gold */
- --shadow:0 25px 50px -12px rgba(0,0,0,1), inset 0 1px 0 rgba(255,255,255,0.03);
+/* ==== OCEAN ==== */
+[data-theme="ocean"]{
+ --bg1:#02080f; --bg2:#031220;
+ --card1:rgba(10,30,50,.85); --card2:rgba(5,15,30,.95);
+ --line:rgba(0,180,255,.15); --txt:#d0f0ff; --muted:#5a8fbf;
+ --green:#00e5ff; --red:#ff5252; --accent:#0091ea;
+ --shadow:0 20px 50px -12px rgba(0,0,0,.9), 0 0 25px rgba(0,180,255,.1);
 }
-[data-theme="obsidian"] body{
- background: radial-gradient(circle at 50% 0%, #111 0%, #000 70%);
- background-attachment: fixed;
-}
-[data-theme="obsidian"] .card,
-[data-theme="obsidian"] .mini-card{
- background: linear-gradient(145deg, var(--card1), var(--card2));
- border: 1px solid rgba(255,255,255,0.05);
- box-shadow: var(--shadow);
-}
-[data-theme="obsidian"] .card:hover,
-[data-theme="obsidian"] .mini-card:hover{
- border-color: rgba(243, 198, 35, 0.3);
-}
-[data-theme="obsidian"] .btn{
- background: #111;
- border-color: rgba(255,255,255,0.08);
- color: #a0a0a0;
-}
-[data-theme="obsidian"] .btn:hover{
- color: #fff;
- border-color: rgba(255,255,255,0.2);
-}
-[data-theme="obsidian"] .btn.active{
- background: linear-gradient(135deg, #f3c623, #ff8f00);
- color: #000; font-weight: bold;
- border-color: transparent;
- box-shadow: 0 8px 20px -5px rgba(243, 198, 35, 0.4);
-}
-[data-theme="obsidian"] .logo{
- background: linear-gradient(135deg, #f3c623, #ff8f00);
- color: #000;
- box-shadow: 0 0 20px rgba(243, 198, 35, 0.3);
-}
-[data-theme="obsidian"] .brand h1{
- background:linear-gradient(90deg, #ffffff, #f3c623);
- -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-[data-theme="obsidian"] .chg{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2);color:var(--green)}
-[data-theme="obsidian"] .chg.neg{background:rgba(255,23,68,.1);border-color:rgba(255,23,68,.2);color:var(--red)}
-[data-theme="obsidian"] .range{
- background:#0a0a0a;border-color:rgba(255,255,255,.05);color:#888;
-}
-[data-theme="obsidian"] .range.active{
- background: linear-gradient(135deg, #f3c623, #ff8f00);
- color: #000; border-color: transparent; font-weight: bold;
-}
-[data-theme="obsidian"] .field input,[data-theme="obsidian"] .field select,
-[data-theme="obsidian"] .add-row select,[data-theme="obsidian"] .add-row input{
- background:#0a0a0a;border-color:rgba(255,255,255,.08);color:#fff;
-}
-[data-theme="obsidian"] .result,
-[data-theme="obsidian"] .total-box{
- background:linear-gradient(135deg, #111, #000);
- border:1px solid rgba(243, 198, 35, 0.2);
- box-shadow: 0 0 30px rgba(243, 198, 35, 0.05);
-}
-[data-theme="obsidian"] .holding{
- background:#0a0a0a;border-color:rgba(255,255,255,.05);
-}
-[data-theme="obsidian"] .add-row button{
- background:linear-gradient(135deg,#f3c623,#ff8f00);color:#000;
-}
-[data-theme="obsidian"] .btn-mini{
- background:#0a0a0a;border-color:rgba(255,255,255,.08);
-}
-[data-theme="obsidian"] .btn-mini:hover{
- background:linear-gradient(135deg,#f3c623,#ff8f00);color:#000;border-color:transparent;
-}
-[data-theme="obsidian"] .price,
-[data-theme="obsidian"] .mini-price{
- color: #fff;
-}
-/* --- End of OBSIDIAN Theme --- */
+
+/* ==== BASE ==== */
 *{box-sizing:border-box;margin:0;padding:0}
 body{
  min-height:100vh; color:var(--txt); font-family:Tahoma,Arial,sans-serif;
- background:
-  radial-gradient(circle at 15% 10%, #1e3a6e88, transparent 40%),
-  radial-gradient(circle at 85% 20%, #146b6355, transparent 35%),
-  radial-gradient(circle at 50% 90%, #3a1e6b55, transparent 40%),
-  linear-gradient(160deg,var(--bg1),var(--bg2));
+ background: radial-gradient(circle at 50% 0%, #111 0%, #000 70%);
  background-attachment:fixed;
  transition:background .4s,color .3s;
 }
@@ -131,6 +58,30 @@ body{
  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(168,85,247,.04) 2px 4px);
 }
+[data-theme="glass"] body{
+ background:
+  radial-gradient(ellipse at 12% 4%,rgba(90,117,255,.27),transparent 38%),
+  radial-gradient(ellipse at 88% 10%,rgba(55,225,220,.19),transparent 36%),
+  radial-gradient(ellipse at 75% 85%,rgba(135,105,255,.18),transparent 42%),
+  radial-gradient(ellipse at 10% 90%,rgba(35,135,190,.14),transparent 38%),
+  linear-gradient(145deg,#070d20 0%,#101a35 48%,#091329 100%);
+ background-attachment:fixed;
+}
+[data-theme="glass"] body::before{
+ content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.22;
+ background-image:linear-gradient(rgba(175,210,255,.045) 1px,transparent 1px),
+                  linear-gradient(90deg,rgba(175,210,255,.045) 1px,transparent 1px);
+ background-size:46px 46px;
+ mask-image:linear-gradient(to bottom,black,transparent 82%);
+}
+[data-theme="ocean"] body{
+ background: 
+  radial-gradient(circle at 20% 0%, rgba(0,145,234,.3), transparent 45%),
+  radial-gradient(circle at 80% 100%, rgba(101,31,255,.25), transparent 45%),
+  linear-gradient(145deg, #02080f 0%, #031220 100%);
+ background-attachment: fixed;
+}
+
 .app{max-width:1400px;margin:auto;padding:20px;position:relative;z-index:1}
 header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
 .brand{display:flex;align-items:center;gap:12px}
@@ -141,6 +92,10 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  box-shadow:0 8px 25px #315ba855, inset 0 1px 2px #ffffff55;
  transition:0.3s;
 }
+[data-theme="obsidian"] .logo{
+ background:linear-gradient(135deg,#f3c623,#ff8f00); color:#000;
+ box-shadow:0 0 20px rgba(243,198,35,.3);
+}
 [data-theme="neon"] .logo{
  background:linear-gradient(145deg,#a855f7,#00ffc6);
  box-shadow:0 0 20px #a855f7aa, 0 0 40px #00ffc655;
@@ -150,9 +105,21 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  box-shadow:0 10px 28px rgba(94,171,230,.3),inset 0 1px 2px rgba(255,255,255,.65);
  color:#101a36;
 }
+[data-theme="ocean"] .logo{
+ background:linear-gradient(135deg,#0091ea,#00e5ff); color:#001a2a;
+ box-shadow:0 0 25px rgba(0,229,255,.3);
+}
 .brand h1{font-size:19px}
+[data-theme="obsidian"] .brand h1{
+ background:linear-gradient(90deg,#fff,#f3c623);
+ -webkit-background-clip:text;background-clip:text;color:transparent;
+}
 [data-theme="neon"] .brand h1{
  background:linear-gradient(90deg,#a855f7,#00ffc6,#ff2e88);
+ -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+[data-theme="ocean"] .brand h1{
+ background:linear-gradient(90deg,#00e5ff,#651fff);
  -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .brand p{font-size:12px;color:var(--muted);margin-top:3px}
@@ -162,9 +129,10 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  background:var(--card1);color:var(--txt);cursor:pointer;transition:.2s;
 }
 .btn:hover{filter:brightness(1.15)}
-.btn.active{background:var(--accent);border-color:#5789dc;color:#fff}
+.btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+[data-theme="obsidian"] .btn.active{color:#000}
 [data-theme="neon"] .btn{border-color:rgba(168,85,247,.4)}
-[data-theme="neon"] .btn:hover{box-shadow:0 0 15px #a855f788,0 0 30px #00ffc633;border-color:#a855f7}
+[data-theme="neon"] .btn:hover{box-shadow:0 0 15px #a855f788;border-color:#a855f7}
 [data-theme="neon"] .btn.active{
  background:linear-gradient(135deg,#a855f7,#00ffc6);color:#0a0118;font-weight:bold;
  box-shadow:0 0 20px #a855f7cc;
@@ -173,14 +141,16 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.025));
  border-color:rgba(159,203,255,.24);
  backdrop-filter:blur(12px);
- box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
 }
-[data-theme="glass"] .btn:hover{border-color:rgba(117,229,229,.55);box-shadow:0 8px 22px rgba(30,135,190,.16)}
 [data-theme="glass"] .btn.active{
  background:linear-gradient(120deg,#73e9df,#9eb8ff 58%,#b7a5ff);
  border-color:transparent;color:#08152b;
- box-shadow:0 7px 22px rgba(101,205,225,.24),inset 0 1px 0 rgba(255,255,255,.55);
+ box-shadow:0 7px 22px rgba(101,205,225,.24);
  font-weight:bold;
+}
+[data-theme="ocean"] .btn.active{
+ background:linear-gradient(135deg,#0091ea,#00e5ff);color:#001a2a;
+ box-shadow:0 8px 20px -5px rgba(0,229,255,.4);
 }
 .status{
  display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);
@@ -193,10 +163,11 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .card{
  background:linear-gradient(160deg,var(--card1),var(--card2));
  border:1px solid var(--line);border-radius:18px;padding:16px;
- box-shadow:var(--shadow), inset 0 1px 0 #ffffff0d;
+ box-shadow:var(--shadow);
  transition:transform .2s,box-shadow .2s,background .4s;
 }
-.card:hover{transform:translateY(-2px);box-shadow:var(--shadow),0 0 0 1px var(--accent)}
+[data-theme="obsidian"] .card:hover,
+[data-theme="obsidian"] .mini-card:hover{ border-color:rgba(243,198,35,.3); }
 [data-theme="neon"] .card{
  border:1px solid rgba(168,85,247,.3);
  position:relative;overflow:hidden;
@@ -222,84 +193,17 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  backdrop-filter:blur(22px) saturate(145%);
  -webkit-backdrop-filter:blur(22px) saturate(145%);
  border:1px solid rgba(174,211,255,.22);
- box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.16),inset 0 -1px 0 rgba(94,158,255,.08);
+ box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.16);
  transition:transform .28s ease,box-shadow .32s ease,border-color .32s ease;
  transform-style:preserve-3d;
 }
-[data-theme="glass"] .card::before,
-[data-theme="glass"] .mini-card::before{
- content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
- background:radial-gradient(ellipse at 12% 0%,rgba(127,190,255,.17),transparent 48%),
-            linear-gradient(120deg,rgba(255,255,255,.055),transparent 38%,rgba(102,226,231,.035));
-}
-[data-theme="glass"] .card::after,
-[data-theme="glass"] .mini-card::after{
- content:'';position:absolute;top:-65%;left:-45%;width:42%;height:230%;
- pointer-events:none;z-index:0;transform:rotate(28deg);
- background:linear-gradient(90deg,transparent,rgba(255,255,255,.075),transparent);
- transition:left .7s ease;
-}
-[data-theme="glass"] .card:hover::after,
-[data-theme="glass"] .mini-card:hover::after{left:120%}
-[data-theme="glass"] .card > *,
-[data-theme="glass"] .mini-card > *{position:relative;z-index:1}
 [data-theme="glass"] .card:hover,
 [data-theme="glass"] .mini-card:hover{
  border-color:rgba(119,225,235,.48);
  box-shadow:0 28px 65px rgba(0,0,0,.55),0 0 28px rgba(87,166,255,.16),
             inset 0 1px 0 rgba(255,255,255,.2);
 }
-[data-theme="glass"] .price{
- color:#e8ffff;
- text-shadow:0 0 18px rgba(103,226,224,.25),0 2px 12px rgba(0,0,0,.35);
-}
-[data-theme="glass"] .chg{background:rgba(98,243,208,.10);border:1px solid rgba(98,243,208,.16);color:var(--green)}
-[data-theme="glass"] .chg.neg{background:rgba(255,120,152,.10);border-color:rgba(255,120,152,.16);color:var(--red)}
-[data-theme="glass"] .range{
- background:rgba(7,16,36,.48);border-color:rgba(159,203,255,.17);
-}
-[data-theme="glass"] .range.active{
- background:linear-gradient(120deg,#73e9df,#9eb8ff 65%,#b7a5ff);
- color:#08152b;border-color:transparent;
- box-shadow:0 5px 16px rgba(104,196,224,.2);
-}
-[data-theme="glass"] .field input,[data-theme="glass"] .field select,
-[data-theme="glass"] .add-row select,[data-theme="glass"] .add-row input{
- background:rgba(5,13,30,.58);border-color:rgba(150,201,255,.22);
- box-shadow:inset 0 2px 10px rgba(0,0,0,.18);
-}
-[data-theme="glass"] .result,
-[data-theme="glass"] .total-box{
- background:linear-gradient(125deg,rgba(83,207,202,.19),rgba(117,146,255,.2) 58%,rgba(173,143,255,.17));
- border:1px solid rgba(154,213,255,.25);
- box-shadow:0 14px 35px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.16);
-}
-[data-theme="glass"] .holding{
- background:linear-gradient(120deg,rgba(255,255,255,.065),rgba(255,255,255,.025));
- border-color:rgba(159,203,255,.17);
-}
-[data-theme="glass"] .add-row button{
- background:linear-gradient(120deg,#73e9df,#9eb8ff 65%,#b7a5ff);
- color:#08152b;box-shadow:0 8px 22px rgba(104,196,224,.2);
-}
-[data-theme="glass"] .btn-mini{
- background:rgba(255,255,255,.055);border-color:rgba(159,203,255,.2);
-}
-[data-theme="glass"] .btn-mini:hover{
- background:linear-gradient(120deg,#73e9df,#9eb8ff 65%,#b7a5ff);
- color:#08152b;border-color:transparent;box-shadow:0 7px 18px rgba(104,196,224,.2);
-}
-[data-theme="glass"] .chart-wrap{
- perspective:1100px;filter:drop-shadow(0 14px 18px rgba(0,0,0,.22));
-}
-[data-theme="glass"] canvas{
- transform:perspective(1100px) rotateX(5deg);
- transform-origin:center bottom;
- filter:drop-shadow(0 8px 12px rgba(68,186,204,.10));
- transition:transform .4s;
-}
-[data-theme="glass"] .card:hover canvas{transform:perspective(1100px) rotateX(1deg) translateY(-2px)}
-
+[data-theme="ocean"] .card:hover{ border-color:rgba(0,229,255,.4); }
 .mini-card{
  background:linear-gradient(160deg,var(--card1),var(--card2));
  border:1px solid var(--line);border-radius:14px;padding:12px;
@@ -307,35 +211,31 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  display:flex;flex-direction:column;
 }
 .mini-card:hover{transform:translateY(-2px)}
-[data-theme="neon"] .mini-card{border-color:rgba(168,85,247,.25)}
 .mini-name{font-size:12px;font-weight:bold}
 .mini-sym{font-size:9px;color:var(--muted);margin-top:2px}
 .mini-price{font-size:16px;font-weight:bold;direction:ltr;text-align:right;margin-top:8px}
-[data-theme="neon"] .mini-price{text-shadow:0 0 10px rgba(0,255,198,.4)}
 .mini-range{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--line);margin-bottom:10px}
 .mini-range b{color:var(--txt)}
-
 .btn-mini{
  padding:6px 10px;font-size:10px;border-radius:8px;cursor:pointer;
  background:var(--card2);border:1px solid var(--line);color:var(--muted);transition:0.2s;
  width:100%;margin-top:auto;
 }
 .btn-mini:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-theme="obsidian"] .btn-mini:hover{color:#000}
 [data-theme="neon"] .btn-mini:hover{
  background:linear-gradient(135deg,#a855f7,#00ffc6);color:#0a0118;border-color:#00ffc6;
- box-shadow:0 0 15px #a855f7aa;
 }
-
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .card-name{font-size:15px;font-weight:bold}
-[data-theme="neon"] .card-name{text-shadow:0 0 12px rgba(168,85,247,.5)}
 .card-sym{font-size:10px;color:var(--muted);margin-top:4px}
 .chg{font-size:11px;padding:5px 9px;border-radius:8px;background:#2ee6a81c;color:var(--green);white-space:nowrap}
 .chg.neg{background:#ff6b811c;color:var(--red)}
-[data-theme="neon"] .chg{background:rgba(0,255,198,.1);box-shadow:0 0 10px rgba(0,255,198,.3)}
-[data-theme="neon"] .chg.neg{background:rgba(255,46,136,.1);box-shadow:0 0 10px rgba(255,46,136,.3)}
+[data-theme="obsidian"] .chg{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2)}
+[data-theme="obsidian"] .chg.neg{background:rgba(255,23,68,.1);border-color:rgba(255,23,68,.2)}
+[data-theme="ocean"] .chg{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2)}
+[data-theme="ocean"] .chg.neg{background:rgba(255,82,82,.1);border-color:rgba(255,82,82,.2)}
 .price{font-size:22px;font-weight:bold;direction:ltr;text-align:right;margin-top:12px}
-[data-theme="neon"] .price{text-shadow:0 0 15px rgba(0,255,198,.4)}
 .unit{font-size:11px;color:var(--muted);font-weight:normal;margin-right:5px}
 .day-range{
  display:flex;justify-content:space-between;gap:8px;
@@ -343,44 +243,57 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  padding-top:8px;border-top:1px solid var(--line);
 }
 .day-range b{color:var(--txt);font-weight:600}
-[data-theme="neon"] .day-range b{text-shadow:0 0 8px rgba(168,85,247,.4)}
 .ranges{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0 8px}
 .range{
  padding:6px 9px;font-size:10px;border-radius:8px;
  background:var(--card2);color:var(--muted);border:1px solid var(--line);cursor:pointer;
 }
-.range.active{background:var(--accent);color:#fff;border-color:#5789dc}
+.range.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+[data-theme="obsidian"] .range.active{color:#000;font-weight:bold}
 [data-theme="neon"] .range.active{
  background:linear-gradient(135deg,#a855f7,#00ffc6);color:#0a0118;
- box-shadow:0 0 12px #a855f7aa;
+}
+[data-theme="glass"] .range.active{
+ background:linear-gradient(120deg,#73e9df,#9eb8ff 65%,#b7a5ff);
+ color:#08152b;border-color:transparent;
+}
+[data-theme="ocean"] .range.active{
+ background:linear-gradient(135deg,#0091ea,#00e5ff);color:#001a2a;
 }
 .chart-wrap{height:190px;position:relative}
-[data-theme="neon"] .chart-wrap{filter:drop-shadow(0 8px 20px rgba(168,85,247,.25))}
-canvas{width:100%!important;height:100%!important;display:block}
-[data-theme="neon"] canvas{
- transform:perspective(800px) rotateX(6deg);
- transform-origin:center bottom;transition:transform .4s;
-}
-[data-theme="neon"] .card:hover canvas{
- transform:perspective(800px) rotateX(2deg) scale(1.02);
-}
+canvas{width:100%!important;height:100%!important;display:block;transition:transform .4s}
+/* === Canvas transforms per theme === */
+[data-theme="neon"] canvas{ transform:perspective(800px) rotateX(6deg); transform-origin:center bottom; }
+[data-theme="neon"] .card:hover canvas{ transform:perspective(800px) rotateX(2deg) scale(1.02); }
+[data-theme="glass"] canvas{ transform:perspective(1100px) rotateX(5deg); transform-origin:center bottom; }
+[data-theme="glass"] .card:hover canvas{ transform:perspective(1100px) rotateX(1deg) translateY(-2px); }
+[data-theme="ocean"] canvas{ transform:perspective(1200px) rotateX(3deg); transform-origin:center bottom; }
+[data-theme="ocean"] .card:hover canvas{ transform:perspective(1200px) rotateX(0deg); }
+
 .calc,.assets-page{display:none;margin-top:22px}
 .calc.show,.assets-page.show{display:block}
 .calc h2,.assets-page h2{font-size:18px;margin-bottom:6px}
 .calc p,.assets-page p{font-size:12px;color:var(--muted);margin-bottom:16px}
 .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.calc-grid-3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:600px){.calc-grid-3{grid-template-columns:1fr}}
 .field label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
 .field input,.field select{
  width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;
- padding:11px;color:var(--txt);outline:none;
-}
-[data-theme="neon"] .field input,[data-theme="neon"] .field select{
- border-color:rgba(168,85,247,.4);box-shadow:inset 0 0 12px rgba(168,85,247,.15);
+ padding:11px;color:var(--txt);outline:none;font-family:inherit;font-size:14px;
 }
 .result{padding:16px;border-radius:12px;background:linear-gradient(110deg,var(--accent),var(--card1));color:#fff}
+[data-theme="obsidian"] .result{color:#000;background:linear-gradient(110deg,#f3c623,#ff8f00)}
 [data-theme="neon"] .result{
  background:linear-gradient(135deg,rgba(168,85,247,.8),rgba(0,255,198,.5));
- box-shadow:0 0 25px rgba(168,85,247,.4);
+}
+[data-theme="glass"] .result{
+ background:linear-gradient(125deg,rgba(83,207,202,.19),rgba(117,146,255,.2) 58%,rgba(173,143,255,.17));
+ border:1px solid rgba(154,213,255,.25);
+}
+[data-theme="ocean"] .result{
+ background:linear-gradient(125deg,rgba(0,145,234,.25),rgba(0,229,255,.15));
+ border:1px solid rgba(0,229,255,.3);
 }
 .result small{font-size:11px;opacity:.85}
 .result .total{font-size:24px;font-weight:bold;direction:ltr;text-align:right;margin-top:8px}
@@ -390,17 +303,14 @@ canvas{width:100%!important;height:100%!important;display:block}
  width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;
  padding:11px;color:var(--txt);outline:none;
 }
-[data-theme="neon"] .add-row select,[data-theme="neon"] .add-row input{
- border-color:rgba(168,85,247,.4);box-shadow:inset 0 0 12px rgba(168,85,247,.15);
-}
 .add-row button{
  padding:11px 20px;border:none;border-radius:10px;cursor:pointer;
  background:var(--accent);color:#fff;font-weight:bold;
 }
-[data-theme="neon"] .add-row button{
- background:linear-gradient(135deg,#a855f7,#00ffc6);color:#0a0118;
- box-shadow:0 0 20px #a855f7aa;
-}
+[data-theme="obsidian"] .add-row button{color:#000;background:linear-gradient(135deg,#f3c623,#ff8f00)}
+[data-theme="neon"] .add-row button{background:linear-gradient(135deg,#a855f7,#00ffc6);color:#0a0118}
+[data-theme="glass"] .add-row button{background:linear-gradient(135deg,#00ffd5,#7a5cff);color:#000}
+[data-theme="ocean"] .add-row button{background:linear-gradient(135deg,#0091ea,#00e5ff);color:#001a2a}
 .holdings{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .holding{
  display:grid;grid-template-columns:1.5fr 1fr 1.2fr 1.2fr auto;
@@ -408,15 +318,10 @@ canvas{width:100%!important;height:100%!important;display:block}
  padding:12px 14px;border-radius:12px;
  background:var(--card2);border:1px solid var(--line);
 }
-[data-theme="neon"] .holding{
- border-color:rgba(168,85,247,.25);
- box-shadow:inset 0 0 15px rgba(168,85,247,.08);
-}
 .holding .h-name{font-weight:bold;font-size:13px}
 .holding .h-qty{font-size:12px;color:var(--muted);direction:ltr;text-align:right}
 .holding .h-price{font-size:12px;direction:ltr;text-align:right}
 .holding .h-val{font-size:13px;font-weight:bold;direction:ltr;text-align:right;color:var(--green)}
-[data-theme="neon"] .holding .h-val{text-shadow:0 0 10px rgba(0,255,198,.5)}
 .holding .h-del{
  background:transparent;border:1px solid var(--red);color:var(--red);
  border-radius:8px;padding:6px 10px;cursor:pointer;font-size:11px;
@@ -426,9 +331,15 @@ canvas{width:100%!important;height:100%!important;display:block}
  padding:18px;border-radius:14px;text-align:center;
  background:linear-gradient(135deg,var(--accent),var(--card1));color:#fff;
 }
-[data-theme="neon"] .total-box{
- background:linear-gradient(135deg,rgba(168,85,247,.85),rgba(0,255,198,.55));
- box-shadow:0 0 30px rgba(168,85,247,.5);
+[data-theme="obsidian"] .total-box{color:#000;background:linear-gradient(135deg,#f3c623,#ff8f00)}
+[data-theme="neon"] .total-box{background:linear-gradient(135deg,rgba(168,85,247,.85),rgba(0,255,198,.55))}
+[data-theme="glass"] .total-box{
+ background:linear-gradient(125deg,rgba(83,207,202,.19),rgba(117,146,255,.2) 58%,rgba(173,143,255,.17));
+ border:1px solid rgba(154,213,255,.25);
+}
+[data-theme="ocean"] .total-box{
+ background:linear-gradient(125deg,rgba(0,145,234,.25),rgba(0,229,255,.15));
+ border:1px solid rgba(0,229,255,.3);
 }
 .total-box small{font-size:12px;opacity:.9}
 .total-box .total-val{font-size:28px;font-weight:bold;direction:ltr;margin-top:8px}
@@ -458,7 +369,7 @@ canvas{width:100%!important;height:100%!important;display:block}
  </div>
  <div class="actions">
   <div class="status"><i class="dot" id="dot"></i><span id="status">...</span></div>
-  <button class="btn" id="themeBtn">🌙</button>
+  <button class="btn" id="themeBtn">👑</button>
   <button class="btn" id="langBtn">English</button>
   <button class="btn active" id="homeBtn" data-t="prices">قیمت‌ها</button>
   <button class="btn" id="allBtn" data-t="allCharts">همه نمودارها</button>
@@ -483,15 +394,19 @@ canvas{width:100%!important;height:100%!important;display:block}
 
 <section class="calc" id="calcPage">
  <h2 data-t="calcTitle">ماشین‌حساب قیمت</h2>
- <p data-t="calcSub">دارایی و مقدار را انتخاب کن.</p>
- <div class="calc-grid">
+ <p data-t="calcSub">مقدار، واحد ورودی و واحد خروجی را انتخاب کن.</p>
+ <div class="calc-grid calc-grid-3">
   <div class="field">
-   <label data-t="choose">انتخاب دارایی</label>
-   <select id="assetSelect"></select>
+   <label data-t="amount">مقدار</label>
+   <input id="calcAmount" type="text" inputmode="decimal" value="1">
   </div>
   <div class="field">
-   <label data-t="qty">تعداد / مقدار</label>
-   <input id="qty" type="number" min="0" step="any" value="1">
+   <label data-t="from">از</label>
+   <select id="calcFrom"></select>
+  </div>
+  <div class="field">
+   <label data-t="to">به</label>
+   <select id="calcTo"></select>
   </div>
  </div>
  <div class="result">
@@ -545,11 +460,11 @@ const assets=[
 ];
 
 const words={
- fa:{title:'داشبورد بازار',subtitle:'قیمت ارز، طلا، سکه و رمزارز با نمودار',prices:'قیمت‌ها',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'دارایی و مقدار را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',low:'کمترین امروز',high:'بیشترین امروز',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار'},
- en:{title:'Market Dashboard',subtitle:'Currency, Gold, Coins & Crypto with charts',prices:'Prices',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose asset and quantity.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',low:'Today low',high:'Today high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart'}
+ fa:{title:'داشبورد بازار',subtitle:'قیمت ارز، طلا، سکه و رمزارز با نمودار',prices:'قیمت‌ها',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',low:'کمترین امروز',high:'بیشترین امروز',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
+ en:{title:'Market Dashboard',subtitle:'Currency, Gold, Coins & Crypto with charts',prices:'Prices',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',low:'Today low',high:'Today high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}
 };
 
-let lang='fa',theme='dark',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[];
+let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[];
 let expandedAssetId = null;
 let tiltHandlers = new WeakMap();
 const INTRADAY_KEY='mktDashV29';
@@ -572,6 +487,7 @@ async function fetchJson(url,tm=10000){
  finally{clearTimeout(id);}
 }
 function iranRows(p){const c=p?.data?.categories;if(!c||typeof c!=='object')return[];return Object.values(c).flatMap(x=>Array.isArray(x)?x:[]);}
+
 function loadIntraday(){
  try{const s=JSON.parse(localStorage.getItem(INTRADAY_KEY)||'{}'),today=dayKey();
   for(const a of assets){const r=Array.isArray(s[a.id])?s[a.id]:[];
@@ -606,8 +522,10 @@ async function refreshPrices(){
    fetchJson(LOCAL_INTRADAY_URL, 5000).catch(()=>null)
   ]);
 
-  if(intraData && intraData.data){
-   remoteIntraday = intraData.data;
+  if(intraData && intraData.days){
+   remoteIntraday = intraData.days;
+  } else if(intraData && intraData.date && intraData.data){
+   remoteIntraday = { [intraData.date]: intraData.data };
   }
 
   if(data && data.prices && Object.keys(data.prices).length>0){
@@ -629,6 +547,32 @@ async function refreshPrices(){
   $('dot').classList.add('bad');
   $('status').textContent=t('failed');
  }
+}
+
+function getTomanValue(id){
+ if(id==='toman') return 1;
+ const p = getPrice(id);
+ if(p <= 0) return 0;
+ const a = assets.find(x=>x.id===id);
+ if(a && a.currency === 'USD'){
+   const usdRate = getPrice('usd');
+   if(usdRate <= 0) return 0;
+   return p * usdRate;
+ }
+ return p;
+}
+
+function getSavedPoints(id, days){
+ const cutoff = Date.now() - days * 86400000;
+ const out = [];
+ for(const day in remoteIntraday){
+  const dayData = remoteIntraday[day];
+  if(!dayData || !dayData[id]) continue;
+  for(const p of dayData[id]){
+   if(p.time >= cutoff && p.price > 0) out.push({time:p.time, price:p.price});
+  }
+ }
+ return out.sort((a,b)=>a.time-b.time);
 }
 
 function todayOHLC(id){
@@ -924,10 +868,10 @@ function bindRanges(grid, prefix=''){
 }
 
 function updateChartTheme(chartInstance, a, isUp) {
- const neon=theme==='neon', glass=theme==='glass', obsidian=theme==='obsidian';
+ const neon=theme==='neon', glass=theme==='glass', obsidian=theme==='obsidian', ocean=theme==='ocean';
  const light=theme==='light';
- const gc=light?'rgba(40,60,100,.12)':neon?'rgba(168,85,247,.15)':glass?'rgba(145,190,235,.12)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
- const tc=light?'#5a6b88':neon?'#b39ddb':glass?'rgba(205,222,250,.82)':obsidian?'#888888':'#8fa0bd';
+ const gc=light?'rgba(40,60,100,.12)':neon?'rgba(168,85,247,.15)':glass?'rgba(145,190,235,.12)':obsidian?'rgba(255,255,255,.05)':ocean?'rgba(0,180,255,.1)':'rgba(160,185,225,.1)';
+ const tc=light?'#5a6b88':neon?'#b39ddb':glass?'rgba(205,222,250,.82)':obsidian?'#888888':ocean?'#5a8fbf':'#8fa0bd';
  
  chartInstance.options.scales.y.grid.color = gc;
  chartInstance.options.scales.y.ticks.color = tc;
@@ -963,11 +907,22 @@ function updateChartTheme(chartInstance, a, isUp) {
    const lineGrad = ctx.createLinearGradient(0, 0, width, 0);
    lineGrad.addColorStop(0,    '#f3c623');
    lineGrad.addColorStop(1,    '#ff8f00');
-
    const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
    fillGrad.addColorStop(0, 'rgba(243, 198, 35, 0.15)');
    fillGrad.addColorStop(1, 'rgba(255, 143, 0, 0)');
-
+   if(chartInstance.data.datasets.length === 1) {
+      chartInstance.data.datasets[0].borderColor = lineGrad;
+      chartInstance.data.datasets[0].backgroundColor = fillGrad;
+      chartInstance.data.datasets[0].shadowColor = 'transparent';
+   }
+ } else if (ocean) {
+   const lineGrad = ctx.createLinearGradient(0, 0, width, 0);
+   lineGrad.addColorStop(0,    '#00e5ff');
+   lineGrad.addColorStop(.5,  '#651fff');
+   lineGrad.addColorStop(1,    '#0091ea');
+   const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
+   fillGrad.addColorStop(0, 'rgba(0,229,255,.2)');
+   fillGrad.addColorStop(1, 'rgba(101,31,255,0)');
    if(chartInstance.data.datasets.length === 1) {
       chartInstance.data.datasets[0].borderColor = lineGrad;
       chartInstance.data.datasets[0].backgroundColor = fillGrad;
@@ -976,7 +931,6 @@ function updateChartTheme(chartInstance, a, isUp) {
  } else {
    let color = isUp ? '#2ee6a8' : '#ff6b81';
    if (neon) color = isUp ? '#00ffc6' : '#ff2e88';
-   
    const grad = ctx.createLinearGradient(0,0,0,200);
    if(neon){
       grad.addColorStop(0,isUp?'rgba(0,255,198,.55)':'rgba(255,46,136,.5)');
@@ -985,7 +939,6 @@ function updateChartTheme(chartInstance, a, isUp) {
       grad.addColorStop(0,isUp?'rgba(46,230,168,.45)':'rgba(255,107,129,.4)');
       grad.addColorStop(1,'rgba(20,30,50,0)');
    }
-   
    if(chartInstance.data.datasets.length === 1) {
       chartInstance.data.datasets[0].borderColor = color;
       chartInstance.data.datasets[0].backgroundColor = grad;
@@ -993,8 +946,8 @@ function updateChartTheme(chartInstance, a, isUp) {
    }
  }
  
- chartInstance.options.plugins.tooltip.backgroundColor = neon?'rgba(10,4,28,.96)':glass?'rgba(9,18,39,.97)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)';
- chartInstance.options.plugins.tooltip.borderColor = neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(126,210,231,.55)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88';
+ chartInstance.options.plugins.tooltip.backgroundColor = neon?'rgba(10,4,28,.96)':glass?'rgba(9,18,39,.97)':obsidian?'rgba(10,10,10,.98)':ocean?'rgba(5,15,30,.98)':'rgba(5,12,25,.96)';
+ chartInstance.options.plugins.tooltip.borderColor = neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(126,210,231,.55)':obsidian?'rgba(243,198,35,.5)':ocean?'rgba(0,229,255,.5)':'#70a4ff88';
  chartInstance.options.plugins.tooltip.callbacks.label = c=> (isUSD ? '$' : '') + num(c.parsed.y, isUSD ? 2 : 0) + ' ' + (isUSD ? '' : t('tomanUnit'));
  chartInstance.options.scales.y.ticks.callback = v=> (isUSD ? '$' : '') + num(v, isUSD ? 2 : 0);
 }
@@ -1003,7 +956,7 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
  const pts = pointsFor(a.id);
  if(pts.length === 0) return;
  
- const neon=theme==='neon', glass=theme==='glass', obsidian=theme==='obsidian';
+ const neon=theme==='neon', glass=theme==='glass', obsidian=theme==='obsidian', ocean=theme==='ocean';
  const isUSD = a.currency === 'USD';
  const isUp = pts.length > 1 ? (pts[pts.length-1].price >= pts[0].price) : true;
  
@@ -1062,16 +1015,22 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
   const lineGrad = ctx.createLinearGradient(0, 0, cv.offsetWidth || 500, 0);
   lineGrad.addColorStop(0,    '#f3c623');
   lineGrad.addColorStop(1,    '#ff8f00');
-
   const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
   fillGrad.addColorStop(0, 'rgba(243, 198, 35, 0.15)');
   fillGrad.addColorStop(1, 'rgba(255, 143, 0, 0)');
-
   datasets.push({ data:dataVals, borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35, borderWidth:3, pointRadius:0, pointHoverRadius:6, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:'#f3c623', spanGaps: true });
+ } else if (ocean) {
+  const lineGrad = ctx.createLinearGradient(0, 0, cv.offsetWidth || 500, 0);
+  lineGrad.addColorStop(0,    '#00e5ff');
+  lineGrad.addColorStop(.5,  '#651fff');
+  lineGrad.addColorStop(1,    '#0091ea');
+  const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
+  fillGrad.addColorStop(0, 'rgba(0,229,255,.2)');
+  fillGrad.addColorStop(1, 'rgba(101,31,255,0)');
+  datasets.push({ data:dataVals, borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35, borderWidth:3, pointRadius:0, pointHoverRadius:6, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:'#00e5ff', spanGaps: true });
  } else {
   let color = isUp ? '#2ee6a8' : '#ff6b81';
   if (neon) color = isUp ? '#00ffc6' : '#ff2e88';
-
   const grad=ctx.createLinearGradient(0,0,0,200);
   if(neon){
    grad.addColorStop(0,isUp?'rgba(0,255,198,.55)':'rgba(255,46,136,.5)');
@@ -1080,13 +1039,12 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
    grad.addColorStop(0,isUp?'rgba(46,230,168,.45)':'rgba(255,107,129,.4)');
    grad.addColorStop(1,'rgba(20,30,50,0)');
   }
-
   datasets.push({ data:dataVals, borderColor:color,backgroundColor:grad,fill:true,tension:.35, borderWidth:neon?2.8:2.2, pointRadius:dataVals.length<3?4:0, pointHoverRadius:neon?7:5, pointHoverBackgroundColor:'#fff',pointHoverBorderColor:color, shadowOffsetX:0,shadowOffsetY:neon?4:0, shadowBlur:neon?15:0,shadowColor:neon?(isUp?'rgba(0,255,198,.6)':'rgba(255,46,136,.6)'):'transparent', spanGaps: true });
  }
 
  const light=theme==='light';
- const gc=light?'rgba(40,60,100,.12)':neon?'rgba(168,85,247,.15)':glass?'rgba(145,190,235,.12)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
- const tc=light?'#5a6b88':neon?'#b39ddb':glass?'rgba(205,222,250,.82)':obsidian?'#888888':'#8fa0bd';
+ const gc=light?'rgba(40,60,100,.12)':neon?'rgba(168,85,247,.15)':glass?'rgba(145,190,235,.12)':obsidian?'rgba(255,255,255,.05)':ocean?'rgba(0,180,255,.1)':'rgba(160,185,225,.1)';
+ const tc=light?'#5a6b88':neon?'#b39ddb':glass?'rgba(205,222,250,.82)':obsidian?'#888888':ocean?'#5a8fbf':'#8fa0bd';
 
  const newChart = new Chart(ctx,{
   type:'line',
@@ -1100,8 +1058,8 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
     legend:{display:false},
     tooltip:{
      filter: item => !glass || item.datasetIndex === 2,
-     backgroundColor:neon?'rgba(10,4,28,.96)':glass?'rgba(9,18,39,.97)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)',
-     borderColor:neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(126,210,231,.55)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88',borderWidth:1,
+     backgroundColor:neon?'rgba(10,4,28,.96)':glass?'rgba(9,18,39,.97)':obsidian?'rgba(10,10,10,.98)':ocean?'rgba(5,15,30,.98)':'rgba(5,12,25,.96)',
+     borderColor:neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(126,210,231,.55)':obsidian?'rgba(243,198,35,.5)':ocean?'rgba(0,229,255,.5)':'#70a4ff88',borderWidth:1,
      titleFont:{family:'Tahoma',size:11},bodyFont:{family:'Tahoma',size:11},
      callbacks:{label:c=> (isUSD ? '$' : '') + num(c.parsed.y, isUSD ? 2 : 0) + ' ' + (isUSD ? '' : t('tomanUnit'))}
     }
@@ -1158,7 +1116,6 @@ function renderFeatured(){
   renderExpandedChart();
  }
  
- // فقط برای تم الماسی افکت کج شدن اعمال شود
  if (theme === 'glass') {
   setTimeout(apply3DTilt, 100);
  } else {
@@ -1317,6 +1274,80 @@ function fillAddSelect(){
  s.innerHTML=availableAssets.map(a=>`<option value="${a.id}">${esc(nm(a))}</option>`).join('');
  if(availableAssets.some(a=>a.id===old))s.value=old;
 }
+
+function fillCalc(){
+ const sFrom = $('calcFrom');
+ const sTo = $('calcTo');
+ if(!sFrom || !sTo) return;
+ 
+ const oldFrom = sFrom.value || 'toman';
+ const oldTo = sTo.value || 'usd';
+ 
+ const options = [
+   `<option value="toman">${t('toman')}</option>`,
+   ...assets.map(a => `<option value="${a.id}">${esc(nm(a))}</option>`)
+ ].join('');
+ 
+ sFrom.innerHTML = options;
+ sTo.innerHTML = options;
+ 
+ if(sFrom.querySelector(`option[value="${oldFrom}"]`)) sFrom.value = oldFrom;
+ if(sTo.querySelector(`option[value="${oldTo}"]`)) sTo.value = oldTo;
+}
+
+function formatCalcInput(e) {
+ let val = e.target.value.replace(/,/g, '');
+ val = val.replace(/[^0-9.]/g, '');
+ const parts = val.split('.');
+ parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+ let formatted = parts.join('.');
+ e.target.value = formatted;
+ calc();
+}
+
+function calc(){
+ const amountStr = $('calcAmount')?.value || '0';
+ const amount = parseFloat(amountStr.replace(/,/g, '')) || 0;
+ 
+ const fromId = $('calcFrom')?.value;
+ const toId = $('calcTo')?.value;
+ 
+ if(!fromId || !toId) return;
+ 
+ const fromVal = getTomanValue(fromId);
+ const toVal = getTomanValue(toId);
+ 
+ if(fromVal <= 0 || toVal <= 0 || !Number.isFinite(amount)){
+  $('total').textContent = t('noPrice');
+  $('calcUnit').textContent = '';
+  return;
+ }
+ 
+ const totalToman = amount * fromVal;
+ const result = totalToman / toVal;
+ 
+ let decimals = 0;
+ if (toId === 'usd' || toId === 'oil') decimals = 4;
+ else if (toId === 'toman') decimals = 0;
+ else decimals = 2;
+ 
+ const formattedResult = num(result, decimals);
+ 
+ const toName = toId === 'toman' ? t('toman') : nm(assets.find(x=>x.id===toId));
+ const fromName = fromId === 'toman' ? t('toman') : nm(assets.find(x=>x.id===fromId));
+ 
+ let unitLabel = t('tomanUnit');
+ if (toId === 'usd') unitLabel = 'دلار';
+ else if (toId === 'oil') unitLabel = 'دلار';
+ else if (toId !== 'toman') {
+    const a = assets.find(x=>x.id===toId);
+    unitLabel = lang === 'fa' ? a.fa : a.en;
+ }
+ 
+ $('total').textContent = `${formattedResult} ${unitLabel}`;
+ $('calcUnit').textContent = `${num(amount, 4)} ${fromName} ➔ ${formattedResult} ${toName}`;
+}
+
 function addHolding(){
  const id=$('addAsset')?.value;
  const qty=Number($('addQty')?.value||0);
@@ -1331,7 +1362,7 @@ function addHolding(){
 
 // === 3D TILT EFFECT (فقط برای تم الماسی) ===
 function apply3DTilt() {
- if (window.innerWidth < 800) return; // Disable on mobile
+ if (window.innerWidth < 800) return;
  const cards = document.querySelectorAll('.card, .mini-card');
  cards.forEach(card => {
   if (tiltHandlers.has(card)) {
@@ -1417,7 +1448,7 @@ function applyLang(){
 
 function applyTheme(){
  document.documentElement.setAttribute('data-theme',theme);
- $('themeBtn').textContent = theme==='dark' ? '🌙' : theme==='neon' ? '⚡' : theme==='glass' ? '💎' : '👑';
+ $('themeBtn').textContent = theme==='obsidian' ? '👑' : theme==='neon' ? '⚡' : theme==='glass' ? '💎' : '🌊';
  
  for (const chartKey in charts) {
     let aId = chartKey;
@@ -1429,42 +1460,11 @@ function applyTheme(){
     }
  }
  
- // افکت سه بعدی فقط برای تم الماسی
  if (theme === 'glass') {
     setTimeout(apply3DTilt, 100);
  } else {
     remove3DTilt();
  }
-}
-
-function fillCalc(){
- const s=$('assetSelect'),old=s.value;
- s.innerHTML=assets.map(a=>`<option value="${a.id}">${esc(nm(a))}</option>`).join('');
- if(assets.some(a=>a.id===old))s.value=old;
-}
-function calc(){
- const id=$('assetSelect')?.value;
- const a=assets.find(x=>x.id===id);
- const q=Number($('qty')?.value||0);
- const p=getPrice(id);
- if(!a||!(p>0)||!Number.isFinite(q)){
-  $('total').textContent=t('noPrice');
-  $('calcUnit').textContent='';
-  return;
- }
- 
- let finalPrice = p;
- let unitLabel = t('tomanUnit');
-
- if (a.id === 'oil') {
-  const usdRate = getPrice('usd');
-  finalPrice = p * usdRate;
-  $('calcUnit').textContent = `قیمت نفت: $${num(p,2)} × نرخ دلار: ${num(usdRate)} تومان · ${lang==='fa'?a.unitFa:a.unitEn}`;
- } else {
-  $('calcUnit').textContent = `${num(p)} ${t('tomanUnit')} · ${lang==='fa'?a.unitFa:a.unitEn}`;
- }
-
- $('total').textContent = num(finalPrice * q) + ' ' + unitLabel;
 }
 
 function hideAllPages(){
@@ -1477,7 +1477,7 @@ function hideAllPages(){
 
 $('langBtn').onclick=()=>{lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang();};
 $('themeBtn').onclick=()=>{
- theme = theme === 'dark' ? 'neon' : theme === 'neon' ? 'glass' : theme === 'glass' ? 'obsidian' : 'dark';
+ theme = theme === 'obsidian' ? 'neon' : theme === 'neon' ? 'glass' : theme === 'glass' ? 'ocean' : 'obsidian';
  try{localStorage.setItem('mktTheme',theme)}catch(e){}
  applyTheme();
 };
@@ -1488,8 +1488,6 @@ $('calcBtn').onclick=()=>{hideAllPages();$('calcPage').classList.add('show');$('
 $('assetsBtn').onclick=()=>{hideAllPages();$('assetsPage').classList.add('show');$('assetsBtn').classList.add('active');fillAddSelect();renderHoldings();};
 $('addBtn').onclick=addHolding;
 $('refreshBtn').onclick=async()=>{await Promise.allSettled([refreshPrices(),loadHistories()]);};
-$('qty').oninput=calc;
-$('assetSelect').onchange=calc;
 
 let rt;
 window.addEventListener('resize',()=>{
@@ -1503,10 +1501,14 @@ window.addEventListener('resize',()=>{
 (async function init(){
  try{
   const s=localStorage.getItem('mktLang');if(s==='fa'||s==='en')lang=s;
-  const th=localStorage.getItem('mktTheme');if(th==='dark'||th==='neon'||th==='glass'||th==='obsidian')theme=th;
+  const th=localStorage.getItem('mktTheme');if(['obsidian','neon','glass','ocean'].includes(th))theme=th;
  }catch(e){}
  loadIntraday();
  loadHoldings();
+ 
+ $('calcAmount').addEventListener('input', formatCalcInput);
+ $('calcFrom').addEventListener('change', calc);
+ $('calcTo').addEventListener('change', calc);
  
  applyTheme();
  applyLang();
