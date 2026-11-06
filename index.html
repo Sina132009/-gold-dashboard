@@ -388,8 +388,18 @@ canvas{width:100%!important;height:100%!important;display:block;transition:trans
 'use strict';
 const NA='https://nerkhara.com/api/v1';
 const IM_CDN='https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data';
-const LOCAL_PRICES_URL = './data/latest-prices.json';
-const LOCAL_INTRADAY_URL = './data/intraday.json';
+
+// آدرس‌های متعدد برای فایل‌های ذخیره‌شده در گیت‌هاب (برای دور زدن کش)
+const GITHUB_URLS_PRICES = [
+  './data/latest-prices.json',
+  'https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/latest-prices.json',
+  'https://raw.githubusercontent.com/sina132009/sina132009.github.io/master/data/latest-prices.json'
+];
+const GITHUB_URLS_INTRADAY = [
+  './data/intraday.json',
+  'https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/intraday.json',
+  'https://raw.githubusercontent.com/sina132009/sina132009.github.io/master/data/intraday.json'
+];
 
 const assets=[
  {id:'usd',symbol:'USD_IRR_FREE',nid:'usd',fa:'دلار آمریکا',en:'US Dollar',unitFa:'هر دلار',unitEn:'per USD'},
@@ -428,12 +438,14 @@ function dayKey(time=Date.now()){
  return `${g('year')}-${g('month')}-${g('day')}`;
 }
 
-// FIX: parseTime robustly handles string, number, and Date formats
+// تبدیل دقیق زمان (پشتیبانی از متن، ثانیه و میلی‌ثانیه)
 function parseTime(v){
  if(v==null||v==='')return NaN;
- if(typeof v==='number')return v<1e12?v*1000:v;
+ if(typeof v==='number') return v<1e12?v*1000:v;
  const parsed = Date.parse(v);
  if (!isNaN(parsed)) return parsed;
+ const numV = Number(v);
+ if (!isNaN(numV)) return numV < 1e12 ? numV*1000 : numV;
  return NaN;
 }
 
@@ -441,6 +453,19 @@ async function fetchJson(url,tm=10000){
  const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);
  try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json();}
  finally{clearTimeout(id);}
+}
+
+// تابع هوشمند برای خواندن فایل از چند مسیر مختلف
+async function fetchFirstSuccess(urls, tm=5000) {
+  for (const url of urls) {
+    try {
+      const data = await fetchJson(url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now(), tm);
+      if (data) return data;
+    } catch (e) {
+      // ادامه بده به مسیر بعدی
+    }
+  }
+  return null;
 }
 
 function loadIntraday(){
@@ -485,22 +510,31 @@ function saveHoldings(){
 async function refreshPrices(){
  $('status').textContent=t('loading');
  try{
-  // FIX: cache busting for GitHub Pages
+  // تلاش همزمان برای خواندن فایل‌ها از لوکال و گیت‌هاب
   const [data, intraData] = await Promise.all([
-   fetchJson(LOCAL_PRICES_URL + '?v=' + Date.now(), 5000).catch(()=>null),
-   fetchJson(LOCAL_INTRADAY_URL + '?v=' + Date.now(), 5000).catch(()=>null)
+   fetchFirstSuccess(GITHUB_URLS_PRICES),
+   fetchFirstSuccess(GITHUB_URLS_INTRADAY)
   ]);
 
-  if(intraData && intraData.days){
-   remoteIntraday = intraData.days;
-  } else if(intraData && intraData.date && intraData.data){
-   remoteIntraday = { [intraData.date]: intraData.data };
-  } else if(intraData && !intraData.days && !intraData.date){
-   remoteIntraday = { [dayKey()]: intraData };
+  if(intraData){
+   if(intraData.days) {
+       remoteIntraday = intraData.days;
+   } else if(intraData.date && intraData.data) {
+       remoteIntraday = { [intraData.date]: intraData.data };
+   } else {
+       let isDirectMap = true;
+       for (const k in intraData) {
+           if (!Array.isArray(intraData[k])) { isDirectMap = false; break; }
+       }
+       if (isDirectMap) {
+           remoteIntraday = { [dayKey()]: intraData };
+       } else {
+           remoteIntraday = intraData;
+       }
+   }
   }
 
   if(data && data.prices && Object.keys(data.prices).length>0){
-   // FIX: robust time parsing for updated_at
    const updatedAt = parseTime(data.updated_at) || Date.now();
    for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k];}
    Object.assign(prices,data.prices);
@@ -741,9 +775,7 @@ function updateChartData(a, chartInstance) {
  
  const sparse = pts.length < 3;
  chartInstance.data.datasets.forEach((ds) => {
-   if (ds.pointRadius !== undefined) {
-     ds.pointRadius = sparse ? 4 : 0;
-   }
+   if (ds.pointRadius !== undefined) ds.pointRadius = sparse ? 4 : 0;
  });
  
  const isUp = pts.length > 1 ? (pts[pts.length-1].price >= pts[0].price) : true;
@@ -828,7 +860,7 @@ function sampleByStep(pts,step){
  return out;
 }
 
-// FIX: pointsFor completely rewritten to parse times correctly and merge daily data from GitHub
+// === تابع اصلاح شده برای خواندن دقیق دیتای امروز ===
 function pointsFor(id){
  const all = history[id] || [];
  const mode = ranges[id] || 'daily';
@@ -856,36 +888,25 @@ function pointsFor(id){
     }
   };
   
-  // 1. Local (from browser)
+  // ۱. دیتای ذخیره شده در لوکال
   addPts(intraday[id] || []);
   
-  // 2. Remote (from GitHub intraday.json)
+  // ۲. دیتای ذخیره شده در گیت‌هاب (حالا با موفقیت خوانده می‌شود)
   if (remoteIntraday[today]) {
     addPts(remoteIntraday[today][id] || []);
   }
   
-  // 3. History (CDN)
+  // ۳. دیتای پشتیبان (تاریخچه)
   addPts(all);
 
-  // Fallback: if nothing or only 1 point, draw a flat line from 00:00
-  if (merged.length === 1 || (merged.length === 0 && prices[id] > 0)) {
-      const price = merged.length === 1 ? merged[0].price : prices[id];
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const now = Date.now();
-      
-      const startPt = { time: todayStart.getTime(), price: price };
-      // only unshift if it doesn't already have a point at 00:00
-      if (merged.length === 0 || Math.abs(merged[0].time - startPt.time) > 3600000) {
-          merged.unshift(startPt);
-      }
-      if (merged.length === 0) {
-          merged.push({ time: now, price: price });
-      }
-  }
-
+  // مرتب‌سازی نهایی
   if (merged.length > 0) {
     return merged.sort((a,b)=>a.time-b.time);
+  }
+  
+  // اگر واقعاً هیچ دیتایی نبود، فقط قیمت لحظه‌ای رو به عنوان یک نقطه نشون بده (بدون خط صاف تقلبی)
+  if (prices[id] > 0) {
+      return [{ time: Date.now(), price: prices[id] }];
   }
   return [];
  }
