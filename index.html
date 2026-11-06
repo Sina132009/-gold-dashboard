@@ -531,6 +531,26 @@ function getSavedPoints(id, days){
  return out.sort((a,b)=>a.time-b.time);
 }
 
+// === سیستم ادغام هوشمند داده‌های ذخیره‌شده با داده‌های منبع ===
+function mergeWithSource(savedPts, sourcePts, daysRange) {
+  const cutoff = Date.now() - daysRange * 86400000;
+  const sourceInRange = sourcePts.filter(p => p.time >= cutoff);
+  
+  if (savedPts.length === 0) return sourceInRange;
+  if (sourceInRange.length === 0) return savedPts;
+  
+  const earliestSaved = savedPts[0].time;
+  const olderSource = sourceInRange.filter(p => p.time < earliestSaved);
+  
+  return [...olderSource, ...savedPts].sort((a,b) => a.time - b.time);
+}
+
+function getMergedRawPoints(id, days) {
+  const all = history[id] || [];
+  const saved = getSavedPoints(id, days);
+  return mergeWithSource(saved, all, days);
+}
+
 function todayOHLC(id){
  const nlo=prices['_low_'+id],nhi=prices['_high_'+id];
  if(nlo>0&&nhi>0)return {low:nlo,high:nhi};
@@ -549,16 +569,15 @@ function todayOHLC(id){
  return {low:Math.min(...v),high:Math.max(...v)};
 }
 
-// === محاسبه دقیق کمترین و بیشترین بر اساس بازه انتخاب شده ===
 function getRangeOHLC(id){
  const mode = ranges[id] || 'daily';
  if(mode === 'daily') return todayOHLC(id);
  
  let rawPts = [];
- if(mode === 'weekly') rawPts = getSavedPoints(id, 7);
- else if(mode === 'monthly') rawPts = getSavedPoints(id, 30);
- else if(mode === 'yearly') rawPts = (history[id]||[]).filter(p => p.time >= Date.now() - 365*86400000);
- else rawPts = history[id]||[];
+ if(mode === 'weekly') rawPts = getMergedRawPoints(id, 7);
+ else if(mode === 'monthly') rawPts = getMergedRawPoints(id, 30);
+ else if(mode === 'yearly') rawPts = getMergedRawPoints(id, 365);
+ else rawPts = getMergedRawPoints(id, 3650);
 
  if(rawPts.length === 0) rawPts = pointsFor(id);
  if(rawPts.length === 0) return {low:0, high:0};
@@ -569,7 +588,7 @@ function getRangeOHLC(id){
  return { low: Math.min(...vals), high: Math.max(...vals) };
 }
 
-// === محاسبه درصد تغییرات نسبت به ابتدای بازه ===
+// === محاسبه درصد تغییرات نسبت به ابتدای بازه انتخاب شده ===
 function getRangeChange(id){
  const mode = ranges[id] || 'daily';
  let rawPts = [];
@@ -577,13 +596,13 @@ function getRangeChange(id){
  if(mode === 'daily') {
    rawPts = pointsFor(id);
  } else if(mode === 'weekly') {
-   rawPts = getSavedPoints(id, 7);
+   rawPts = getMergedRawPoints(id, 7);
  } else if(mode === 'monthly') {
-   rawPts = getSavedPoints(id, 30);
+   rawPts = getMergedRawPoints(id, 30);
  } else if(mode === 'yearly') {
-   rawPts = (history[id]||[]).filter(p => p.time >= Date.now() - 365*86400000);
+   rawPts = getMergedRawPoints(id, 365);
  } else {
-   rawPts = history[id]||[];
+   rawPts = getMergedRawPoints(id, 3650);
  }
 
  if(rawPts.length === 0) rawPts = pointsFor(id);
@@ -800,27 +819,23 @@ function pointsFor(id){
  }
  
  if(mode==='weekly'){
-  const saved = getSavedPoints(id, 7);
-  if (saved.length > 0) return sampleByDay(saved, 7);
-  const lastTime = all.length > 0 ? all[all.length-1].time : Date.now();
-  return sampleByDay(all.filter(p=>p.time>=lastTime-7*24*60*60*1000),7);
+  const merged = getMergedRawPoints(id, 7);
+  if (merged.length > 0) return sampleByDay(merged, 7);
  }
  
  if(mode==='monthly'){
-  const saved = getSavedPoints(id, 30);
-  if (saved.length > 0) return sampleByDay(saved, 30);
-  const lastTime = all.length > 0 ? all[all.length-1].time : Date.now();
-  return sampleByDay(all.filter(p=>p.time>=lastTime-30*24*60*60*1000),30);
+  const merged = getMergedRawPoints(id, 30);
+  if (merged.length > 0) return sampleByDay(merged, 30);
  }
  
  if(mode==='yearly'){
-  const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
-  const yearData = all.filter(p=>p.time >= oneYearAgo);
-  if(yearData.length > 0) return sampleByStep(yearData, Math.max(1, Math.floor(yearData.length/24)));
+  const merged = getMergedRawPoints(id, 365);
+  if(merged.length > 0) return sampleByStep(merged, Math.max(1, Math.floor(merged.length/24)));
  }
  
  if(mode==='all'){
-  if(all.length > 0) return sampleByStep(all, Math.ceil(all.length/120));
+  const merged = getMergedRawPoints(id, 3650);
+  if(merged.length > 0) return sampleByStep(merged, Math.ceil(merged.length/120));
  }
  
  return all;
@@ -905,7 +920,7 @@ function bindRanges(grid, prefix=''){
          dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
        }
      }
-     updateChange(a); // آپدیت درصد تغییرات
+     updateChange(a); // آپدیت درصد تغییرات در بالای کارت
    }
    grid.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
    b.classList.add('active');
@@ -1099,7 +1114,6 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
  charts[chartKey] = newChart;
 }
 
-// === رفع مشکل فریز شدن با رندر تدریجی ===
 function renderCharts(grid, filterIds, prefix=''){
  const assetsToRender = assets.filter(a => !filterIds || filterIds.includes(a.id));
  let i = 0;
@@ -1116,7 +1130,6 @@ function renderCharts(grid, filterIds, prefix=''){
    }
    updateChange(a);
    
-   // 10 میلی‌ثانیه صبر می‌کند تا مرورگر نفس بکشد و فریز نشود
    setTimeout(drawNext, 10); 
  }
  drawNext();
@@ -1514,7 +1527,6 @@ function hideAllPages(){
 
 $('langBtn').onclick=()=>{lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang();};
 $('themeBtn').onclick=()=>{
- // فقط 3 تم
  theme = theme === 'obsidian' ? 'neon' : theme === 'neon' ? 'glass' : 'obsidian';
  try{localStorage.setItem('mktTheme',theme)}catch(e){}
  applyTheme();
