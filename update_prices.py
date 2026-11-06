@@ -1,173 +1,98 @@
 import json
 import os
-import time
-import urllib.request
+import requests
 import datetime
-import zoneinfo
+import time
 
-NA = 'https://nerkhara.com/api/v1'
-IM_CDN = 'https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data'
+# لیست دارایی‌ها دقیقا مطابق کدهای فرانت‌اند
+ASSETS = {
+    'usd': 'USD_IRR_FREE',
+    'usdt': 'USDT_IRR',
+    'eur': 'EUR_IRR_FREE',
+    'g18': 'GOLD_18K_IRR',
+    'g24': 'GOLD_24K_IRR',
+    'silver': 'SILVER_999',
+    'emami': 'COIN_EMAMI_IRR',
+    'bahar': 'COIN_BAHAR_IRR',
+    'half': 'COIN_HALF_IRR',
+    'quarter': 'COIN_QUARTER_IRR',
+    'btc': 'BTC_USD',
+    'oil': 'OIL'
+}
 
-ASSETS = [
-    {"id": "usd",     "symbol": "USD_IRR_FREE",    "nid": "usd"},
-    {"id": "usdt",    "symbol": "USDT_IRR",        "nid": "tether"},
-    {"id": "eur",     "symbol": "EUR_IRR_FREE",    "nid": "eur"},
-    {"id": "g18",     "symbol": "GOLD_18K_IRR",    "nid": "gold-18k"},
-    {"id": "g24",     "symbol": "GOLD_24K_IRR",    "nid": "gold-24k"},
-    {"id": "silver",  "symbol": "SILVER_999",      "nid": "silver"},
-    {"id": "emami",   "symbol": "COIN_EMAMI_IRR",  "nid": "coin-emami"},
-    {"id": "bahar",   "symbol": "COIN_BAHAR_IRR",  "nid": "coin-bahar-azadi"},
-    {"id": "half",    "symbol": "COIN_HALF_IRR",   "nid": "coin-half"},
-    {"id": "quarter", "symbol": "COIN_QUARTER_IRR","nid": "coin-quarter"},
-    {"id": "btc",     "symbol": "BTC_USD",         "nid": "bitcoin"},
-    {"id": "oil",     "symbol": "OIL",             "nid": "oil", "currency": "USD"},
-]
+prices = {}
+headers = {'User-Agent': 'Mozilla/5.0'}
 
-def fetch_json(url, timeout=20):
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (prices-bot)"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8"))
-
-def iran_rows(p):
-    c = (p or {}).get("data", {}).get("categories")
-    if not isinstance(c, dict):
-        return []
-    out = []
-    for arr in c.values():
-        if isinstance(arr, list):
-            out.extend(arr)
-    return out
-
-def downsample(points, max_pts):
-    if len(points) <= max_pts:
-        return points
-    step = max(1, len(points) // max_pts)
-    out = points[::step]
-    if out[-1] != points[-1]:
-        out.append(points[-1])
-    return out
-
-def main():
-    n_items, i_items = [], []
+print("Fetching latest prices from free sources...")
+for asset_id, symbol in ASSETS.items():
+    # استفاده از مخزن رایگان ایران‌مارکت برای خواندن تاریخچه و برداشتن آخرین قیمت
+    url = f"https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/history/{symbol}.json"
     try:
-        n = fetch_json(NA + "/latest.json")
-        if isinstance(n, dict) and isinstance(n.get("items"), list):
-            n_items = n["items"]
+        res = requests.get(url, headers=headers, timeout=10)
+        if res.status_code == 200:
+            data = res.json()
+            if 'data' in data and len(data['data']) > 0:
+                last_point = data['data'][-1]
+                price = last_point.get('close') or last_point.get('price') or last_point.get('value')
+                if price:
+                    prices[asset_id] = float(price)
     except Exception as e:
-        print("NerkhAra failed:", e)
+        print(f"Error fetching {asset_id}: {e}")
 
+# اگر دیتای بیت کوین یا تتر پیدا نشد، از API رایگان نوبیتکس بگیر
+try:
+    nobitex_res = requests.get("https://api.nobitex.ir/market/stats", timeout=10).json()
+    if 'usdt-rls' in nobitex_res.get('stats', {}):
+        prices['usdt'] = float(nobitex_res['stats']['usdt-rls']['latest'])
+    if 'btc-usdt' in nobitex_res.get('stats', {}):
+        # تبدیل بیت کوین به دلار (چون نوبیتکس به تتر میده و باید در قیمت تتر ضرب بشه)
+        btc_usdt = float(nobitex_res['stats']['btc-usdt']['latest'])
+        usdt_rls = prices.get('usdt', 0)
+        if usdt_rls > 0:
+            prices['btc'] = btc_usdt
+except Exception as e:
+    print(f"Nobitex fallback error: {e}")
+
+now = int(time.time() * 1000)
+today = datetime.datetime.now().strftime("%Y-%m-%d")
+
+os.makedirs('data', exist_ok=True)
+
+# ۱. ذخیره در latest-prices.json
+latest_prices_data = {
+    "prices": prices,
+    "updated_at": now
+}
+with open('data/latest-prices.json', 'w', encoding='utf-8') as f:
+    json.dump(latest_prices_data, f, ensure_ascii=False, indent=2)
+
+# ۲. ذخیره در intraday.json
+intraday_data = {'days': {}}
+if os.path.exists('data/intraday.json'):
     try:
-        i = fetch_json(IM_CDN + "/latest-toman.json")
-        i_items = iran_rows(i)
-    except Exception as e:
-        print("Iran Market failed:", e)
+        with open('data/intraday.json', 'r', encoding='utf-8') as f:
+            intraday_data = json.load(f)
+    except:
+        pass
 
-    prices, sources = {}, {}
+if 'days' not in intraday_data:
+    intraday_data['days'] = {}
+if today not in intraday_data['days']:
+    intraday_data['days'][today] = {}
 
-    for a in ASSETS:
-        p, s = None, ""
-        ni = next(
-            (x for x in n_items
-             if x.get("id") == a["nid"]
-             and float(x.get("price") or 0) > 0
-             and (not x.get("unit") or x.get("unit") == "IRT")),
-            None,
-        )
-        if ni:
-            p = float(ni["price"])
-            s = "n"
-            lo = float(ni.get("low_24h") or ni.get("low24h") or ni.get("24h_low")
-                       or ni.get("min_24h") or (ni.get("24hour") or {}).get("low") or 0)
-            hi = float(ni.get("high_24h") or ni.get("high24h") or ni.get("24h_high")
-                       or ni.get("max_24h") or (ni.get("24hour") or {}).get("high") or 0)
-            if lo > 0 and hi > 0:
-                prices["_low_" + a["id"]] = lo
-                prices["_high_" + a["id"]] = hi
+for asset_id, price in prices.items():
+    if asset_id not in intraday_data['days'][today]:
+        intraday_data['days'][today][asset_id] = []
+    
+    # اضافه کردن نقطه جدید به تاریخچه امروز
+    intraday_data['days'][today][asset_id].append({
+        "time": now,
+        "price": price
+    })
+    # نگه داشتن ۱۰۰۰ نقطه آخر برای جلوگیری از سنگین شدن فایل
+    intraday_data['days'][today][asset_id] = intraday_data['days'][today][asset_id][-1000:]
 
-        if not (p and p > 0):
-            ii = next(
-                (x for x in i_items
-                 if x.get("symbol") == a["symbol"]
-                 and float(x.get("price") or 0) > 0),
-                None,
-            )
-            if ii:
-                p = float(ii["price"])
-                s = "i"
+with open('data/intraday.json', 'w', encoding='utf-8') as f:
+    json.dump(intraday_data, f, ensure_ascii=False, indent=2)
 
-        if a["id"] == "btc" and p and p > 0 and s == "i":
-            u = prices.get("usd", 0)
-            if u and u > 0:
-                p = p * u
-            else:
-                p = None
-
-        if p and p > 0:
-            prices[a["id"]] = p
-            sources[a["id"]] = s
-
-    tehran_tz = zoneinfo.ZoneInfo("Asia/Tehran")
-    now = datetime.datetime.now(tehran_tz)
-    today_str = now.strftime("%Y-%m-%d")
-    now_ms = int(now.timestamp() * 1000)
-
-    # --- بارگذاری همه روزهای ذخیره‌شده ---
-    intraday_file = "data/intraday.json"
-    all_days = {}
-
-    if os.path.exists(intraday_file):
-        try:
-            with open(intraday_file, "r", encoding="utf-8") as f:
-                saved = json.load(f)
-                if "days" in saved:
-                    all_days = saved["days"]
-                elif "date" in saved and "data" in saved:
-                    all_days = {saved["date"]: saved["data"]}
-        except Exception:
-            pass
-
-    # اضافه کردن قیمت‌های جدید به سبد امروز
-    today_data = all_days.get(today_str, {})
-    for k, v in prices.items():
-        if k.startswith("_"):
-            continue
-        if k not in today_data:
-            today_data[k] = []
-        last_point = today_data[k][-1] if today_data[k] else None
-        if not last_point or last_point.get("price") != v:
-            today_data[k].append({"time": now_ms, "price": v})
-    all_days[today_str] = today_data
-
-    # --- نگه‌داری دقیقاً ۳۰ روز اخیر و حذف مابقی ---
-    cut_7   = (now - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
-    cut_30  = (now - datetime.timedelta(days=30)).strftime("%Y-%m-%d")
-
-    for day_str in list(all_days.keys()):
-        if day_str < cut_30:
-            del all_days[day_str] # حذف روزهای قدیمی‌تر از ۳۰ روز
-            continue
-        if day_str < cut_7:
-            max_pts = 24     # ۱ نقطه در هر ساعت
-        else:
-            max_pts = 96     # ۱ نقطه در هر ۱۵ دقیقه
-        for asset_id in list(all_days[day_str].keys()):
-            all_days[day_str][asset_id] = downsample(all_days[day_str][asset_id], max_pts)
-
-    os.makedirs("data", exist_ok=True)
-
-    with open("data/latest-prices.json", "w", encoding="utf-8") as f:
-        json.dump({
-            "updated_at": now_ms,
-            "prices": prices,
-            "sources": sources,
-        }, f, ensure_ascii=False, indent=2)
-
-    with open(intraday_file, "w", encoding="utf-8") as f:
-        json.dump({"days": all_days}, f, ensure_ascii=False, indent=2)
-
-    total_pts = sum(len(pts) for d in all_days.values() for pts in d.values())
-    print(f"Updated {len([k for k in prices if not k.startswith('_')])} prices. "
-          f"Saved {len(all_days)} days, {total_pts} total points.")
-
-if __name__ == "__main__":
-    main()
+print(f"Successfully saved {len(prices)} assets.")
