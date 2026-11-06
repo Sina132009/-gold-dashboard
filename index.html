@@ -427,7 +427,16 @@ function dayKey(time=Date.now()){
  const g=x=>p.find(y=>y.type===x)?.value||'00';
  return `${g('year')}-${g('month')}-${g('day')}`;
 }
-function parseTime(v){if(v==null||v==='')return NaN;if(typeof v==='number')return v<1e12?v*1000:v;return Date.parse(v);}
+
+// FIX: parseTime robustly handles string, number, and Date formats
+function parseTime(v){
+ if(v==null||v==='')return NaN;
+ if(typeof v==='number')return v<1e12?v*1000:v;
+ const parsed = Date.parse(v);
+ if (!isNaN(parsed)) return parsed;
+ return NaN;
+}
+
 async function fetchJson(url,tm=10000){
  const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);
  try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json();}
@@ -435,28 +444,40 @@ async function fetchJson(url,tm=10000){
 }
 
 function loadIntraday(){
- try{const s=JSON.parse(localStorage.getItem(INTRADAY_KEY)||'{}'),today=dayKey();
-  for(const a of assets){const r=Array.isArray(s[a.id])?s[a.id]:[];
-   intraday[a.id]=r.filter(p=>p&&Number(p.time)&&Number(p.price)>0&&dayKey(Number(p.time))===today).map(p=>({time:+p.time,price:+p.price}));}
+ try{
+   const s=JSON.parse(localStorage.getItem(INTRADAY_KEY)||'{}'),today=dayKey();
+   for(const a of assets){
+     const r=Array.isArray(s[a.id])?s[a.id]:[];
+     intraday[a.id]=r.map(p => {
+         if(!p) return null;
+         const price = Number(p.price);
+         const time = parseTime(p.time);
+         if(price > 0 && Number.isFinite(time)) return {time, price};
+         return null;
+     }).filter(p => p && dayKey(p.time) === today);
+   }
  }catch(e){intraday={};}
 }
+
 function saveIntraday(){
  try{const today=dayKey(),d={};for(const a of assets){d[a.id]=(intraday[a.id]||[]).filter(p=>dayKey(p.time)===today).slice(-1000);}
   localStorage.setItem(INTRADAY_KEY,JSON.stringify(d));}catch(e){}
 }
+
 function record(id,price,time){
  if(!(price>0)||!Number.isFinite(time))return;
  const rows=(intraday[id]||[]).filter(p=>dayKey(p.time)===dayKey(time));
  const last=rows[rows.length-1];
- // FIX: debounce 15s to fill chart faster
  if(last&&time-last.time<15000)return;
  rows.push({time,price});intraday[id]=rows.slice(-1000);
 }
+
 function loadHoldings(){
  try{const s=JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'[]');
   holdings=Array.isArray(s)?s.filter(h=>h&&h.id&&assets.some(a=>a.id===h.id)&&h.id!=='oil'&&Number(h.qty)>0):[];
  }catch(e){holdings=[];}
 }
+
 function saveHoldings(){
  try{localStorage.setItem(HOLDINGS_KEY,JSON.stringify(holdings));}catch(e){}
 }
@@ -464,9 +485,10 @@ function saveHoldings(){
 async function refreshPrices(){
  $('status').textContent=t('loading');
  try{
+  // FIX: cache busting for GitHub Pages
   const [data, intraData] = await Promise.all([
-   fetchJson(LOCAL_PRICES_URL, 5000).catch(()=>null),
-   fetchJson(LOCAL_INTRADAY_URL, 5000).catch(()=>null)
+   fetchJson(LOCAL_PRICES_URL + '?v=' + Date.now(), 5000).catch(()=>null),
+   fetchJson(LOCAL_INTRADAY_URL + '?v=' + Date.now(), 5000).catch(()=>null)
   ]);
 
   if(intraData && intraData.days){
@@ -474,12 +496,12 @@ async function refreshPrices(){
   } else if(intraData && intraData.date && intraData.data){
    remoteIntraday = { [intraData.date]: intraData.data };
   } else if(intraData && !intraData.days && !intraData.date){
-   // maybe direct map { id: [{time,price}] }
    remoteIntraday = { [dayKey()]: intraData };
   }
 
   if(data && data.prices && Object.keys(data.prices).length>0){
-   const updatedAt=Number(data.updated_at)||Date.now();
+   // FIX: robust time parsing for updated_at
+   const updatedAt = parseTime(data.updated_at) || Date.now();
    for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k];}
    Object.assign(prices,data.prices);
    if(data.sources)Object.assign(sources,data.sources);
@@ -512,7 +534,6 @@ function getTomanValue(id){
  return p;
 }
 
-// جمع‌آوری همه نقاط ذخیره‌شده از فایل سرور (remote intraday)
 function getSavedPoints(id, days){
  const cutoff = Date.now() - days * 86400000;
  const out = [];
@@ -520,7 +541,9 @@ function getSavedPoints(id, days){
   const dayData = remoteIntraday[day];
   if(!dayData || !dayData[id]) continue;
   for(const p of dayData[id]){
-   if(p.time >= cutoff && p.price > 0) out.push({time:p.time, price:p.price});
+   const time = parseTime(p.time);
+   const price = Number(p.price);
+   if(time >= cutoff && price > 0) out.push({time, price});
   }
  }
  return out.sort((a,b)=>a.time-b.time);
@@ -541,7 +564,6 @@ function getMergedRawPoints(id, days) {
   const saved = getSavedPoints(id, days);
   let merged = mergeWithSource(saved, all, days);
 
-  // FIX: include today's local session points too (useful for weekly/monthly last point)
   const local = (intraday[id] || []).filter(p => p.price > 0 && p.time >= Date.now() - days*86400000);
   if (local.length) {
     const seen = new Set(merged.map(p => Math.floor(p.time/60000)));
@@ -567,12 +589,11 @@ function todayOHLC(id){
   }
  }
  if(vals.length)return {low:Math.min(...vals),high:Math.max(...vals)};
- // FIX: also check remote intraday
- const remote = (remoteIntraday[id]||[]).filter(p=>dayKey(p.time)===today&&Number(p.price)>0);
+ const remote = (remoteIntraday[today] && remoteIntraday[today][id]) ? remoteIntraday[today][id] : [];
  const local = (intraday[id]||[]).filter(p=>dayKey(p.time)===today&&Number(p.price)>0);
  const rows = [...remote, ...local];
  if(!rows.length)return {low:0,high:0};
- const v=rows.map(p=>p.price);
+ const v=rows.map(p=>Number(p.price));
  return {low:Math.min(...v),high:Math.max(...v)};
 }
 
@@ -718,9 +739,8 @@ function updateChartData(a, chartInstance) {
  chartInstance.options.scales.y.min = yMin;
  chartInstance.options.scales.y.max = yMax;
  
- // FIX: show points when data is very sparse so mobile users see something
  const sparse = pts.length < 3;
- chartInstance.data.datasets.forEach((ds, i) => {
+ chartInstance.data.datasets.forEach((ds) => {
    if (ds.pointRadius !== undefined) {
      ds.pointRadius = sparse ? 4 : 0;
    }
@@ -808,7 +828,7 @@ function sampleByStep(pts,step){
  return out;
 }
 
-// === FIX: Daily pointsFor merges all today's sources ===
+// FIX: pointsFor completely rewritten to parse times correctly and merge daily data from GitHub
 function pointsFor(id){
  const all = history[id] || [];
  const mode = ranges[id] || 'daily';
@@ -821,30 +841,52 @@ function pointsFor(id){
   const addPts = (pts) => {
     if (!pts) return;
     for (const p of pts) {
-      if (!p || !(Number(p.price) > 0) || !Number.isFinite(Number(p.time))) continue;
-      if (dayKey(Number(p.time)) !== today) continue;
-      const key = Math.floor(Number(p.time) / 60000);
+      if (!p) continue;
+      const price = Number(p.price);
+      if (!(price > 0)) continue;
+      
+      const time = parseTime(p.time);
+      if (!Number.isFinite(time)) continue;
+      if (dayKey(time) !== today) continue;
+      
+      const key = Math.floor(time / 60000);
       if (seen.has(key)) continue;
       seen.add(key);
-      merged.push({ time: Number(p.time), price: Number(p.price) });
+      merged.push({ time: time, price: price });
     }
   };
   
-  // 1. Local session + saved (localStorage)
+  // 1. Local (from browser)
   addPts(intraday[id] || []);
   
-  // 2. Remote intraday from server file (اطلاعات ذخیره شده)
-  addPts(remoteIntraday[id] || []);
+  // 2. Remote (from GitHub intraday.json)
+  if (remoteIntraday[today]) {
+    addPts(remoteIntraday[today][id] || []);
+  }
   
-  // 3. History data (CDN / منبع پشتیبان)
+  // 3. History (CDN)
   addPts(all);
-  
+
+  // Fallback: if nothing or only 1 point, draw a flat line from 00:00
+  if (merged.length === 1 || (merged.length === 0 && prices[id] > 0)) {
+      const price = merged.length === 1 ? merged[0].price : prices[id];
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const now = Date.now();
+      
+      const startPt = { time: todayStart.getTime(), price: price };
+      // only unshift if it doesn't already have a point at 00:00
+      if (merged.length === 0 || Math.abs(merged[0].time - startPt.time) > 3600000) {
+          merged.unshift(startPt);
+      }
+      if (merged.length === 0) {
+          merged.push({ time: now, price: price });
+      }
+  }
+
   if (merged.length > 0) {
     return merged.sort((a,b)=>a.time-b.time);
   }
-  
-  // fallback: single current price
-  if (prices[id] > 0) return [{ time: Date.now(), price: prices[id] }];
   return [];
  }
  
@@ -1053,7 +1095,6 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
     :(p.date||new Date(p.time).toLocaleDateString(lang==='fa'?'fa-IR':'en-US')));
  const dataVals = pts.map(p=>p.price);
 
- // FIX: show points when sparse (mobile visibility)
  const sparse = dataVals.length < 3;
  const pointR = sparse ? 4 : 0;
 
@@ -1531,7 +1572,6 @@ function applyLang(){
  updateMiniCardButtons();
 }
 
-// === FIX: destroy + recreate charts on theme switch so glass 3-layer / neon glow apply properly ===
 function applyTheme(){
  document.documentElement.setAttribute('data-theme',theme);
  $('themeBtn').textContent = theme==='obsidian' ? '👑' : theme==='neon' ? '⚡' : '💎';
@@ -1542,9 +1582,7 @@ function applyTheme(){
    delete charts[key];
  }
  
- // rebuild based on active page
  if(!$('homePage').classList.contains('hidden')) {
-   // grid featured may already have DOM; just redraw canvases
    if($('gridFeatured').innerHTML) {
      setTimeout(()=>{
        renderCharts($('gridFeatured'), ['usd','usdt'], 'feat-');
@@ -1626,4 +1664,4 @@ window.addEventListener('resize',()=>{
 })();
 </script>
 </body>
- </html>
+</html>
