@@ -20,7 +20,6 @@
  --green:#00ffc6; --red:#ff2e88; --accent:#a855f7;
  --shadow:0 0 30px rgba(168,85,247,.35), 0 0 70px rgba(0,255,198,.12);
 }
-/* --- Refined Diamond Glass Theme --- */
 [data-theme="glass"]{
  --bg1:#070d20; --bg2:#111d3b;
  --card1:rgba(23,38,70,.72); --card2:rgba(10,20,43,.82);
@@ -145,7 +144,6 @@
  filter:drop-shadow(0 8px 12px rgba(68,186,204,.10));
 }
 [data-theme="glass"] .card:hover canvas{transform:perspective(1100px) rotateX(1deg) translateY(-2px)}
-/* --- End of Theme --- */
 *{box-sizing:border-box;margin:0;padding:0}
 body{
  min-height:100vh; color:var(--txt); font-family:Tahoma,Arial,sans-serif;
@@ -469,6 +467,8 @@ canvas{width:100%!important;height:100%!important;display:block}
 'use strict';
 const NA='https://nerkhara.com/api/v1';
 const IM_CDN='https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data';
+const LOCAL_PRICES_URL = './data/latest-prices.json';
+const LOCAL_INTRADAY_URL = './data/intraday.json';
 
 const assets=[
  {id:'usd',symbol:'USD_IRR_FREE',nid:'usd',fa:'دلار آمریکا',en:'US Dollar',unitFa:'هر دلار',unitEn:'per USD'},
@@ -490,7 +490,7 @@ const words={
  en:{title:'Market Dashboard',subtitle:'Currency, Gold, Coins & Crypto with charts',prices:'Prices',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose asset and quantity.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',low:'Today low',high:'Today high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart'}
 };
 
-let lang='fa',theme='dark',prices={},history={},intraday={},ranges={},charts={},sources={},holdings=[];
+let lang='fa',theme='dark',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[];
 let expandedAssetId = null;
 let tiltHandlers = new WeakMap();
 const INTRADAY_KEY='mktDashV29';
@@ -542,32 +542,36 @@ function saveHoldings(){
 async function refreshPrices(){
  $('status').textContent=t('loading');
  try{
-  let nItems=[],iItems=[];
-  const p1 = fetchJson(NA+'/latest.json').catch(()=>null);
-  const p2 = fetchJson(IM_CDN+'/latest-toman.json').catch(()=>null);
-  const [n, i] = await Promise.all([p1, p2]);
+  let data=null, intraData=null;
   
-  if(n && Array.isArray(n?.items)) nItems=n.items;
-  if(i) iItems=iranRows(i);
+  // خواندن فایل‌های محلی
+  const p1 = fetchJson(LOCAL_PRICES_URL,10000).catch(()=>null);
+  const p2 = fetchJson(LOCAL_INTRADAY_URL,10000).catch(()=>null);
+  [data, intraData] = await Promise.all([p1, p2]);
 
-  for(const a of assets){
-   let p=null,s='';
-   const ni=nItems.find(x=>x.id===a.nid&&Number(x.price)>0&&(!x.unit||x.unit==='IRT'));
-   if(ni){
-    p=Number(ni.price);s='n';
-    const lo=Number(ni.low_24h||ni.low24h||ni['24h_low']||ni.min_24h||ni['24hour']?.low||0);
-    const hi=Number(ni.high_24h||ni.high24h||ni['24h_high']||ni.max_24h||ni['24hour']?.high||0);
-    if(lo>0&&hi>0){prices['_low_'+a.id]=lo;prices['_high_'+a.id]=hi;}
+  if(intraData && intraData.data){
+   remoteIntraday = intraData.data;
+  }
+
+  if(data && data.prices && Object.keys(data.prices).length>0){
+   const updatedAt=Number(data.updated_at)||Date.now();
+   for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k];}
+   Object.assign(prices,data.prices);
+   if(data.sources)Object.assign(sources,data.sources);
+   for(const a of assets){
+    const p=data.prices[a.id];
+    if(p>0)record(a.id,p,updatedAt);
    }
-   if(!(p>0)){
-    const ii=iItems.find(x=>x.symbol===a.symbol&&Number(x.price)>0);
-    if(ii){p=Number(ii.price);s='i';}
+  } else {
+   // حالت پشتیبان (فقط در اولین راه‌اندازی)
+   const built=await buildPricesFromSources();
+   for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k];}
+   Object.assign(prices,built.prices);
+   Object.assign(sources,built.sources);
+   for(const a of assets){
+    const p=built.prices[a.id];
+    if(p>0)record(a.id,p,Date.now());
    }
-   if(a.id==='btc'&&p>0&&s==='i'){
-    const u=prices['usd'];
-    if(u>0)p=p*u;else p=null;
-   }
-   if(p>0){prices[a.id]=p;sources[a.id]=s;record(a.id,p,Date.now());}
   }
   saveIntraday();
   const ok=Object.keys(prices).filter(k=>!k.startsWith('_')).length>0;
@@ -575,6 +579,37 @@ async function refreshPrices(){
   $('status').textContent=ok?t('connected'):t('failed');
   updatePricesOnly();
  }catch(e){$('dot').classList.add('bad');$('status').textContent=t('failed');}
+}
+
+async function buildPricesFromSources(){
+ let nItems=[],iItems=[];
+ const p1=fetchJson(NA+'/latest.json').catch(()=>null);
+ const p2=fetchJson(IM_CDN+'/latest-toman.json').catch(()=>null);
+ const [n,i]=await Promise.all([p1,p2]);
+ if(n&&Array.isArray(n?.items))nItems=n.items;
+ if(i)iItems=iranRows(i);
+
+ const newPrices={},newSources={};
+ for(const a of assets){
+  let p=null,s='';
+  const ni=nItems.find(x=>x.id===a.nid&&Number(x.price)>0&&(!x.unit||x.unit==='IRT'));
+  if(ni){
+   p=Number(ni.price);s='n';
+   const lo=Number(ni.low_24h||ni.low24h||ni['24h_low']||ni.min_24h||ni['24hour']?.low||0);
+   const hi=Number(ni.high_24h||ni.high24h||ni['24h_high']||ni.max_24h||ni['24hour']?.high||0);
+   if(lo>0&&hi>0){newPrices['_low_'+a.id]=lo;newPrices['_high_'+a.id]=hi;}
+  }
+  if(!(p>0)){
+   const ii=iItems.find(x=>x.symbol===a.symbol&&Number(x.price)>0);
+   if(ii){p=Number(ii.price);s='i';}
+  }
+  if(a.id==='btc'&&p>0&&s==='i'){
+   const u=newPrices['usd'];
+   if(u>0)p=p*u;else p=null;
+  }
+  if(p>0){newPrices[a.id]=p;newSources[a.id]=s;}
+ }
+ return {updated_at:Date.now(),prices:newPrices,sources:newSources};
 }
 
 function todayOHLC(id){
@@ -711,14 +746,20 @@ function pointsFor(id){
  if(!all.length) return [];
  
  if(mode==='daily'){
-  const intr = (intraday[id]||[]).filter(p=>dayKey(p.time)===dayKey());
-  if(intr.length >= 2) return intr;
+  // اولویت با دیتای گیت‌هاب
+  const remoteIntr = (remoteIntraday[id] || []).filter(p=>dayKey(p.time)===dayKey());
+  if(remoteIntr.length >= 2) return remoteIntr;
+  
+  // بعدی: دیتای مرورگر
+  const localIntr = (intraday[id]||[]).filter(p=>dayKey(p.time)===dayKey());
+  if(localIntr.length >= 2) return localIntr;
   
   const histToday = all.filter(p=>dayKey(p.time)===dayKey());
   if(histToday.length >= 2) return histToday;
   
-  if(intr.length === 1) return intr;
-  if(histToday.length === 1) return histToday;
+  if(remoteIntr.length > 0) return remoteIntr;
+  if(localIntr.length > 0) return localIntr;
+  if(histToday.length > 0) return histToday;
   
   return all.slice(-2);
  }
@@ -983,19 +1024,16 @@ function drawChart(a,gridColor,tickColor,animate, prefix = ''){
  let datasets = [];
 
  if (glass) {
-  // Refined chart treatment only: clean luminous line with a subtle 3D base.
   const width = cv.offsetWidth || 500;
-  // A clear, saturated multi-colour spectrum across the line.
   const lineGrad = ctx.createLinearGradient(0, 0, width, 0);
-  lineGrad.addColorStop(0,    '#22D3EE'); // cyan
-  lineGrad.addColorStop(.16,  '#3B82F6'); // blue
-  lineGrad.addColorStop(.33,  '#6366F1'); // indigo
-  lineGrad.addColorStop(.50,  '#A855F7'); // violet
-  lineGrad.addColorStop(.67,  '#EC4899'); // pink
-  lineGrad.addColorStop(.83,  '#F97316'); // orange
-  lineGrad.addColorStop(1,    '#FACC15'); // gold
+  lineGrad.addColorStop(0,    '#22D3EE');
+  lineGrad.addColorStop(.16,  '#3B82F6');
+  lineGrad.addColorStop(.33,  '#6366F1');
+  lineGrad.addColorStop(.50,  '#A855F7');
+  lineGrad.addColorStop(.67,  '#EC4899');
+  lineGrad.addColorStop(.83,  '#F97316');
+  lineGrad.addColorStop(1,    '#FACC15');
 
-  // Keep the area fill soft so the original glass theme remains visible.
   const fillGrad = ctx.createLinearGradient(0, 0, 0, 210);
   fillGrad.addColorStop(0, 'rgba(34,211,238,.23)');
   fillGrad.addColorStop(.28, 'rgba(99,102,241,.16)');
@@ -1004,19 +1042,16 @@ function drawChart(a,gridColor,tickColor,animate, prefix = ''){
   fillGrad.addColorStop(1, 'rgba(249,115,22,0)');
   const values = pts.map(p=>p.price);
 
-  // Soft lower edge creates depth without making the chart look bulky.
   datasets.push({
    data:values,borderColor:'rgba(4,12,30,.48)',borderWidth:5,
    pointRadius:0,pointHoverRadius:0,fill:false,tension:.32,spanGaps:true,
    borderCapStyle:'round',borderJoinStyle:'round'
   });
-  // Fine ambient glow behind the actual price line.
   datasets.push({
    data:values,borderColor:'rgba(111,145,255,.22)',borderWidth:9,
    pointRadius:0,pointHoverRadius:0,fill:false,tension:.32,spanGaps:true,
    borderCapStyle:'round',borderJoinStyle:'round'
   });
-  // Main line and restrained translucent area.
   datasets.push({
    data:values,borderColor:lineGrad,backgroundColor:fillGrad,
    fill:true,tension:.32,borderWidth:3.2,
@@ -1026,7 +1061,6 @@ function drawChart(a,gridColor,tickColor,animate, prefix = ''){
    borderCapStyle:'round',borderJoinStyle:'round'
   });
  } else {
-  // Existing chart appearance for the other themes.
   let color = isUp ? '#2ee6a8' : '#ff6b81';
   if (neon) color = isUp ? '#00ffc6' : '#ff2e88';
 
