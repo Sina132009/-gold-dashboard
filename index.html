@@ -460,8 +460,8 @@ const assets=[
 ];
 
 const words={
- fa:{title:'داشبورد بازار',subtitle:'قیمت ارز، طلا، سکه و رمزارز با نمودار',prices:'قیمت‌ها',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',low:'کمترین امروز',high:'بیشترین امروز',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
- en:{title:'Market Dashboard',subtitle:'Currency, Gold, Coins & Crypto with charts',prices:'Prices',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',low:'Today low',high:'Today high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}
+ fa:{title:'داشبورد بازار',subtitle:'قیمت ارز، طلا، سکه و رمزارز با نمودار',prices:'قیمت‌ها',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
+ en:{title:'Market Dashboard',subtitle:'Currency, Gold, Coins & Crypto with charts',prices:'Prices',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}
 };
 
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[];
@@ -593,6 +593,27 @@ function todayOHLC(id){
  return {low:Math.min(...v),high:Math.max(...v)};
 }
 
+function getRangeOHLC(id){
+ const mode = ranges[id] || 'daily';
+ if(mode === 'daily') return todayOHLC(id);
+ 
+ const pts = pointsFor(id);
+ if(!pts || pts.length === 0) return {low:0, high:0};
+ 
+ const vals = pts.map(p=>p.price).filter(v => Number.isFinite(v) && v > 0);
+ if(vals.length === 0) return {low:0, high:0};
+ 
+ return { low: Math.min(...vals), high: Math.max(...vals) };
+}
+
+function getRangeLabels(mode){
+ if(mode==='weekly') return {low:t('lowWeekly'), high:t('highWeekly')};
+ if(mode==='monthly') return {low:t('lowMonthly'), high:t('highMonthly')};
+ if(mode==='yearly') return {low:t('lowYearly'), high:t('highYearly')};
+ if(mode==='all') return {low:t('lowAll'), high:t('highAll')};
+ return {low:t('lowDaily'), high:t('highDaily')};
+}
+
 function getPrice(id){
  if(prices[id] > 0) return prices[id];
  const h = history[id] || [];
@@ -616,13 +637,15 @@ function updatePricesOnly(){
    const priceEl=card.querySelector('.price');
    if(priceEl) priceEl.innerHTML = priceHTML;
    
-   const ohlc=todayOHLC(a.id);
+   const mode = ranges[a.id] || 'daily';
+   const ohlc=getRangeOHLC(a.id);
+   const labels=getRangeLabels(mode);
    const dr=card.querySelector('.day-range');
    if(dr) {
     const isUSD = a.currency === 'USD';
     const lowStr = ohlc.low>0 ? (isUSD ? `$${num(ohlc.low, 2)}` : num(ohlc.low)) : '—';
     const highStr = ohlc.high>0 ? (isUSD ? `$${num(ohlc.high, 2)}` : num(ohlc.high)) : '—';
-    dr.innerHTML=`<span>${t('low')}: <b>${lowStr}</b></span><span>${t('high')}: <b>${highStr}</b></span>`;
+    dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
    }
    updateChange(a);
   }
@@ -638,7 +661,7 @@ function updatePricesOnly(){
     const isUSD = a.currency === 'USD';
     const lowStr = ohlc.low>0 ? (isUSD ? `$${num(ohlc.low, 2)}` : num(ohlc.low)) : '—';
     const highStr = ohlc.high>0 ? (isUSD ? `$${num(ohlc.high, 2)}` : num(ohlc.high)) : '—';
-    mr.innerHTML=`<span>${t('low')}: <b>${lowStr}</b></span><span>${t('high')}: <b>${highStr}</b></span>`;
+    mr.innerHTML=`<span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span>`;
    }
   }
  }
@@ -697,6 +720,13 @@ async function loadHistories(){
      if(pts.length>=1){history[a.id]=pts;return;}
     }catch(e){}
    }
+   
+   const savedPts = getSavedPoints(a.id, 365);
+   if (savedPts.length > 0) {
+     history[a.id] = savedPts;
+     return;
+   }
+   
    history[a.id]=[];
   }));
   
@@ -798,7 +828,8 @@ function pointsFor(id){
 function fullCardHTML(a, prefix=''){
  const p=getPrice(a.id);
  const mode=ranges[a.id]||'daily';
- const ohlc=todayOHLC(a.id);
+ const ohlc=getRangeOHLC(a.id);
+ const labels=getRangeLabels(mode);
  const isUSD = a.currency === 'USD';
  const priceHTML = formatPrice(a, p);
  const lowStr = ohlc.low>0 ? (isUSD ? `$${num(ohlc.low, 2)}` : num(ohlc.low)) : '—';
@@ -812,8 +843,8 @@ function fullCardHTML(a, prefix=''){
    </div>
    <div class="price">${priceHTML}</div>
    <div class="day-range">
-    <span>${t('low')}: <b>${lowStr}</b></span>
-    <span>${t('high')}: <b>${highStr}</b></span>
+    <span>${labels.low}: <b>${lowStr}</b></span>
+    <span>${labels.high}: <b>${highStr}</b></span>
    </div>
    <div class="ranges">
     <button class="range ${mode==='daily'?'active':''}" data-id="${a.id}" data-r="daily">${t('daily')}</button>
@@ -840,8 +871,8 @@ function miniCardHTML(a){
    <div class="mini-sym">${a.symbol}</div>
    <div class="mini-price">${priceHTML}</div>
    <div class="mini-range">
-    <span>${t('low')}: <b>${lowStr}</b></span>
-    <span>${t('high')}: <b>${highStr}</b></span>
+    <span>${t('lowDaily')}: <b>${lowStr}</b></span>
+    <span>${t('highDaily')}: <b>${highStr}</b></span>
    </div>
    <button class="btn-mini toggle-mini-chart" data-id="${a.id}">${t('showChart')}</button>
   </div>`;
@@ -859,6 +890,19 @@ function bindRanges(grid, prefix=''){
         drawOrUpdateChart(a, chartInstance, prefix);
      } else {
         drawOrUpdateChart(a, null, prefix);
+     }
+     
+     const card = b.closest('.card');
+     if(card) {
+       const dr = card.querySelector('.day-range');
+       if(dr) {
+         const ohlc = getRangeOHLC(a.id);
+         const labels = getRangeLabels(b.dataset.r);
+         const isUSD = a.currency === 'USD';
+         const lowStr = ohlc.low>0 ? (isUSD ? `$${num(ohlc.low, 2)}` : num(ohlc.low)) : '—';
+         const highStr = ohlc.high>0 ? (isUSD ? `$${num(ohlc.high, 2)}` : num(ohlc.high)) : '—';
+         dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
+       }
      }
    }
    grid.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
