@@ -389,7 +389,6 @@ canvas{width:100%!important;height:100%!important;display:block;transition:trans
 const NA='https://nerkhara.com/api/v1';
 const IM_CDN='https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data';
 
-// آدرس‌های متعدد برای فایل‌های ذخیره‌شده در گیت‌هاب (برای دور زدن کش)
 const GITHUB_URLS_PRICES = [
   './data/latest-prices.json',
   'https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/latest-prices.json',
@@ -856,6 +855,7 @@ function sampleByStep(pts,step){
  return out;
 }
 
+// === اصلاح نهایی: اگر دیتای امروز نبود، از قیمت پشتیبان استفاده می‌کند ===
 function pointsFor(id){
  const all = history[id] || [];
  const mode = ranges[id] || 'daily';
@@ -895,8 +895,10 @@ function pointsFor(id){
     return merged.sort((a,b)=>a.time-b.time);
   }
   
-  if (prices[id] > 0) {
-      return [{ time: Date.now(), price: prices[id] }];
+  // FIX: استفاده از getPrice به جای prices
+  const currentPrice = getPrice(id);
+  if (currentPrice > 0) {
+      return [{ time: Date.now(), price: currentPrice }];
   }
   return [];
  }
@@ -1203,9 +1205,6 @@ function drawOrUpdateChart(a, chartInstance, prefix = '') {
  charts[chartKey] = newChart;
 }
 
-// ==========================================
-// بهینه‌سازی: استفاده از Intersection Observer
-// ==========================================
 const chartObserver = new IntersectionObserver((entries, observer) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -1219,19 +1218,17 @@ const chartObserver = new IntersectionObserver((entries, observer) => {
           if (a) {
             const chartKey = prefix + a.id;
             if (!charts[chartKey]) {
-              // نمودار هنوز ساخته نشده، حالا که دیده شد می‌سازیمش
               drawOrUpdateChart(a, null, prefix);
             } else {
-              // اگر قبلا ساخته شده، فقط آپدیتش می‌کنیم
               drawOrUpdateChart(a, charts[chartKey], prefix);
             }
           }
         }
       }
-      observer.unobserve(wrap); // دیگه نیازی به رصد این کارت نیست
+      observer.unobserve(wrap);
     }
   });
-}, { rootMargin: '150px' }); // 150 پیکسل قبل از رسیدن به دید کاربر، شروع به لود می‌کند
+}, { rootMargin: '150px' });
 
 function renderCharts(grid, filterIds, prefix=''){
  const assetsToRender = assets.filter(a => !filterIds || filterIds.includes(a.id));
@@ -1239,15 +1236,12 @@ function renderCharts(grid, filterIds, prefix=''){
  assetsToRender.forEach(a => {
    const canvas = $(`ch-${prefix}${a.id}`);
    if (canvas && canvas.parentElement) {
-     // ذخیره اطلاعات روی canvas برای استفاده در Observer
      canvas.dataset.id = a.id;
      canvas.dataset.prefix = prefix;
      
      if (charts[prefix + a.id]) {
-       // اگر نمودار از قبل وجود دارد، فقط رفرش کن
        drawOrUpdateChart(a, charts[prefix + a.id], prefix);
      } else {
-       // اگر وجود ندارد، به Observer بگو وقتی به دید کاربر رسید بسازدش
        chartObserver.observe(canvas.parentElement);
      }
    }
@@ -1645,9 +1639,6 @@ function applyTheme(){
  }
 }
 
-// ==========================================
-// پاکسازی حافظه هنگام تغییر صفحه
-// ==========================================
 function hideAllPages(){
  $('homePage').classList.add('hidden');
  $('allPage').classList.add('hidden');
@@ -1655,7 +1646,6 @@ function hideAllPages(){
  $('assetsPage').classList.remove('show');
  ['homeBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
  
- // آزادسازی حافظه: تمام نمودارهای قبلی را نابود کن
  for (const key in charts) {
    try { charts[key].destroy(); } catch(e) {}
    delete charts[key];
