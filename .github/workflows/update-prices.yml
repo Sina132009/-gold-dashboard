@@ -3,18 +3,15 @@ name: Update Market Prices
 on:
   schedule:
     - cron: '*/15 * * * *' # هر ۱۵ دقیقه اجرا می‌شود
-  workflow_dispatch: # امکان اجرای دستی هم وجود دارد
+  workflow_dispatch: # امکان اجرای دستی
 
-# جلوگیری از اجرای همزمان چند اکشن
-concurrency:
-  group: update-prices-group
-  cancel-in-progress: true
+# دسترسی نوشتن برای اینکه بتونه فایل‌ها رو آپدیت کنه
+permissions:
+  contents: write
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout repository
@@ -37,10 +34,6 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          # کشیدن آخرین تغییرات برای جلوگیری از تداخل (اگر خودت همزمان کد رو آپدیت کردی)
-          git pull --rebase
-          # اضافه کردن کل پوشه data (در صورت وجود فایل‌های جدید)
           git add data/
-          # [skip ci] باعث میشه این کامیت باعث اجرای مجدد اکشن‌ها نشه
           git commit -m "Auto-update market prices [skip ci]" || exit 0
           git push
