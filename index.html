@@ -221,7 +221,18 @@ const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_K
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
-function num(v,d=0){return Number.isFinite(Number(v))?new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US',{maximumFractionDigits:d}).format(Number(v)):'---'}
+
+// *** بهینه‌سازی بزرگ: کش کردن فرمت‌کننده‌ها برای جلوگیری از فریز شدن ***
+const dtfTehran = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'});
+const dtfTimeTehran = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',hour12:false});
+const nfCache = {};
+
+function num(v,d=0){
+    if(!Number.isFinite(Number(v))) return '---';
+    const key = lang + '-' + d;
+    if(!nfCache[key]) nfCache[key] = new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US',{maximumFractionDigits:d});
+    return nfCache[key].format(Number(v));
+}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 function parseTime(v){
@@ -233,11 +244,13 @@ function parseTime(v){
     if(!isNaN(numV))return numV<1e12?numV*1000:numV;
     return NaN
 }
-function dayKey(time=Date.now()){const p=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(time));const g=x=>p.find(y=>y.type===x)?.value||'00';return `${g('year')}-${g('month')}-${g('day')}`}
+function dayKey(time=Date.now()){
+    const p = dtfTehran.formatToParts(new Date(time));
+    const g = x => p.find(y=>y.type===x)?.value||'00';
+    return `${g('year')}-${g('month')}-${g('day')}`;
+}
 function isTehranMidnight(time) {
-    const d = new Date(time);
-    const tTime = d.toLocaleTimeString('en-US', { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit', hour12: false });
-    return tTime === '00:00';
+    return dtfTimeTehran.format(new Date(time)) === '00:00';
 }
 
 function getLabel(p,mode){
@@ -245,6 +258,22 @@ function getLabel(p,mode){
     const d=new Date(p.time);
     if(isNaN(d.getTime())) return '---';
     if(mode==='daily') {
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+    }
+    if (p.date) return p.date;
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}/${mm}/${dd}`;
+}
+
+// *** اصلاح مشکل 00:00 در تولتیپ ***
+function formatTooltipTitle(p, mode) {
+    if(!p || !p.time || p.time < 1e12) return '';
+    const d = new Date(p.time);
+    if(mode === 'daily') {
         const hh = String(d.getHours()).padStart(2, '0');
         const mm = String(d.getMinutes()).padStart(2, '0');
         return `${hh}:${mm}`;
@@ -357,6 +386,7 @@ function getRangeOHLC(id){
     return{low:Math.min(...vals),high:Math.max(...vals)}
 }
 
+// *** بهینه‌سازی شدید برای جلوگیری از لگ ***
 function getRangeChange(id){
     const mode=ranges[id]||'daily';
     let rawPts=[];
@@ -373,10 +403,10 @@ function getRangeChange(id){
         const cutoff=Date.now()-days*86400000;
         rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
     }
-    if(rawPts.length<2)return 0;
+    if(rawPts.length<2) return null;
     rawPts.sort((a,b)=>a.time-b.time);
     const first=rawPts[0].price;const last=rawPts[rawPts.length-1].price;
-    return first<=0?0:((last-first)/first)*100
+    return first<=0?null:((last-first)/first)*100
 }
 
 function getRangeLabels(mode){if(mode==='weekly')return{low:t('lowWeekly'),high:t('highWeekly')};if(mode==='monthly')return{low:t('lowMonthly'),high:t('highMonthly')};if(mode==='yearly')return{low:t('lowYearly'),high:t('highYearly')};if(mode==='all')return{low:t('lowAll'),high:t('highAll')};return{low:t('lowDaily'),high:t('highDaily')}}
@@ -409,6 +439,18 @@ function updateChartData(a,chartInstance){
     chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.price)});
     chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
     const sparse=pts.length<3;chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=sparse?4:0});
+    
+    // آپدیت تولتیپ در حین تغییرات
+    chartInstance.options.plugins.tooltip.callbacks.title = items => {
+        if(!items.length) return '';
+        const idx = items[0].dataIndex;
+        const p = items[0].chart._rawPoints[idx];
+        return formatTooltipTitle(p, mode);
+    };
+    chartInstance.options.plugins.tooltip.callbacks.label = c => {
+        const isUSD = a.currency === 'USD';
+        return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
+    };
     
     updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');
 }
@@ -626,6 +668,18 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         chartInstance.data.labels=labels;
         chartInstance.data.datasets.forEach(ds=>{ds.data=dataVals;if(ds.pointRadius!==undefined)ds.pointRadius=pointR});
         chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
+        
+        // آپدیت تولتیپ
+        chartInstance.options.plugins.tooltip.callbacks.title = items => {
+            if(!items.length) return '';
+            const idx = items[0].dataIndex;
+            const p = items[0].chart._rawPoints[idx];
+            return formatTooltipTitle(p, mode);
+        };
+        chartInstance.options.plugins.tooltip.callbacks.label = c => {
+            return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
+        };
+        
         updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');return;
     }
     
@@ -653,23 +707,17 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     const gc=neon?'rgba(168,85,247,.15)':glass?'rgba(255,255,255,.05)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
     const tc=neon?'#b39ddb':glass?'#94a3b8':obsidian?'#888':'#8fa0bd';
     
-    const newChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[dataset]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)',borderColor:neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(56,189,248,.5)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88',borderWidth:1,titleFont:{family:'Tahoma',size:11},bodyFont:{family:'Tahoma',size:11},callbacks:{title:items=>{
-        if(!items.length)return'';
-        const idx=items[0].dataIndex;
-        const p=items[0].chart._rawPoints[idx];
-        if(!p || !p.time || p.time < 1e12) return ''; 
-        const d=new Date(p.time);
-        if(mode==='daily') {
-            const hh = String(d.getHours()).padStart(2, '0');
-            const mm = String(d.getMinutes()).padStart(2, '0');
-            return `${hh}:${mm}`;
+    const newChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[dataset]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)',borderColor:neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(56,189,248,.5)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88',borderWidth:1,titleFont:{family:'Tahoma',size:11},bodyFont:{family:'Tahoma',size:11},callbacks:{
+        title: items => {
+            if(!items.length) return '';
+            const idx = items[0].dataIndex;
+            const p = items[0].chart._rawPoints[idx];
+            return formatTooltipTitle(p, mode);
+        },
+        label: c => {
+            return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
         }
-        if (p.date) return p.date;
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return `${yyyy}/${mm}/${dd}`;
-    },label:c=>(mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'))}}},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
+    }},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
     
     newChart._rawPoints = pts;
     newChart._isUp = isUp;
@@ -701,10 +749,8 @@ function refreshHomeCharts(){
     featured.forEach(a => {
         const chartKey = 'feat-' + a.id;
         if(charts[chartKey]) {
-            // فقط دیتا رو آپدیت میکنیم، نمودار رو نابود نمیکنیم
             updateChartData(a, charts[chartKey]);
         } else {
-            // اگر وجود نداشت میسازیم
             drawOrUpdateChart(a, null, 'feat-');
         }
     });
@@ -718,7 +764,6 @@ function renderHome(){
     const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
     const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt');
     
-    // اگر قبلا ساخته شده، دیگه DOM رو از بین نمیبریم که لگ نداشته باشه
     if(!grid.innerHTML) {
         grid.innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
         mini.innerHTML=rest.map(a=>miniCardHTML(a)).join('');
@@ -727,7 +772,6 @@ function renderHome(){
     
     setTimeout(() => {
         renderCharts(grid, featured.map(a=>a.id), 'feat-');
-        // رفع باگ تغییر سایز نمودارها وقتی از صفحه دیگه برمیگردیم
         ['usd', 'usdt'].forEach(id => {
             if(charts['feat-'+id]) charts['feat-'+id].resize();
         });
@@ -765,7 +809,19 @@ function renderAll(){
         renderCharts(grid, null, 'all-');
     }, 10);
 }
-function updateChange(a){const el=$('chg-'+a.id);if(!el)return;const pct=getRangeChange(a.id);const pts=pointsFor(a.id);if(pts.length<2){el.textContent='—';el.classList.remove('neg');return}el.textContent=(pct>0?'+':'')+num(pct,2)+'%';el.classList.toggle('neg',pct<0)}
+
+function updateChange(a){
+    const el=$('chg-'+a.id);
+    if(!el)return;
+    const pct=getRangeChange(a.id);
+    if(pct === null){
+        el.textContent='—';
+        el.classList.remove('neg');
+        return;
+    }
+    el.textContent=(pct>0?'+':'')+num(pct,2)+'%';
+    el.classList.toggle('neg',pct<0);
+}
 
 function renderHoldings(){const box=$('holdings');if(!box)return;if(!holdings.length){box.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px">${t('emptyAssets')}</div>`;$('totalAssets').textContent='---';$('totalProfit').innerHTML='';return}let totalValue=0,totalCost=0;box.innerHTML=holdings.map((h,idx)=>{const a=assets.find(x=>x.id===h.id);const p=getPrice(h.id);const val=p*Number(h.qty);totalValue+=val;const buyPrice=Number(h.buyPrice)||0;let profitHTML=`<span style="color:var(--muted);font-size:10px;">وارد نشده</span>`;let pColor='var(--muted)',pSign='';if(buyPrice>0){const cost=buyPrice*Number(h.qty);totalCost+=cost;const profit=val-cost;const profitPct=(profit/cost)*100;pColor=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';pSign=profit>0?'+':'';const pIcon=profit>0?'📈':profit<0?'📉':'';profitHTML=`<span style="color:${pColor};font-size:11px;" dir="ltr">${pIcon} ${pSign}${num(profitPct,2)}%<br><span style="font-size:10px;">${pSign}${num(profit)}</span></span>`}return`<div class="holding"><div class="h-name">${esc(a?nm(a):h.id)}</div><div class="h-qty">${num(h.qty,4)}</div><div class="h-buy"><span style="color:var(--muted);font-size:10px;">خرید:</span>${buyPrice>0?num(buyPrice):'—'}<button class="h-edit" data-idx="${idx}" title="ویرایش قیمت خرید">✏️</button></div><div class="h-val">${val>0?num(val)+' '+t('tomanUnit'):'—'}</div><div class="h-profit">${profitHTML}</div><button class="h-del" data-idx="${idx}">${t('del')}</button></div>`}).join('');$('totalAssets').textContent=num(totalValue)+' '+t('tomanUnit');const profitEl=$('totalProfit');if(totalCost>0){const profit=totalValue-totalCost;const profitPct=(profit/totalCost)*100;const sign=profit>0?'+':'';const color=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';const icon=profit>0?'📈':profit<0?'📉':'';profitEl.innerHTML=`<span style="color:${color}">${icon} ${sign}${num(profitPct,2)}% (${sign}${num(profit)} ${t('tomanUnit')})</span>`}else{profitEl.innerHTML=`<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>`}box.querySelectorAll('.h-del').forEach(b=>{b.onclick=()=>{holdings.splice(Number(b.dataset.idx),1);saveHoldings();renderHoldings()}});box.querySelectorAll('.h-edit').forEach(b=>{b.onclick=()=>{const idx=Number(b.dataset.idx);const h=holdings[idx];const currentPrompt=h.buyPrice?h.buyPrice:'';const newPrice=prompt("قیمت خریداری شده (به تومان) را وارد کنید:",currentPrompt);if(newPrice!==null){const parsed=parseFloat(newPrice.replace(/,/g,''));if(!isNaN(parsed)&&parsed>=0){h.buyPrice=parsed;saveHoldings();renderHoldings()}}}})}
 
@@ -804,7 +860,6 @@ function hideAllPages(){
     $('assetsPage').classList.add('hidden');
     ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
     
-    // فقط نمودارهای صفحات فرعی نابود میشوند تا رم اشغال نشود. نمودارهای صفحه اصلی در حافظه می‌مانند
     for(const key in charts){
         if(key.startsWith('all-') || key.startsWith('fav-')) {
             try{charts[key].destroy()}catch(e){} 
