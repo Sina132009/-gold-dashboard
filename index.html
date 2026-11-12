@@ -87,6 +87,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 .mini-range b{color:var(--txt);font-weight:600}
 .mini-card .star-btn{font-size:14px;}
 
+/* اصلاح اساسی استایل صفحات برای جلوگیری از مخفی شدن */
 #favPage, #calcPage, #assetsPage { margin-top: 22px; }
 .calc h2,.assets-page h2,.fav-page h2{font-size:18px;margin-bottom:6px}
 .calc p,.assets-page p,.fav-page p{font-size:12px;color:var(--muted);margin-bottom:16px}
@@ -198,8 +199,8 @@ Data: <a href="https://nerkhara.com/en/api/" target="_blank">NerkhAra</a> · <a 
 <script>
 'use strict';
 const IM_CDN='https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data';
-const GITHUB_URLS_PRICES=['./data/latest-prices.json','https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/latest-prices.json','https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/latest-prices.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/latest-prices.json'];
-const GITHUB_URLS_INTRADAY=['./data/intraday.json','https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/intraday.json','https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/intraday.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/intraday.json'];
+const GITHUB_URLS_PRICES=['./data/latest-prices.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/latest-prices.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/master/data/latest-prices.json'];
+const GITHUB_URLS_INTRADAY=['./data/intraday.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/intraday.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/master/data/intraday.json'];
 const assets=[
 {id:'usd',symbol:'USD_IRR_FREE',nid:'usd',fa:'دلار آمریکا',en:'US Dollar',unitFa:'هر دلار',unitEn:'per USD'},
 {id:'usdt',symbol:'USDT_IRR',nid:'tether',fa:'تتر',en:'Tether',unitFa:'هر تتر',unitEn:'per USDT'},
@@ -221,26 +222,8 @@ const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_K
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
-
-// سازگاری کامل با تمام مرورگرها (جلوگیری از سفید شدن سایت)
-let dtfTehran, dtfTimeTehran;
-try {
-    dtfTehran = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'});
-    dtfTimeTehran = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',hour12:false});
-} catch(e) {
-    dtfTehran = new Intl.DateTimeFormat('en-US', {year:'numeric',month:'2-digit',day:'2-digit'});
-    dtfTimeTehran = new Intl.DateTimeFormat('en-US', {hour:'2-digit',minute:'2-digit',hour12:false});
-}
-const nfCache = {};
-
-function num(v,d){
-    if(d===undefined) d=0;
-    if(!Number.isFinite(Number(v))) return '---';
-    const key = lang + '-' + d;
-    if(!nfCache[key]) nfCache[key] = new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US',{maximumFractionDigits:d});
-    return nfCache[key].format(Number(v));
-}
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function num(v,d=0){return Number.isFinite(Number(v))?new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US',{maximumFractionDigits:d}).format(Number(v)):'---'}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 function parseTime(v){
     if(v==null||v===''||v===0||v==='0')return NaN; 
@@ -251,16 +234,11 @@ function parseTime(v){
     if(!isNaN(numV))return numV<1e12?numV*1000:numV;
     return NaN
 }
-function dayKey(time){
-    if(time===undefined) time=Date.now();
-    const d = new Date(time);
-    if(isNaN(d.getTime())) return '0000-00-00';
-    const p = dtfTehran.formatToParts(d);
-    const g = function(x) { const m = p.find(function(y){return y.type===x}); return m ? m.value : '00'; };
-    return g('year')+'-'+g('month')+'-'+g('day');
-}
+function dayKey(time=Date.now()){const p=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(time));const g=x=>p.find(y=>y.type===x)?.value||'00';return `${g('year')}-${g('month')}-${g('day')}`}
 function isTehranMidnight(time) {
-    return dtfTimeTehran.format(new Date(time)) === '00:00';
+    const d = new Date(time);
+    const tTime = d.toLocaleTimeString('en-US', { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit', hour12: false });
+    return tTime === '00:00';
 }
 
 function getLabel(p,mode){
@@ -270,53 +248,44 @@ function getLabel(p,mode){
     if(mode==='daily') {
         const hh = String(d.getHours()).padStart(2, '0');
         const mm = String(d.getMinutes()).padStart(2, '0');
-        return hh+':'+mm;
+        return `${hh}:${mm}`;
     }
     if (p.date) return p.date;
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
-    return yyyy+'/'+mm+'/'+dd;
+    return `${yyyy}/${mm}/${dd}`;
 }
 
+// *** تابع جدید برای اصلاح نمایش تولتیپ ***
 function formatTooltipTitle(p, mode) {
     if(!p || !p.time || p.time < 1e12) return '';
     const d = new Date(p.time);
     if(mode === 'daily') {
         const hh = String(d.getHours()).padStart(2, '0');
         const mm = String(d.getMinutes()).padStart(2, '0');
-        return hh+':'+mm;
+        return `${hh}:${mm}`;
     }
     if (p.date) return p.date;
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
-    return yyyy+'/'+mm+'/'+dd;
+    return `${yyyy}/${mm}/${dd}`;
 }
 
-async function fetchJson(url,tm){
-    if(!tm) tm=5000;
-    const c=new AbortController(),id=setTimeout(function(){c.abort()},tm);
-    try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(id)}
-}
-async function fetchFirstSuccess(urls,tm){
-    if(!tm) tm=5000;
-    for(let i=0;i<urls.length;i++){
-        try{const data=await fetchJson(urls[i]+(urls[i].indexOf('?')>-1?'&':'?')+'v='+Date.now(),tm);if(data)return data}catch(e){}
-    }
-    return null;
-}
+async function fetchJson(url,tm=5000){const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(id)}}
+async function fetchFirstSuccess(urls,tm=5000){for(const url of urls){try{const data=await fetchJson(url+(url.includes('?')?'&':'?')+'v='+Date.now(),tm);if(data)return data}catch(e){}}return null}
 
 function loadSettings(){
     try{
         const s=localStorage.getItem('mktLang'); if(s==='fa'||s==='en') lang=s;
-        const th=localStorage.getItem('mktTheme'); if(['obsidian','neon','glass'].indexOf(th)>-1) theme=th;
+        const th=localStorage.getItem('mktTheme'); if(['obsidian','neon','glass'].includes(th)) theme=th;
         
         const f = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
         favorites = Array.isArray(f) ? f : [];
         
         const hc=JSON.parse(localStorage.getItem(HISTORY_CACHE_KEY)||'{}'); if(hc&&Object.keys(hc).length>0) history=hc;
-        const hd=JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'[]'); holdings=Array.isArray(hd)?hd.filter(function(h){return h&&h.id&&assets.some(function(a){return a.id===h.id})&&h.id!=='oil'&&Number(h.qty)>0}):[];
+        const hd=JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'[]'); holdings=Array.isArray(hd)?hd.filter(h=>h&&h.id&&assets.some(a=>a.id===h.id)&&h.id!=='oil'&&Number(h.qty)>0):[];
     }catch(e){
         favorites = [];
     }
@@ -325,24 +294,23 @@ function loadSettings(){
 function loadIntraday(){
     try{
         const s=JSON.parse(localStorage.getItem(INTRADAY_KEY)||'{}'),today=dayKey();
-        for(let i=0;i<assets.length;i++){
-            const a = assets[i];
+        for(const a of assets){
             const r=Array.isArray(s[a.id])?s[a.id]:[];
-            intraday[a.id]=r.map(function(p){
+            intraday[a.id]=r.map(p=>{
                 if(!p)return null;
                 const price = Number(p.price);
                 const time = parseTime(p.time);
                 if(price>0&&Number.isFinite(time)) {
                     if (isTehranMidnight(time)) return null;
-                    return {time:time,price:price};
+                    return {time,price};
                 }
-                return null;
-            }).filter(function(p){return p&&dayKey(p.time)===today});
+                return null
+            }).filter(p=>p&&dayKey(p.time)===today)
         }
     }catch(e){intraday={}}
 }
-function saveIntraday(){try{const today=dayKey(),d={};for(let i=0;i<assets.length;i++){const a=assets[i];d[a.id]=(intraday[a.id]||[]).filter(function(p){return dayKey(p.time)===today}).slice(-1000)}localStorage.setItem(INTRADAY_KEY,JSON.stringify(d))}catch(e){}}
-function record(id,price,time){if(!(price>0)||!Number.isFinite(time))return;const rows=(intraday[id]||[]).filter(function(p){return dayKey(p.time)===dayKey(time)});const last=rows[rows.length-1];if(last&&time-last.time<15000)return;rows.push({time:time,price:price});intraday[id]=rows.slice(-1000)}
+function saveIntraday(){try{const today=dayKey(),d={};for(const a of assets){d[a.id]=(intraday[a.id]||[]).filter(p=>dayKey(p.time)===today).slice(-1000)}localStorage.setItem(INTRADAY_KEY,JSON.stringify(d))}catch(e){}}
+function record(id,price,time){if(!(price>0)||!Number.isFinite(time))return;const rows=(intraday[id]||[]).filter(p=>dayKey(p.time)===dayKey(time));const last=rows[rows.length-1];if(last&&time-last.time<15000)return;rows.push({time,price});intraday[id]=rows.slice(-1000)}
 function saveHoldings(){try{localStorage.setItem(HOLDINGS_KEY,JSON.stringify(holdings))}catch(e){}}
 
 async function refreshPrices(){
@@ -352,18 +320,18 @@ async function refreshPrices(){
         let intraData=await fetchFirstSuccess(GITHUB_URLS_INTRADAY);
         if(intraData){
             if(intraData.days)remoteIntraday=intraData.days;
-            else if(intraData.date&&intraData.data){remoteIntraday={};remoteIntraday[intraData.date]=intraData.data;}
-            else{let isDirectMap=true;for(const k in intraData){if(!Array.isArray(intraData[k])){isDirectMap=false;break}}if(isDirectMap){remoteIntraday={};remoteIntraday[dayKey()]=intraData;}else remoteIntraday=intraData}
+            else if(intraData.date&&intraData.data)remoteIntraday={[intraData.date]:intraData.data};
+            else{let isDirectMap=true;for(const k in intraData){if(!Array.isArray(intraData[k])){isDirectMap=false;break}}if(isDirectMap)remoteIntraday={[dayKey()]:intraData};else remoteIntraday=intraData}
         }
         if(data&&data.prices&&Object.keys(data.prices).length>0){
             const updatedAt = Date.now(); 
-            for(const k of Object.keys(prices)){if(k.indexOf('_')===0)delete prices[k]}
+            for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k]}
             Object.assign(prices,data.prices);
             if(data.sources)Object.assign(sources,data.sources);
-            for(let i=0;i<assets.length;i++){const a=assets[i];const p=data.prices[a.id];if(p>0)record(a.id,p,updatedAt)}
+            for(const a of assets){const p=data.prices[a.id];if(p>0)record(a.id,p,updatedAt)}
         }
         saveIntraday();
-        const ok=Object.keys(prices).filter(function(k){return k.indexOf('_')!==0}).length>0;
+        const ok=Object.keys(prices).filter(k=>!k.startsWith('_')).length>0;
         $('dot').classList.toggle('bad',!ok);
         $('status').textContent=ok?t('connected'):t('failed');
         
@@ -376,23 +344,22 @@ async function refreshPrices(){
     }
 }
 
-function getTomanValue(id){if(id==='toman')return 1;const p=getPrice(id);if(p<=0)return 0;const a=assets.find(function(x){return x.id===id});if(a&&a.currency==='USD'){const usdRate=getPrice('usd');return usdRate>0?p*usdRate:0}return p}
+function getTomanValue(id){if(id==='toman')return 1;const p=getPrice(id);if(p<=0)return 0;const a=assets.find(x=>x.id===id);if(a&&a.currency==='USD'){const usdRate=getPrice('usd');return usdRate>0?p*usdRate:0}return p}
 function getPrice(id){if(prices[id]>0)return prices[id];const h=history[id]||[];if(h.length>0)return h[h.length-1].price;return 0}
-function formatPrice(a,p){if(p<=0)return t('noPrice');if(a.currency==='USD')return '$'+num(p,2);return num(p)+' <span class="unit">'+t('tomanUnit')+'</span>'}
+function formatPrice(a,p){if(p<=0)return t('noPrice');if(a.currency==='USD')return`$${num(p,2)}`;return`${num(p)} <span class="unit">${t('tomanUnit')}</span>`}
 
 function todayOHLC(id){
     const nlo=prices['_low_'+id],nhi=prices['_high_'+id];
     if(nlo>0&&nhi>0)return{low:nlo,high:nhi};
     const today=dayKey();const vals=[];
-    const h = history[id]||[];
-    for(let i=0;i<h.length;i++){const p=h[i];if(dayKey(p.time)===today){if(Number(p.low)>0)vals.push(Number(p.low));if(Number(p.high)>0)vals.push(Number(p.high))}}
-    if(vals.length)return{low:Math.min.apply(null,vals),high:Math.max.apply(null,vals)};
+    for(const p of(history[id]||[])){if(dayKey(p.time)===today){if(Number(p.low)>0)vals.push(Number(p.low));if(Number(p.high)>0)vals.push(Number(p.high))}}
+    if(vals.length)return{low:Math.min(...vals),high:Math.max(...vals)};
     const remote=(remoteIntraday[today]&&remoteIntraday[today][id])?remoteIntraday[today][id]:[];
-    const local=(intraday[id]||[]).filter(function(p){return dayKey(p.time)===today&&Number(p.price)>0});
-    const rows=remote.concat(local);
+    const local=(intraday[id]||[]).filter(p=>dayKey(p.time)===today&&Number(p.price)>0);
+    const rows=[...remote,...local];
     if(!rows.length)return{low:0,high:0};
-    const v=rows.map(function(p){return Number(p.price)});
-    return{low:Math.min.apply(null,v),high:Math.max.apply(null,v)}
+    const v=rows.map(p=>Number(p.price));
+    return{low:Math.min(...v),high:Math.max(...v)}
 }
 
 function getRangeOHLC(id){
@@ -400,11 +367,11 @@ function getRangeOHLC(id){
     if(mode==='daily')return todayOHLC(id);
     const days = mode==='weekly'?7 : mode==='monthly'?30 : mode==='yearly'?365 : 3650;
     const cutoff=Date.now()-days*86400000;
-    const rawPts=(history[id]||[]).filter(function(p){return p.time>=cutoff});
+    const rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
     if(!rawPts.length)return{low:0,high:0};
-    const vals=rawPts.map(function(p){return p.price}).filter(function(v){return Number.isFinite(v)&&v>0});
+    const vals=rawPts.map(p=>p.price).filter(v=>Number.isFinite(v)&&v>0);
     if(!vals.length)return{low:0,high:0};
-    return{low:Math.min.apply(null,vals),high:Math.max.apply(null,vals)}
+    return{low:Math.min(...vals),high:Math.max(...vals)}
 }
 
 function getRangeChange(id){
@@ -412,60 +379,34 @@ function getRangeChange(id){
     let rawPts=[];
     if(mode==='daily') {
         const today=dayKey();
-        rawPts=(intraday[id]||[]).filter(function(p){return dayKey(p.time)===today});
+        rawPts=(intraday[id]||[]).filter(p=>dayKey(p.time)===today);
         if(rawPts.length<2) {
             const cutoff=Date.now()-86400000;
-            rawPts=(history[id]||[]).filter(function(p){return p.time>=cutoff});
+            rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
         }
     }
     else {
         const days = mode==='weekly'?7 : mode==='monthly'?30 : mode==='yearly'?365 : 3650;
         const cutoff=Date.now()-days*86400000;
-        rawPts=(history[id]||[]).filter(function(p){return p.time>=cutoff});
+        rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
     }
-    if(rawPts.length<2) return null;
-    rawPts.sort(function(a,b){return a.time-b.time});
+    if(rawPts.length<2)return 0;
+    rawPts.sort((a,b)=>a.time-b.time);
     const first=rawPts[0].price;const last=rawPts[rawPts.length-1].price;
-    return first<=0?null:((last-first)/first)*100
+    return first<=0?0:((last-first)/first)*100
 }
 
 function getRangeLabels(mode){if(mode==='weekly')return{low:t('lowWeekly'),high:t('highWeekly')};if(mode==='monthly')return{low:t('lowMonthly'),high:t('highMonthly')};if(mode==='yearly')return{low:t('lowYearly'),high:t('highYearly')};if(mode==='all')return{low:t('lowAll'),high:t('highAll')};return{low:t('lowDaily'),high:t('highDaily')}}
 
 function updatePricesOnly(){
-    for(let i=0;i<assets.length;i++){
-        const a=assets[i];
+    for(const a of assets){
         const p=getPrice(a.id);const priceHTML=formatPrice(a,p);
-        const chgEl=document.querySelector('#chg-'+a.id);
-        const card = chgEl ? chgEl.closest('.card') : null;
-        if(card){
-            const priceEl=card.querySelector('.price');if(priceEl)priceEl.innerHTML=priceHTML;
-            const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);
-            const dr=card.querySelector('.day-range');
-            if(dr){
-                const isUSD=a.currency==='USD';
-                const lowStr=ohlc.low>0?(isUSD?'$'+num(ohlc.low,2):num(ohlc.low)):'—';
-                const highStr=ohlc.high>0?(isUSD?'$'+num(ohlc.high,2):num(ohlc.high)):'—';
-                dr.innerHTML='<span>'+labels.low+': <b>'+lowStr+'</b></span><span>'+labels.high+': <b>'+highStr+'</b></span>';
-            }
-            updateChange(a);
-        }
-        const mini=document.querySelector('#mini-'+a.id);
-        if(mini){
-            const mp=mini.querySelector('.mini-price');if(mp)mp.innerHTML=priceHTML;
-            const mc=mini.querySelector('.mini-chg');if(mc)updateChange(a);
-            const ohlc=todayOHLC(a.id);const mr=mini.querySelector('.mini-range');
-            if(mr){
-                const isUSD=a.currency==='USD';
-                const lowStr=ohlc.low>0?(isUSD?'$'+num(ohlc.low,2):num(ohlc.low)):'—';
-                const highStr=ohlc.high>0?(isUSD?'$'+num(ohlc.high,2):num(ohlc.high)):'—';
-                mr.innerHTML='<span>'+t('lowDaily')+': <b>'+lowStr+'</b></span><span>'+t('highDaily')+': <b>'+highStr+'</b></span>';
-            }
-        }
+        const card=document.querySelector(`#chg-${a.id}`)?.closest('.card');
+        if(card){const priceEl=card.querySelector('.price');if(priceEl)priceEl.innerHTML=priceHTML;const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);const dr=card.querySelector('.day-range');if(dr){const isUSD=a.currency==='USD';const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`}updateChange(a)}
+        const mini=document.querySelector(`#mini-${a.id}`);
+        if(mini){const mp=mini.querySelector('.mini-price');if(mp)mp.innerHTML=priceHTML;const mc=mini.querySelector('.mini-chg');if(mc)updateChange(a);const ohlc=todayOHLC(a.id);const mr=mini.querySelector('.mini-range');if(mr){const isUSD=a.currency==='USD';const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';mr.innerHTML=`<span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span>`}}
     }
-    for(const chartKey in charts){
-        let aId=chartKey;if(chartKey.indexOf('-')>-1)aId=chartKey.split('-')[1];
-        if((ranges[aId]||'daily')==='daily'){const a=assets.find(function(x){return x.id===aId});if(a)updateChartData(a,charts[chartKey])}
-    }
+    for(const chartKey in charts){let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];if((ranges[aId]||'daily')==='daily'){const a=assets.find(x=>x.id===aId);if(a)updateChartData(a,charts[chartKey])}}
     renderHoldings();calc();
 }
 
@@ -473,27 +414,28 @@ function updateChartData(a,chartInstance){
     if(!chartInstance)return;
     const pts=pointsFor(a.id);if(pts.length===0)return;
     const mode=ranges[a.id]||'daily';
-    const vals=pts.map(function(p){return p.price}).filter(function(v){return Number.isFinite(v)&&v>0});
+    const vals=pts.map(p=>p.price).filter(v=>Number.isFinite(v)&&v>0);
     let yMin=0,yMax=100;
-    if(vals.length>0){yMin=Math.min.apply(null,vals);yMax=Math.max.apply(null,vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
+    if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
     
     chartInstance._rawPoints = pts;
     chartInstance._currentMode = mode;
     const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
     chartInstance._isUp = isUp;
     
-    chartInstance.data.labels=pts.map(function(p){return getLabel(p,mode)});
-    chartInstance.data.datasets.forEach(function(ds){ds.data=pts.map(function(p){return p.price})});
+    chartInstance.data.labels=pts.map(p=>getLabel(p,mode));
+    chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.price)});
     chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
-    const sparse=pts.length<3;chartInstance.data.datasets.forEach(function(ds){if(ds.pointRadius!==undefined)ds.pointRadius=sparse?4:0});
+    const sparse=pts.length<3;chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=sparse?4:0});
     
-    chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
+    // *** اصلاح تولتیپ در آپدیت داده‌ها ***
+    chartInstance.options.plugins.tooltip.callbacks.title = items => {
         if(!items.length) return '';
         const idx = items[0].dataIndex;
         const p = items[0].chart._rawPoints[idx];
         return formatTooltipTitle(p, items[0].chart._currentMode);
     };
-    chartInstance.options.plugins.tooltip.callbacks.label = function(c) {
+    chartInstance.options.plugins.tooltip.callbacks.label = c => {
         const isUSD = a.currency === 'USD';
         return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
     };
@@ -502,38 +444,29 @@ function updateChartData(a,chartInstance){
 }
 
 async function loadHistories(){
-    if(Object.keys(history).length>0){for(const chartKey in charts){let aId=chartKey;if(chartKey.indexOf('-')>-1)aId=chartKey.split('-')[1];const a=assets.find(function(x){return x.id===aId});if(a){updateChartData(a,charts[chartKey])}}}
-    for(let i=0;i<assets.length;i++){
-        const a=assets[i];
+    if(Object.keys(history).length>0){for(const chartKey in charts){let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];const a=assets.find(x=>x.id===aId);if(a){updateChartData(a,charts[chartKey])}}}
+    for(const a of assets){
         try{
             const u=IM_CDN+'/history/'+encodeURIComponent(a.symbol)+'.json';
             const pl=await fetchJson(u,10000);
-            const rows=(pl && Array.isArray(pl.data)) ? pl.data : (Array.isArray(pl) ? pl : []);
-            const pts=rows.map(function(r){
-                return {
-                    time:parseTime(r.t_tehran||r.t||r.timestamp||r.date),
-                    date:r.date_jalali||r.date||'',
-                    price:Number(r.close||r.price||r.value),
-                    low:Number(r.low||r.min||0),
-                    high:Number(r.high||r.max||0)
-                }
-            }).filter(function(p){return Number.isFinite(p.time)&&p.price>0}).sort(function(a,b){return a.time-b.time});
+            const rows=Array.isArray(pl?.data)?pl.data:Array.isArray(pl)?pl:[];
+            const pts=rows.map(r=>({time:parseTime(r.t_tehran||r.t||r.timestamp||r.date),date:r.date_jalali||r.date||'',price:Number(r.close??r.price??r.value),low:Number(r.low??r.min??0),high:Number(r.high??r.max??0)})).filter(p=>Number.isFinite(p.time)&&p.price>0).sort((a,b)=>a.time-b.time);
             if(pts.length>=1){history[a.id]=pts;}
         }catch(e){}
-        await new Promise(function(r){setTimeout(r, 50)}); 
+        await new Promise(r=>setTimeout(r, 50)); 
     }
     
     if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
     if(!$('favPage').classList.contains('hidden')) renderFavorites();
     
     for(const chartKey in charts){
-        if(chartKey.indexOf('feat-')===0 || chartKey.indexOf('fav-')===0) continue;
-        let aId=chartKey;if(chartKey.indexOf('-')>-1)aId=chartKey.split('-')[1];
-        const a=assets.find(function(x){return x.id===aId});if(a){updateChartData(a,charts[chartKey])}
+        if(chartKey.startsWith('feat-') || chartKey.startsWith('fav-')) continue;
+        let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];
+        const a=assets.find(x=>x.id===aId);if(a){updateChartData(a,charts[chartKey])}
     }
 }
 
-function sampleByDay(pts,max){if(pts.length<=max)return pts;const byDay={};pts.forEach(function(p){byDay[dayKey(p.time)]=p});const days=Object.values(byDay).sort(function(a,b){return a.time-b.time});if(days.length<=max)return days;return Array.from({length:max},function(_,i){return days[Math.round(i*(days.length-1)/(max-1))]})}
+function sampleByDay(pts,max){if(pts.length<=max)return pts;const byDay={};pts.forEach(p=>{byDay[dayKey(p.time)]=p});const days=Object.values(byDay).sort((a,b)=>a.time-b.time);if(days.length<=max)return days;return Array.from({length:max},(_,i)=>days[Math.round(i*(days.length-1)/(max-1))])}
 function sampleByStep(pts,step){if(step<1)step=1;const out=[];for(let i=0;i<pts.length;i+=step)out.push(pts[i]);if(out[out.length-1]!==pts[pts.length-1])out.push(pts[pts.length-1]);return out}
 
 function pointsFor(id){
@@ -541,10 +474,9 @@ function pointsFor(id){
     const mode=ranges[id]||'daily';
     if(mode==='daily'){
         const today=dayKey();const merged=[];const seen=new Set();
-        const addPts=function(pts){
+        const addPts=pts=>{
             if(!pts)return;
-            for(let i=0;i<pts.length;i++){
-                const p=pts[i];
+            for(const p of pts){
                 if(!p)continue;
                 const price=Number(p.price);
                 if(!(price>0))continue;
@@ -555,14 +487,14 @@ function pointsFor(id){
 
                 const key=Math.floor(time/60000);
                 if(seen.has(key))continue;
-                seen.add(key);merged.push({time:time,price:price});
+                seen.add(key);merged.push({time,price})
             }
         };
         addPts(intraday[id]||[]);
         if(remoteIntraday[today])addPts(remoteIntraday[today][id]||[]);
         addPts(all);
         
-        if(merged.length>0)return merged.sort(function(a,b){return a.time-b.time});
+        if(merged.length>0)return merged.sort((a,b)=>a.time-b.time);
         const currentPrice = getPrice(id);
         if (currentPrice > 0) return [{ time: Date.now(), price: currentPrice }];
         return [];
@@ -573,40 +505,40 @@ function pointsFor(id){
     if(mode==='all'){const merged=getMergedRawPoints(id,3650);if(merged.length>0)return sampleByStep(merged,Math.ceil(merged.length/120))}
     return all;
 }
-function getMergedRawPoints(id,days){const cutoff=Date.now()-days*86400000;const all=history[id]||[];return all.filter(function(p){return p.time>=cutoff}).sort(function(a,b){return a.time-b.time})}
+function getMergedRawPoints(id,days){const cutoff=Date.now()-days*86400000;const all=history[id]||[];return all.filter(p=>p.time>=cutoff).sort((a,b)=>a.time-b.time)}
 
-function fullCardHTML(a,prefix){
-    if(!prefix) prefix='';
+function fullCardHTML(a,prefix=''){
     const p=getPrice(a.id);const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);
     const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);
-    const lowStr=ohlc.low>0?(isUSD?'$'+num(ohlc.low,2):num(ohlc.low)):'—';
-    const highStr=ohlc.high>0?(isUSD?'$'+num(ohlc.high,2):num(ohlc.high)):'—';
-    const isFav = favorites.indexOf(a.id)>-1;
-    return '<article class="card">'+
-        '<div class="card-top">'+
-            '<div class="card-title-wrap">'+
-                '<button class="star-btn '+(isFav?'active':'')+'" data-id="'+a.id+'">⭐</button>'+
-                '<div>'+
-                    '<div class="card-name">'+esc(nm(a))+'</div>'+
-                    '<div class="card-sym">'+a.symbol+'</div>'+
-                '</div>'+
-            '</div>'+
-            '<div class="chg" id="chg-'+a.id+'">—</div>'+
-        '</div>'+
-        '<div class="price">'+priceHTML+'</div>'+
-        '<div class="day-range">'+
-            '<span>'+labels.low+': <b>'+lowStr+'</b></span>'+
-            '<span>'+labels.high+': <b>'+highStr+'</b></span>'+
-        '</div>'+
-        '<div class="ranges">'+
-            '<button class="range '+(mode==='daily'?'active':'')+'" data-id="'+a.id+'" data-r="daily">'+t('daily')+'</button>'+
-            '<button class="range '+(mode==='weekly'?'active':'')+'" data-id="'+a.id+'" data-r="weekly">'+t('weekly')+'</button>'+
-            '<button class="range '+(mode==='monthly'?'active':'')+'" data-id="'+a.id+'" data-r="monthly">'+t('monthly')+'</button>'+
-            '<button class="range '+(mode==='yearly'?'active':'')+'" data-id="'+a.id+'" data-r="yearly">'+t('yearly')+'</button>'+
-            '<button class="range '+(mode==='all'?'active':'')+'" data-id="'+a.id+'" data-r="all">'+t('all')+'</button>'+
-        '</div>'+
-        '<div class="chart-wrap"><canvas class="chart" id="ch-'+prefix+a.id+'"></canvas></div>'+
-    '</article>';
+    const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';
+    const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
+    const isFav = favorites.includes(a.id);
+    return `
+    <article class="card">
+        <div class="card-top">
+            <div class="card-title-wrap">
+                <button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button>
+                <div>
+                    <div class="card-name">${esc(nm(a))}</div>
+                    <div class="card-sym">${a.symbol}</div>
+                </div>
+            </div>
+            <div class="chg" id="chg-${a.id}">—</div>
+        </div>
+        <div class="price">${priceHTML}</div>
+        <div class="day-range">
+            <span>${labels.low}: <b>${lowStr}</b></span>
+            <span>${labels.high}: <b>${highStr}</b></span>
+        </div>
+        <div class="ranges">
+            <button class="range ${mode==='daily'?'active':''}" data-id="${a.id}" data-r="daily">${t('daily')}</button>
+            <button class="range ${mode==='weekly'?'active':''}" data-id="${a.id}" data-r="weekly">${t('weekly')}</button>
+            <button class="range ${mode==='monthly'?'active':''}" data-id="${a.id}" data-r="monthly">${t('monthly')}</button>
+            <button class="range ${mode==='yearly'?'active':''}" data-id="${a.id}" data-r="yearly">${t('yearly')}</button>
+            <button class="range ${mode==='all'?'active':''}" data-id="${a.id}" data-r="all">${t('all')}</button>
+        </div>
+        <div class="chart-wrap"><canvas class="chart" id="ch-${prefix}${a.id}"></canvas></div>
+    </article>`;
 }
 
 function miniCardHTML(a){
@@ -614,32 +546,30 @@ function miniCardHTML(a){
     const ohlc=todayOHLC(a.id);
     const isUSD=a.currency==='USD';
     const priceHTML=formatPrice(a,p);
-    const lowStr=ohlc.low>0?(isUSD?'$'+num(ohlc.low,2):num(ohlc.low)):'—';
-    const highStr=ohlc.high>0?(isUSD?'$'+num(ohlc.high,2):num(ohlc.high)):'—';
-    const isFav = favorites.indexOf(a.id)>-1;
-    return '<div class="mini-card" id="mini-'+a.id+'">'+
-        '<div class="mini-title-wrap">'+
-            '<button class="star-btn '+(isFav?'active':'')+'" data-id="'+a.id+'">⭐</button>'+
-            '<div class="mini-name">'+esc(nm(a))+'</div>'+
-        '</div>'+
-        '<div class="mini-sym">'+a.symbol+'</div>'+
-        '<div class="mini-price">'+priceHTML+'</div>'+
-        '<div class="mini-chg" id="chg-'+a.id+'">—</div>'+
-        '<div class="mini-range">'+
-            '<span>'+t('lowDaily')+': <b>'+lowStr+'</b></span>'+
-            '<span>'+t('highDaily')+': <b>'+highStr+'</b></span>'+
-        '</div>'+
-    '</div>';
+    const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';
+    const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
+    const isFav = favorites.includes(a.id);
+    return `
+    <div class="mini-card" id="mini-${a.id}">
+        <div class="mini-title-wrap">
+            <button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button>
+            <div class="mini-name">${esc(nm(a))}</div>
+        </div>
+        <div class="mini-sym">${a.symbol}</div>
+        <div class="mini-price">${priceHTML}</div>
+        <div class="mini-chg" id="chg-${a.id}">—</div>
+        <div class="mini-range">
+            <span>${t('lowDaily')}: <b>${lowStr}</b></span>
+            <span>${t('highDaily')}: <b>${highStr}</b></span>
+        </div>
+    </div>`;
 }
 
-function bindRanges(grid,prefix){
-    if(!prefix) prefix='';
-    const btns = grid.querySelectorAll('.range');
-    for(let i=0;i<btns.length;i++){
-        const b = btns[i];
-        b.onclick=function(){
+function bindRanges(grid,prefix=''){
+    grid.querySelectorAll('.range').forEach(b=>{
+        b.onclick=()=>{
             ranges[b.dataset.id]=b.dataset.r;
-            const a=assets.find(function(x){return x.id===b.dataset.id});
+            const a=assets.find(x=>x.id===b.dataset.id);
             if(a){
                 const chartKey=prefix+a.id;
                 const chartInstance=charts[chartKey];
@@ -651,18 +581,17 @@ function bindRanges(grid,prefix){
                         const ohlc=getRangeOHLC(a.id);
                         const labels=getRangeLabels(b.dataset.r);
                         const isUSD=a.currency==='USD';
-                        const lowStr=ohlc.low>0?(isUSD?'$'+num(ohlc.low,2):num(ohlc.low)):'—';
-                        const highStr=ohlc.high>0?(isUSD?'$'+num(ohlc.high,2):num(ohlc.high)):'—';
-                        dr.innerHTML='<span>'+labels.low+': <b>'+lowStr+'</b></span><span>'+labels.high+': <b>'+highStr+'</b></span>';
+                        const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';
+                        const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
+                        dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
                     }
                 }
                 updateChange(a);
             }
-            const siblings = grid.querySelectorAll('.range[data-id="'+b.dataset.id+'"]');
-            for(let j=0;j<siblings.length;j++){siblings[j].classList.remove('active');}
+            grid.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
             b.classList.add('active');
-        };
-    }
+        }
+    });
 }
 
 function updateChartTheme(chartInstance,a,isUp){
@@ -703,21 +632,21 @@ function updateChartTheme(chartInstance,a,isUp){
     }
     chartInstance.options.plugins.tooltip.backgroundColor=neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)';
     chartInstance.options.plugins.tooltip.borderColor=neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(56,189,248,.5)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88';
-    chartInstance.options.scales.y.ticks.callback=function(v){return (isUSD?'$':'')+num(v,isUSD?2:0)};
+    chartInstance.options.plugins.tooltip.callbacks.label=c=>(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
+    chartInstance.options.scales.y.ticks.callback=v=>(isUSD?'$':'')+num(v,isUSD?2:0);
 }
 
-function drawOrUpdateChart(a,chartInstance,prefix){
-    if(!prefix) prefix='';
+function drawOrUpdateChart(a,chartInstance,prefix=''){
     const pts=pointsFor(a.id);if(pts.length===0)return;
     const mode=ranges[a.id]||'daily';
     const neon=theme==='neon',glass=theme==='glass',obsidian=theme==='obsidian';
     const isUSD=a.currency==='USD';
     const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
-    const vals=pts.map(function(p){return p.price}).filter(function(v){return Number.isFinite(v)&&v>0});
+    const vals=pts.map(p=>p.price).filter(v=>Number.isFinite(v)&&v>0);
     let yMin=0,yMax=100;
-    if(vals.length>0){yMin=Math.min.apply(null,vals);yMax=Math.max.apply(null,vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
-    const labels=pts.map(function(p){return getLabel(p,mode)});
-    const dataVals=pts.map(function(p){return p.price});
+    if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
+    const labels=pts.map(p=>getLabel(p,mode));
+    const dataVals=pts.map(p=>p.price);
     const sparse=dataVals.length<3;
     const pointR=sparse?4:0;
     
@@ -726,23 +655,24 @@ function drawOrUpdateChart(a,chartInstance,prefix){
         chartInstance._currentMode = mode;
         chartInstance._isUp = isUp;
         chartInstance.data.labels=labels;
-        chartInstance.data.datasets.forEach(function(ds){ds.data=dataVals;if(ds.pointRadius!==undefined)ds.pointRadius=pointR});
+        chartInstance.data.datasets.forEach(ds=>{ds.data=dataVals;if(ds.pointRadius!==undefined)ds.pointRadius=pointR});
         chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
         
-        chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
+        // *** اصلاح تولتیپ در آپدیت نمودار ***
+        chartInstance.options.plugins.tooltip.callbacks.title = items => {
             if(!items.length) return '';
             const idx = items[0].dataIndex;
             const p = items[0].chart._rawPoints[idx];
             return formatTooltipTitle(p, items[0].chart._currentMode);
         };
-        chartInstance.options.plugins.tooltip.callbacks.label = function(c) {
+        chartInstance.options.plugins.tooltip.callbacks.label = c => {
             return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
         };
         
         updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');return;
     }
     
-    const cv=$('ch-'+prefix+a.id);if(!cv)return;
+    const cv=$(`ch-${prefix}${a.id}`);if(!cv)return;
     const ctx=cv.getContext('2d');let dataset={};
     
     if(glass){
@@ -767,16 +697,16 @@ function drawOrUpdateChart(a,chartInstance,prefix){
     const tc=neon?'#b39ddb':glass?'#94a3b8':obsidian?'#888':'#8fa0bd';
     
     const newChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[dataset]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)',borderColor:neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(56,189,248,.5)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88',borderWidth:1,titleFont:{family:'Tahoma',size:11},bodyFont:{family:'Tahoma',size:11},callbacks:{
-        title: function(items) {
+        title: items => {
             if(!items.length) return '';
             const idx = items[0].dataIndex;
             const p = items[0].chart._rawPoints[idx];
             return formatTooltipTitle(p, items[0].chart._currentMode);
         },
-        label: function(c) {
+        label: c => {
             return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
         }
-    }},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:function(v){return (isUSD?'$':'')+num(v,isUSD?2:0)}}}}}});
+    }},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
     
     newChart._rawPoints = pts;
     newChart._currentMode = mode;
@@ -784,16 +714,15 @@ function drawOrUpdateChart(a,chartInstance,prefix){
     const chartKey=prefix+a.id;charts[chartKey]=newChart;
 }
 
-const chartObserver=new IntersectionObserver(function(entries,observer){entries.forEach(function(entry){if(entry.isIntersecting){const wrap=entry.target;const canvas=wrap.querySelector('canvas');if(canvas){const aId=canvas.dataset.id;const prefix=canvas.dataset.prefix;if(aId&&prefix!==undefined){const a=assets.find(function(x){return x.id===aId});if(a){const chartKey=prefix+a.id;if(!charts[chartKey])requestAnimationFrame(function(){drawOrUpdateChart(a,null,prefix)});else drawOrUpdateChart(a,charts[chartKey],prefix)}}}observer.unobserve(wrap)}})},{rootMargin:'100px'});
+const chartObserver=new IntersectionObserver((entries,observer)=>{entries.forEach(entry=>{if(entry.isIntersecting){const wrap=entry.target;const canvas=wrap.querySelector('canvas');if(canvas){const aId=canvas.dataset.id;const prefix=canvas.dataset.prefix;if(aId&&prefix!==undefined){const a=assets.find(x=>x.id===aId);if(a){const chartKey=prefix+a.id;if(!charts[chartKey])requestAnimationFrame(()=>{drawOrUpdateChart(a,null,prefix)});else drawOrUpdateChart(a,charts[chartKey],prefix)}}}observer.unobserve(wrap)}})},{rootMargin:'100px'});
 
-function renderCharts(grid,filterIds,prefix){
-    if(!prefix) prefix='';
-    const assetsToRender=assets.filter(function(a){return !filterIds||filterIds.indexOf(a.id)>-1});
+function renderCharts(grid,filterIds,prefix=''){
+    const assetsToRender=assets.filter(a=>!filterIds||filterIds.includes(a.id));
     let i=0;
     function drawNext(){
         if(i>=assetsToRender.length)return;
         const a=assetsToRender[i++];
-        const canvas=$('ch-'+prefix+a.id);
+        const canvas=$(`ch-${prefix}${a.id}`);
         if(canvas&&canvas.parentElement){
             canvas.dataset.id=a.id;canvas.dataset.prefix=prefix;
             if(charts[prefix+a.id])drawOrUpdateChart(a,charts[prefix+a.id],prefix);
@@ -804,10 +733,11 @@ function renderCharts(grid,filterIds,prefix){
     drawNext();
 }
 
+// *** اصلاح اصلی لگ: آپدیت به جای ساخت مجدد ***
 function refreshHomeCharts(){
     if($('homePage').classList.contains('hidden')) return;
-    const featured=assets.filter(function(a){return a.id==='usd'||a.id==='usdt'});
-    featured.forEach(function(a) {
+    const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
+    featured.forEach(a => {
         const chartKey = 'feat-' + a.id;
         if(charts[chartKey]) {
             updateChartData(a, charts[chartKey]);
@@ -822,43 +752,40 @@ function renderHome(){
     const mini=$('gridMini');
     if(!grid||!mini)return;
     
-    const featured=assets.filter(function(a){return a.id==='usd'||a.id==='usdt'});
-    const rest=assets.filter(function(a){return a.id!=='usd'&&a.id!=='usdt'});
+    const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
+    const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt');
     
     if(!grid.innerHTML) {
-        let html='';for(let i=0;i<featured.length;i++){html+=fullCardHTML(featured[i],'feat-');}
-        grid.innerHTML=html;
-        let miniHtml='';for(let i=0;i<rest.length;i++){miniHtml+=miniCardHTML(rest[i]);}
-        mini.innerHTML=miniHtml;
+        grid.innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
+        mini.innerHTML=rest.map(a=>miniCardHTML(a)).join('');
         bindRanges(grid, 'feat-');
     }
     
-    setTimeout(function() {
-        renderCharts(grid, featured.map(function(a){return a.id}), 'feat-');
-        ['usd', 'usdt'].forEach(function(id) {
+    setTimeout(() => {
+        renderCharts(grid, featured.map(a=>a.id), 'feat-');
+        ['usd', 'usdt'].forEach(id => {
             if(charts['feat-'+id]) charts['feat-'+id].resize();
         });
     }, 10);
     
-    rest.forEach(function(a){updateChange(a)});
+    rest.forEach(a=>updateChange(a));
 }
 
 function renderFavorites(){
     const grid=$('gridFavorites');
     if(!grid) return;
-    const favAssets = assets.filter(function(a){return favorites.indexOf(a.id)>-1});
+    const favAssets = assets.filter(a => favorites.includes(a.id));
     
     if(favAssets.length === 0) {
-        grid.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted); grid-column: 1/-1;">هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.</div>';
+        grid.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); grid-column: 1/-1;">هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.</div>`;
         return;
     }
     
-    let html='';for(let i=0;i<favAssets.length;i++){html+=fullCardHTML(favAssets[i],'fav-');}
-    grid.innerHTML=html;
+    grid.innerHTML = favAssets.map(a => fullCardHTML(a, 'fav-')).join('');
     bindRanges(grid, 'fav-');
     
-    setTimeout(function() {
-        renderCharts(grid, favAssets.map(function(a){return a.id}), 'fav-');
+    setTimeout(() => {
+        renderCharts(grid, favAssets.map(a => a.id), 'fav-');
     }, 10);
 }
 
@@ -866,143 +793,24 @@ function renderAll(){
     const grid=$('gridAll');
     if(!grid)return;
     if(!grid.innerHTML){
-        let html='';for(let i=0;i<assets.length;i++){html+=fullCardHTML(assets[i],'all-');}
-        grid.innerHTML=html;
+        grid.innerHTML=assets.map(a=>fullCardHTML(a,'all-')).join('');
         bindRanges(grid,'all-');
     }
-    setTimeout(function() {
+    setTimeout(() => {
         renderCharts(grid, null, 'all-');
     }, 10);
 }
+function updateChange(a){const el=$('chg-'+a.id);if(!el)return;const pct=getRangeChange(a.id);const pts=pointsFor(a.id);if(pts.length<2){el.textContent='—';el.classList.remove('neg');return}el.textContent=(pct>0?'+':'')+num(pct,2)+'%';el.classList.toggle('neg',pct<0)}
 
-function updateChange(a){
-    const el=$('chg-'+a.id);
-    if(!el)return;
-    const pct=getRangeChange(a.id);
-    if(pct === null){
-        el.textContent='—';
-        el.classList.remove('neg');
-        return;
-    }
-    el.textContent=(pct>0?'+':'')+num(pct,2)+'%';
-    el.classList.toggle('neg',pct<0);
-}
+function renderHoldings(){const box=$('holdings');if(!box)return;if(!holdings.length){box.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px">${t('emptyAssets')}</div>`;$('totalAssets').textContent='---';$('totalProfit').innerHTML='';return}let totalValue=0,totalCost=0;box.innerHTML=holdings.map((h,idx)=>{const a=assets.find(x=>x.id===h.id);const p=getPrice(h.id);const val=p*Number(h.qty);totalValue+=val;const buyPrice=Number(h.buyPrice)||0;let profitHTML=`<span style="color:var(--muted);font-size:10px;">وارد نشده</span>`;let pColor='var(--muted)',pSign='';if(buyPrice>0){const cost=buyPrice*Number(h.qty);totalCost+=cost;const profit=val-cost;const profitPct=(profit/cost)*100;pColor=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';pSign=profit>0?'+':'';const pIcon=profit>0?'📈':profit<0?'📉':'';profitHTML=`<span style="color:${pColor};font-size:11px;" dir="ltr">${pIcon} ${pSign}${num(profitPct,2)}%<br><span style="font-size:10px;">${pSign}${num(profit)}</span></span>`}return`<div class="holding"><div class="h-name">${esc(a?nm(a):h.id)}</div><div class="h-qty">${num(h.qty,4)}</div><div class="h-buy"><span style="color:var(--muted);font-size:10px;">خرید:</span>${buyPrice>0?num(buyPrice):'—'}<button class="h-edit" data-idx="${idx}" title="ویرایش قیمت خرید">✏️</button></div><div class="h-val">${val>0?num(val)+' '+t('tomanUnit'):'—'}</div><div class="h-profit">${profitHTML}</div><button class="h-del" data-idx="${idx}">${t('del')}</button></div>`}).join('');$('totalAssets').textContent=num(totalValue)+' '+t('tomanUnit');const profitEl=$('totalProfit');if(totalCost>0){const profit=totalValue-totalCost;const profitPct=(profit/totalCost)*100;const sign=profit>0?'+':'';const color=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';const icon=profit>0?'📈':profit<0?'📉':'';profitEl.innerHTML=`<span style="color:${color}">${icon} ${sign}${num(profitPct,2)}% (${sign}${num(profit)} ${t('tomanUnit')})</span>`}else{profitEl.innerHTML=`<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>`}box.querySelectorAll('.h-del').forEach(b=>{b.onclick=()=>{holdings.splice(Number(b.dataset.idx),1);saveHoldings();renderHoldings()}});box.querySelectorAll('.h-edit').forEach(b=>{b.onclick=()=>{const idx=Number(b.dataset.idx);const h=holdings[idx];const currentPrompt=h.buyPrice?h.buyPrice:'';const newPrice=prompt("قیمت خریداری شده (به تومان) را وارد کنید:",currentPrompt);if(newPrice!==null){const parsed=parseFloat(newPrice.replace(/,/g,''));if(!isNaN(parsed)&&parsed>=0){h.buyPrice=parsed;saveHoldings();renderHoldings()}}}})}
 
-function renderHoldings(){
-    const box=$('holdings');if(!box)return;
-    if(!holdings.length){
-        box.innerHTML='<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px">'+t('emptyAssets')+'</div>';
-        $('totalAssets').textContent='---';$('totalProfit').innerHTML='';return;
-    }
-    let totalValue=0,totalCost=0;
-    let html='';
-    for(let idx=0;idx<holdings.length;idx++){
-        const h=holdings[idx];
-        const a=assets.find(function(x){return x.id===h.id});
-        const p=getPrice(h.id);
-        const val=p*Number(h.qty);
-        totalValue+=val;
-        const buyPrice=Number(h.buyPrice)||0;
-        let profitHTML='<span style="color:var(--muted);font-size:10px;">وارد نشده</span>';
-        let pColor='var(--muted)',pSign='';
-        if(buyPrice>0){
-            const cost=buyPrice*Number(h.qty);totalCost+=cost;const profit=val-cost;const profitPct=(profit/cost)*100;
-            pColor=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';
-            pSign=profit>0?'+':'';const pIcon=profit>0?'📈':profit<0?'📉':'';
-            profitHTML='<span style="color:'+pColor+';font-size:11px;" dir="ltr">'+pIcon+' '+pSign+num(profitPct,2)+'%<br><span style="font-size:10px;">'+pSign+num(profit)+'</span></span>';
-        }
-        html+='<div class="holding"><div class="h-name">'+esc(a?nm(a):h.id)+'</div><div class="h-qty">'+num(h.qty,4)+'</div><div class="h-buy"><span style="color:var(--muted);font-size:10px;">خرید:</span>'+(buyPrice>0?num(buyPrice):'—')+'<button class="h-edit" data-idx="'+idx+'" title="ویرایش قیمت خرید">✏️</button></div><div class="h-val">'+(val>0?num(val)+' '+t('tomanUnit'):'—')+'</div><div class="h-profit">'+profitHTML+'</div><button class="h-del" data-idx="'+idx+'">'+t('del')+'</button></div>';
-    }
-    box.innerHTML=html;
-    $('totalAssets').textContent=num(totalValue)+' '+t('tomanUnit');
-    const profitEl=$('totalProfit');
-    if(totalCost>0){
-        const profit=totalValue-totalCost;const profitPct=(profit/totalCost)*100;const sign=profit>0?'+':'';const color=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';const icon=profit>0?'📈':profit<0?'📉':'';
-        profitEl.innerHTML='<span style="color:'+color+'">'+icon+' '+sign+num(profitPct,2)+'% ('+sign+num(profit)+' '+t('tomanUnit')+')</span>';
-    } else {
-        profitEl.innerHTML='<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>';
-    }
-    const dels = box.querySelectorAll('.h-del');
-    for(let i=0;i<dels.length;i++){dels[i].onclick=function(){holdings.splice(Number(this.dataset.idx),1);saveHoldings();renderHoldings()}}
-    const edits = box.querySelectorAll('.h-edit');
-    for(let i=0;i<edits.length;i++){
-        edits[i].onclick=function(){
-            const idx=Number(this.dataset.idx);const h=holdings[idx];const currentPrompt=h.buyPrice?h.buyPrice:'';
-            const newPrice=prompt("قیمت خریداری شده (به تومان) را وارد کنید:",currentPrompt);
-            if(newPrice!==null){
-                const parsed=parseFloat(newPrice.replace(/,/g,''));
-                if(!isNaN(parsed)&&parsed>=0){h.buyPrice=parsed;saveHoldings();renderHoldings()}
-            }
-        };
-    }
-}
+function fillAddSelect(){const s=$('addAsset');if(!s)return;const old=s.value;const availableAssets=assets.filter(a=>a.id!=='oil');s.innerHTML=availableAssets.map(a=>`<option value="${a.id}">${esc(nm(a))}</option>`).join('');if(availableAssets.some(a=>a.id===old))s.value=old}
+function fillCalc(){const sFrom=$('calcFrom'),sTo=$('calcTo');if(!sFrom||!sTo)return;const oldFrom=sFrom.value||'toman',oldTo=sTo.value||'usd';const options=[`<option value="toman">${t('toman')}</option>`,...assets.map(a=>`<option value="${a.id}">${esc(nm(a))}</option>`)].join('');sFrom.innerHTML=options;sTo.innerHTML=options;if(sFrom.querySelector(`option[value="${oldFrom}"]`))sFrom.value=oldFrom;if(sTo.querySelector(`option[value="${oldTo}"]`))sTo.value=oldTo}
+function formatCalcInput(e){let val=e.target.value.replace(/,/g,'').replace(/[^0-9.]/g,'');const parts=val.split('.');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");e.target.value=parts.join('.');calc()}
+function calc(){const amountStr=$('calcAmount')?.value||'0';const amount=parseFloat(amountStr.replace(/,/g,''))||0;const fromId=$('calcFrom')?.value,toId=$('calcTo')?.value;if(!fromId||!toId)return;const fromVal=getTomanValue(fromId),toVal=getTomanValue(toId);if(fromVal<=0||toVal<=0||!Number.isFinite(amount)){$('total').textContent=t('noPrice');$('calcUnit').textContent='';return}const totalToman=amount*fromVal;const result=totalToman/toVal;let decimals=(toId==='usd'||toId==='oil')?4:(toId==='toman')?0:2;const formattedResult=num(result,decimals);const toName=toId==='toman'?t('toman'):nm(assets.find(x=>x.id===toId));const fromName=fromId==='toman'?t('toman'):nm(assets.find(x=>x.id===fromId));let unitLabel=t('tomanUnit');if(toId==='usd')unitLabel='دلار';else if(toId==='oil')unitLabel='دلار';else if(toId!=='toman'){const a=assets.find(x=>x.id===toId);unitLabel=lang==='fa'?a.fa:a.en}$('total').textContent=`${formattedResult} ${unitLabel}`;$('calcUnit').textContent=`${num(amount,4)} ${fromName} ➔ ${formattedResult} ${toName}`}
+function addHolding(){const id=$('addAsset')?.value;const qty=Number($('addQty')?.value||0);if(!id||id==='oil'||!(qty>0))return;const ex=holdings.find(h=>h.id===id);if(ex)ex.qty=Number(ex.qty)+qty;else holdings.push({id,qty,buyPrice:0});saveHoldings();$('addQty').value='';renderHoldings()}
 
-function fillAddSelect(){
-    const s=$('addAsset');if(!s)return;
-    const old=s.value;
-    const availableAssets=assets.filter(function(a){return a.id!=='oil'});
-    let html='';for(let i=0;i<availableAssets.length;i++){html+='<option value="'+availableAssets[i].id+'">'+esc(nm(availableAssets[i]))+'</option>';}
-    s.innerHTML=html;
-    if(availableAssets.some(function(a){return a.id===old}))s.value=old;
-}
-function fillCalc(){
-    const sFrom=$('calcFrom'),sTo=$('calcTo');if(!sFrom||!sTo)return;
-    const oldFrom=sFrom.value||'toman',oldTo=sTo.value||'usd';
-    let options='<option value="toman">'+t('toman')+'</option>';
-    for(let i=0;i<assets.length;i++){options+='<option value="'+assets[i].id+'">'+esc(nm(assets[i]))+'</option>';}
-    sFrom.innerHTML=options;sTo.innerHTML=options;
-    if(sFrom.querySelector('option[value="'+oldFrom+'"]'))sFrom.value=oldFrom;
-    if(sTo.querySelector('option[value="'+oldTo+'"]'))sTo.value=oldTo;
-}
-function formatCalcInput(e){
-    let val=e.target.value.replace(/,/g,'').replace(/[^0-9.]/g,'');
-    const parts=val.split('.');
-    parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");
-    e.target.value=parts.join('.');
-    calc();
-}
-function calc(){
-    const amountStr=$('calcAmount')?$('calcAmount').value:'0';
-    const amount=parseFloat(amountStr.replace(/,/g,''))||0;
-    const fromId=$('calcFrom')?$('calcFrom').value:null,toId=$('calcTo')?$('calcTo').value:null;
-    if(!fromId||!toId)return;
-    const fromVal=getTomanValue(fromId),toVal=getTomanValue(toId);
-    if(fromVal<=0||toVal<=0||!Number.isFinite(amount)){
-        $('total').textContent=t('noPrice');$('calcUnit').textContent='';return;
-    }
-    const totalToman=amount*fromVal;const result=totalToman/toVal;
-    let decimals=(toId==='usd'||toId==='oil')?4:(toId==='toman')?0:2;
-    const formattedResult=num(result,decimals);
-    const toName=toId==='toman'?t('toman'):nm(assets.find(function(x){return x.id===toId}));
-    const fromName=fromId==='toman'?t('toman'):nm(assets.find(function(x){return x.id===fromId}));
-    let unitLabel=t('tomanUnit');
-    if(toId==='usd')unitLabel='دلار';else if(toId==='oil')unitLabel='دلار';
-    else if(toId!=='toman'){const a=assets.find(function(x){return x.id===toId});unitLabel=lang==='fa'?a.fa:a.en;}
-    $('total').textContent=formattedResult+' '+unitLabel;
-    $('calcUnit').textContent=num(amount,4)+' '+fromName+' ➔ '+formattedResult+' '+toName;
-}
-function addHolding(){
-    const id=$('addAsset')?$('addAsset').value:null;
-    const qty=Number($('addQty')?$('addQty').value:0);
-    if(!id||id==='oil'||!(qty>0))return;
-    const ex=holdings.find(function(h){return h.id===id});
-    if(ex)ex.qty=Number(ex.qty)+qty;else holdings.push({id:id,qty:qty,buyPrice:0});
-    saveHoldings();$('addQty').value='';renderHoldings();
-}
-
-function applyLang(){
-    document.documentElement.lang=lang;
-    document.documentElement.dir=lang==='fa'?'rtl':'ltr';
-    document.querySelectorAll('[data-t]').forEach(function(el){
-        if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);else el.textContent=t(el.dataset.t);
-    });
-    $('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';
-    hideAllPages();
-    $('homePage').classList.remove('hidden');
-    $('homeBtn').classList.add('active');
-    renderHome();
-    fillCalc();fillAddSelect();renderHoldings();calc();
-}
+function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==='fa'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);else el.textContent=t(el.dataset.t)});$('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome();fillCalc();fillAddSelect();renderHoldings();calc()}
 
 function applyTheme(){
     document.documentElement.setAttribute('data-theme',theme);
@@ -1012,8 +820,8 @@ function applyTheme(){
     function updateNext() {
         if (i >= chartKeys.length) return;
         const key = chartKeys[i++];
-        let aId = key; if (key.indexOf('-')>-1) aId = key.split('-')[1];
-        const a = assets.find(function(x){return x.id===aId});
+        let aId = key; if (key.includes('-')) aId = key.split('-')[1];
+        const a = assets.find(x=>x.id===aId);
         if (a && charts[key] && charts[key]._isUp !== undefined) {
             updateChartTheme(charts[key], a, charts[key]._isUp);
             charts[key].update('none');
@@ -1029,10 +837,11 @@ function hideAllPages(){
     $('allPage').classList.add('hidden');
     $('calcPage').classList.add('hidden');
     $('assetsPage').classList.add('hidden');
-    ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(function(id){$(id).classList.remove('active')});
+    ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
     
+    // *** فقط نمودارهای صفحات فرعی نابود میشوند تا لگ نداشته باشیم ***
     for(const key in charts){
-        if(key.indexOf('all-')===0 || key.indexOf('fav-')===0) {
+        if(key.startsWith('all-') || key.startsWith('fav-')) {
             try{charts[key].destroy()}catch(e){} 
             delete charts[key];
         }
@@ -1056,10 +865,10 @@ document.body.addEventListener('click', function(e) {
     const idx = favs.indexOf(id);
     if (idx > -1) {
         favs.splice(idx, 1);
-        document.querySelectorAll('.star-btn[data-id="'+id+'"]').forEach(function(b){b.classList.remove('active')});
+        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.remove('active'));
     } else {
         favs.push(id);
-        document.querySelectorAll('.star-btn[data-id="'+id+'"]').forEach(function(b){b.classList.add('active')});
+        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.add('active'));
     }
     
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
@@ -1070,20 +879,20 @@ document.body.addEventListener('click', function(e) {
     }
 });
 
-$('menuBtn').onclick=function(){$('drawer').classList.add('open');$('drawerOverlay').classList.add('open')};
-const closeDrawer=function(){$('drawer').classList.remove('open');$('drawerOverlay').classList.remove('open')};
+$('menuBtn').onclick=()=>{$('drawer').classList.add('open');$('drawerOverlay').classList.add('open')};
+const closeDrawer=()=>{$('drawer').classList.remove('open');$('drawerOverlay').classList.remove('open')};
 $('drawerOverlay').onclick=closeDrawer;
-$('langBtn').onclick=function(){lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang();closeDrawer()};
-$('themeBtn').onclick=function(){theme=theme==='obsidian'?'neon':theme==='neon'?'glass':'obsidian';try{localStorage.setItem('mktTheme',theme)}catch(e){}applyTheme()};
-$('homeBtn').onclick=function(){closeDrawer();hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome()};
-$('favBtn').onclick=function(){closeDrawer();hideAllPages();$('favPage').classList.remove('hidden');$('favBtn').classList.add('active');renderFavorites()};
-$('allBtn').onclick=function(){closeDrawer();hideAllPages();$('allPage').classList.remove('hidden');$('allBtn').classList.add('active');renderAll()};
-$('calcBtn').onclick=function(){closeDrawer();hideAllPages();$('calcPage').classList.remove('hidden');$('calcBtn').classList.add('active');fillCalc();calc()};
-$('assetsBtn').onclick=function(){closeDrawer();hideAllPages();$('assetsPage').classList.remove('hidden');$('assetsBtn').classList.add('active');fillAddSelect();renderHoldings()};
+$('langBtn').onclick=()=>{lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang();closeDrawer()};
+$('themeBtn').onclick=()=>{theme=theme==='obsidian'?'neon':theme==='neon'?'glass':'obsidian';try{localStorage.setItem('mktTheme',theme)}catch(e){}applyTheme()};
+$('homeBtn').onclick=()=>{closeDrawer();hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome()};
+$('favBtn').onclick=()=>{closeDrawer();hideAllPages();$('favPage').classList.remove('hidden');$('favBtn').classList.add('active');renderFavorites()};
+$('allBtn').onclick=()=>{closeDrawer();hideAllPages();$('allPage').classList.remove('hidden');$('allBtn').classList.add('active');renderAll()};
+$('calcBtn').onclick=()=>{closeDrawer();hideAllPages();$('calcPage').classList.remove('hidden');$('calcBtn').classList.add('active');fillCalc();calc()};
+$('assetsBtn').onclick=()=>{closeDrawer();hideAllPages();$('assetsPage').classList.remove('hidden');$('assetsBtn').classList.add('active');fillAddSelect();renderHoldings()};
 $('addBtn').onclick=addHolding;
-$('refreshBtn').onclick=async function(){closeDrawer();await Promise.allSettled([refreshPrices(),loadHistories()])};
+$('refreshBtn').onclick=async()=>{closeDrawer();await Promise.allSettled([refreshPrices(),loadHistories()])};
 
-(function init(){
+(async function init(){
     loadSettings();
     loadIntraday();
     $('calcAmount').addEventListener('input',formatCalcInput);
@@ -1092,8 +901,8 @@ $('refreshBtn').onclick=async function(){closeDrawer();await Promise.allSettled(
     applyTheme();
     applyLang();
     renderHome();
-    refreshPrices().then(function(){applyLang()});
-    setTimeout(function(){loadHistories()}, 1000);
+    refreshPrices().then(()=>{applyLang()});
+    setTimeout(()=>{loadHistories()}, 1000);
 })();
 </script>
 </body>
