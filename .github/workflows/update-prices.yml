@@ -30,3 +30,19 @@ jobs:
           git add data/latest-prices.json data/intraday.json
           git commit -m "Auto-update market prices" || exit 0
           git push
+                - name: Install dependencies
+        run: pip install requests matplotlib
+
+      - name: Update Prices
+        run: python update_prices.py  # (اسکریپت قبلی که قیمت‌ها رو ذخیره میکنه)
+
+      - name: Generate Charts
+        run: python generate_charts.py # (اسکریپت جدید برای ساخت عکس‌ها)
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'action@github.com'
+          git add data/latest-prices.json data/intraday.json data/charts/
+          git commit -m "Auto-update prices and charts" || exit 0
+          git push
