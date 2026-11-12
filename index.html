@@ -49,7 +49,6 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
 [data-theme="glass"] .card{background:linear-gradient(145deg,rgba(30,41,59,.9),rgba(15,23,42,.95));border:1px solid rgba(255,255,255,.08)}
 
-/* استایل ستاره علاقه‌مندی */
 .star-btn{background:none;border:none;font-size:18px;cursor:pointer;opacity:.3;transition:.2s;filter:grayscale(1);padding:0;line-height:1;margin-top:2px; z-index:10;}
 .star-btn:hover{opacity:.7;transform:scale(1.1)}
 .star-btn.active{opacity:1;filter:grayscale(0);text-shadow:0 0 10px rgba(243,198,35,.5)}
@@ -88,8 +87,8 @@ canvas{width:100%!important;height:100%!important;display:block}
 .mini-range b{color:var(--txt);font-weight:600}
 .mini-card .star-btn{font-size:14px;}
 
-.calc,.assets-page,.fav-page{display:none;margin-top:22px}
-.calc.show,.assets-page.show,.fav-page.show{display:block}
+/* اصلاح اساسی استایل صفحات برای جلوگیری از مخفی شدن */
+#favPage, #calcPage, #assetsPage { margin-top: 22px; }
 .calc h2,.assets-page h2,.fav-page h2{font-size:18px;margin-bottom:6px}
 .calc p,.assets-page p,.fav-page p{font-size:12px;color:var(--muted);margin-bottom:16px}
 .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
@@ -158,7 +157,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 <div class="section-title">سایر دارایی‌ها</div>
 <div class="grid-mini" id="gridMini"></div>
 </div>
-<div id="favPage" class="fav-page hidden">
+<div id="favPage" class="hidden">
 <h2>⭐ علاقه‌مندی‌ها</h2>
 <p style="font-size:12px;color:var(--muted);margin-bottom:16px">دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.</p>
 <div class="grid" id="gridFavorites"></div>
@@ -166,7 +165,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 <div id="allPage" class="hidden">
 <div class="grid" id="gridAll"></div>
 </div>
-<section class="calc" id="calcPage">
+<section class="hidden" id="calcPage">
 <h2 data-t="calcTitle">ماشین‌حساب قیمت</h2>
 <p data-t="calcSub">مقدار، واحد ورودی و واحد خروجی را انتخاب کن.</p>
 <div class="calc-grid calc-grid-3">
@@ -177,7 +176,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 <div class="result"><small data-t="totalLabel">مبلغ محاسبه‌شده</small><div class="total" id="total">---</div></div>
 <div class="src" id="calcUnit"></div>
 </section>
-<section class="assets-page" id="assetsPage">
+<section class="hidden" id="assetsPage">
 <h2 data-t="assetsTitle">دارایی‌های من</h2>
 <p data-t="assetsSub">دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.</p>
 <div class="add-row">
@@ -219,7 +218,7 @@ const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
-const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV25',FAVORITES_KEY='pulseFavoritesV25';
+const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV26',FAVORITES_KEY='pulseFavoritesV26'; // کلید جدید برای دور زدن کش خراب
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
@@ -261,7 +260,21 @@ function getLabel(p,mode){
 async function fetchJson(url,tm=5000){const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(id)}}
 async function fetchFirstSuccess(urls,tm=5000){for(const url of urls){try{const data=await fetchJson(url+(url.includes('?')?'&':'?')+'v='+Date.now(),tm);if(data)return data}catch(e){}}return null}
 
-function loadSettings(){try{const s=localStorage.getItem('mktLang');if(s==='fa'||s==='en')lang=s;const th=localStorage.getItem('mktTheme');if(['obsidian','neon','glass'].includes(th))theme=th;const f=JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]');favorites=Array.isArray(f)?f:[];const hc=JSON.parse(localStorage.getItem(HISTORY_CACHE_KEY)||'{}');if(hc&&Object.keys(hc).length>0)history=hc;const hd=JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'[]');holdings=Array.isArray(hd)?hd.filter(h=>h&&h.id&&assets.some(a=>a.id===h.id)&&h.id!=='oil'&&Number(h.qty)>0):[]}catch(e){}}
+function loadSettings(){
+    try{
+        const s=localStorage.getItem('mktLang'); if(s==='fa'||s==='en') lang=s;
+        const th=localStorage.getItem('mktTheme'); if(['obsidian','neon','glass'].includes(th)) theme=th;
+        
+        // خواندن صحیح لیست علاقه‌مندی‌ها با کلید جدید
+        const f = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+        favorites = Array.isArray(f) ? f : [];
+        
+        const hc=JSON.parse(localStorage.getItem(HISTORY_CACHE_KEY)||'{}'); if(hc&&Object.keys(hc).length>0) history=hc;
+        const hd=JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'[]'); holdings=Array.isArray(hd)?hd.filter(h=>h&&h.id&&assets.some(a=>a.id===h.id)&&h.id!=='oil'&&Number(h.qty)>0):[];
+    }catch(e){
+        favorites = [];
+    }
+}
 
 function loadIntraday(){
     try{
@@ -754,13 +767,17 @@ function applyTheme(){
 }
 
 function hideAllPages(){
-    $('homePage').classList.add('hidden');$('favPage').classList.add('hidden');$('allPage').classList.add('hidden');$('calcPage').classList.remove('show');$('assetsPage').classList.remove('show');
+    $('homePage').classList.add('hidden');
+    $('favPage').classList.add('hidden');
+    $('allPage').classList.add('hidden');
+    $('calcPage').classList.add('hidden');
+    $('assetsPage').classList.add('hidden');
     ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
     for(const key in charts){try{charts[key].destroy()}catch(e){}delete charts[key];}
     $('gridAll').innerHTML=''; $('gridFavorites').innerHTML='';
 }
 
-// ** مکانیزم ضدضربه برای ستاره‌ها (Event Delegation) **
+// ** مکانیزم ضدضربه برای ستاره‌ها **
 document.body.addEventListener('click', function(e) {
     const btn = e.target.closest('.star-btn');
     if (!btn) return;
@@ -771,8 +788,9 @@ document.body.addEventListener('click', function(e) {
     if (!id) return;
     
     let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    const idx = favs.indexOf(id);
+    if(!Array.isArray(favs)) favs = []; // Fallback safety
     
+    const idx = favs.indexOf(id);
     if (idx > -1) {
         favs.splice(idx, 1);
         document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.remove('active'));
@@ -797,8 +815,8 @@ $('themeBtn').onclick=()=>{theme=theme==='obsidian'?'neon':theme==='neon'?'glass
 $('homeBtn').onclick=()=>{closeDrawer();hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome()};
 $('favBtn').onclick=()=>{closeDrawer();hideAllPages();$('favPage').classList.remove('hidden');$('favBtn').classList.add('active');renderFavorites()};
 $('allBtn').onclick=()=>{closeDrawer();hideAllPages();$('allPage').classList.remove('hidden');$('allBtn').classList.add('active');renderAll()};
-$('calcBtn').onclick=()=>{closeDrawer();hideAllPages();$('calcPage').classList.add('show');$('calcBtn').classList.add('active');fillCalc();calc()};
-$('assetsBtn').onclick=()=>{closeDrawer();hideAllPages();$('assetsPage').classList.add('show');$('assetsBtn').classList.add('active');fillAddSelect();renderHoldings()};
+$('calcBtn').onclick=()=>{closeDrawer();hideAllPages();$('calcPage').classList.remove('hidden');$('calcBtn').classList.add('active');fillCalc();calc()};
+$('assetsBtn').onclick=()=>{closeDrawer();hideAllPages();$('assetsPage').classList.remove('hidden');$('assetsBtn').classList.add('active');fillAddSelect();renderHoldings()};
 $('addBtn').onclick=addHolding;
 $('refreshBtn').onclick=async()=>{closeDrawer();await Promise.allSettled([refreshPrices(),loadHistories()])};
 
