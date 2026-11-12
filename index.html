@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>پالس | Pulse Market</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#050B14">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root,[data-theme="obsidian"]{
@@ -237,7 +235,6 @@ canvas{width:100%!important;height:100%!important;display:block}
 </head>
 <body>
 
-<!-- Drawer Menu -->
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
     <div class="brand" style="margin-bottom: 30px;">
@@ -250,7 +247,6 @@ canvas{width:100%!important;height:100%!important;display:block}
     <button class="btn" id="calcBtn" data-t="calc">🧮 ماشین‌حساب</button>
     <button class="btn" id="assetsBtn" data-t="assets">💼 دارایی‌ها</button>
     <div class="divider"></div>
-    <button class="btn" id="installBtn" style="color: var(--green); display: none;">📲 نصب اپلیکیشن</button>
     <button class="btn" id="langBtn">🌐 English</button>
     <button class="btn" id="refreshBtn" data-t="refresh" style="margin-top:auto; color: var(--accent);">↻ بروزرسانی داده‌ها</button>
 </div>
@@ -373,11 +369,10 @@ const words={
 
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
 let expandedAssetId = null;
-let deferredPrompt;
 const INTRADAY_KEY='mktDashV29';
 const HOLDINGS_KEY='mktDashHoldingsV2';
-const HISTORY_CACHE_KEY='pulseHistoryCacheV1';
-const FAVORITES_KEY='pulseFavoritesV1';
+const HISTORY_CACHE_KEY='pulseHistoryCacheV2';
+const FAVORITES_KEY='pulseFavoritesV2';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
@@ -385,23 +380,15 @@ const nm=a=>lang==='fa'?a.fa:a.en;
 function num(v,d=0){return Number.isFinite(Number(v))?new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US',{maximumFractionDigits:d}).format(Number(v)):'---';}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-// تبدیل دقیق تاریخ شمسی به میلادی
 function jalaliToGregorian(jy, jm, jd) {
     jy += 1595;
     let days = -355668 + (365 * jy) + (~~(jy / 33) * 8) + ~~(((jy % 33) + 3) / 4) + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
     let gy = 400 * ~~(days / 146097);
     days %= 146097;
-    if (days > 36524) {
-        gy += 100 * ~~(--days / 36524);
-        days %= 36524;
-        if (days >= 365) days++;
-    }
+    if (days > 36524) { gy += 100 * ~~(--days / 36524); days %= 36524; if (days >= 365) days++; }
     gy += 4 * ~~(days / 1461);
     days %= 1461;
-    if (days > 365) {
-        gy += ~~((days - 1) / 365);
-        days = (days - 1) % 365;
-    }
+    if (days > 365) { gy += ~~((days - 1) / 365); days = (days - 1) % 365; }
     let gd = days + 1;
     let sal_a = [0, 31, (gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     let gm = 0;
@@ -491,10 +478,7 @@ function toggleFavorite(id, btnElement){
     if(idx > -1) { favorites.splice(idx, 1); btnElement.classList.remove('active'); }
     else { favorites.push(id); btnElement.classList.add('active'); }
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    // If we are on favorites page, we should re-render it to remove the item
-    if (!$('favPage').classList.contains('hidden')) {
-        renderFavorites();
-    }
+    if (!$('favPage').classList.contains('hidden')) renderFavorites();
 }
 
 async function refreshPrices(){
@@ -557,7 +541,6 @@ function getSavedPoints(id, days){
  return out.sort((a,b)=>a.time-b.time);
 }
 
-// برای هفته، ماه و سال از تاریخچه روزانه استفاده میکنیم تا هر روز فقط یک نقطه داشته باشیم
 function getMergedRawPoints(id, days) {
   const cutoff = Date.now() - days * 86400000;
   const all = history[id] || [];
@@ -645,17 +628,6 @@ function updatePricesOnly(){
    }
    updateChange(a);
   }
-  const mini=document.querySelector(`#mini-${a.id}`);
-  if(mini){
-   const mp=mini.querySelector('.mini-price'); if(mp) mp.innerHTML = priceHTML;
-   const ohlc=todayOHLC(a.id); const mr=mini.querySelector('.mini-range');
-   if(mr) {
-    const isUSD = a.currency === 'USD';
-    const lowStr = ohlc.low>0 ? (isUSD ? `$${num(ohlc.low, 2)}` : num(ohlc.low)) : '—';
-    const highStr = ohlc.high>0 ? (isUSD ? `$${num(ohlc.high, 2)}` : num(ohlc.high)) : '—';
-    mr.innerHTML=`<span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span>`;
-   }
-  }
  }
  for (const chartKey in charts) {
   if (!charts.hasOwnProperty(chartKey)) continue;
@@ -668,13 +640,8 @@ function updatePricesOnly(){
 function getLabel(p, mode) {
     const d = new Date(p.time);
     if (isNaN(d.getTime())) return '---';
-    
-    if (mode === 'daily') {
-        return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
-    } else {
-        if (p.date) return p.date;
-        return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US', {year:'numeric', month:'2-digit', day:'2-digit'}).format(d);
-    }
+    if (mode === 'daily') return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
+    return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US', {year:'numeric', month:'2-digit', day:'2-digit'}).format(d);
 }
 
 function updateChartData(a, chartInstance) {
@@ -977,57 +944,23 @@ function renderCharts(grid, filterIds, prefix=''){
 function renderFeatured(){
  const grid=$('gridFeatured'), mini=$('gridMini');
  if(!grid||!mini)return;
- 
- // Render Main Featured (all assets except oil)
  const featured=assets.filter(a=>a.id!=='oil');
- const miniAssets=[]; // We can put some in mini later if needed
- 
  grid.innerHTML = featured.map(a=>fullCardHTML(a, 'feat-')).join('');
  bindRanges(grid, 'feat-');
  renderCharts(grid, featured.map(a=>a.id), 'feat-');
- 
- mini.innerHTML = ''; // Currently no mini cards, but keeping structure
+ mini.innerHTML = ''; 
 }
 
 function renderFavorites(){
- const grid=$('gridFavorites');
- if(!grid) return;
- 
+ const grid=$('gridFavorites'); if(!grid) return;
  const favAssets = assets.filter(a => favorites.includes(a.id));
  if (favAssets.length === 0) {
      grid.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); grid-column: 1/-1;">هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.</div>`;
      return;
  }
- 
  grid.innerHTML = favAssets.map(a=>fullCardHTML(a, 'fav-')).join('');
  bindRanges(grid, 'fav-');
  renderCharts(grid, favAssets.map(a=>a.id), 'fav-');
-}
-
-function toggleExpandedChart(id) {
- if (expandedAssetId === id) closeExpandedChart(); else openExpandedChart(id);
-}
-
-function openExpandedChart(id) {
- if (expandedAssetId) closeExpandedChart();
- expandedAssetId = id; const container = $('expandedChartContainer'); const a = assets.find(x => x.id === id); if(!a) return;
- container.innerHTML = `<div style="position: relative;"><button id="closeExpandedBtn" class="btn" style="position: absolute; top: 16px; left: 16px; z-index: 10; padding: 6px 12px; font-size: 12px; background: var(--red); border-color: var(--red); color: white;">${t('hideChart')}</button>${fullCardHTML(a, 'exp-')}</div>`;
- container.classList.remove('hidden'); bindRanges(container, 'exp-'); $('closeExpandedBtn').onclick = closeExpandedChart;
- setTimeout(() => { const chartKey = 'exp-' + a.id; if(!charts[chartKey]) drawOrUpdateChart(a, null, 'exp-'); else drawOrUpdateChart(a, charts[chartKey], 'exp-'); container.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50);
- updateMiniCardButtons();
-}
-
-function closeExpandedChart() {
- if (!expandedAssetId) return; const chartKey = 'exp-' + expandedAssetId;
- if (charts[chartKey]) { charts[chartKey].destroy(); delete charts[chartKey]; }
- expandedAssetId = null; $('expandedChartContainer').classList.add('hidden'); $('expandedChartContainer').innerHTML = ''; updateMiniCardButtons();
-}
-
-function updateMiniCardButtons() {
- document.querySelectorAll('.toggle-mini-chart').forEach(btn => {
-  if (btn.dataset.id === expandedAssetId) { btn.textContent = t('hideChart'); btn.classList.add('active'); }
-  else { btn.textContent = t('showChart'); btn.classList.remove('active'); }
- });
 }
 
 function renderAll(){
@@ -1123,7 +1056,6 @@ function applyLang(){
  document.documentElement.lang=lang; document.documentElement.dir=lang==='fa'?'rtl':'ltr';
  document.querySelectorAll('[data-t]').forEach(el=>{ if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t); else el.textContent=t(el.dataset.t); });
  $('langBtn').innerHTML = lang==='fa'?'🌐 English':'🌐 فارسی';
- 
  hideAllPages(); $('homePage').classList.remove('hidden'); $('homeBtn').classList.add('active'); renderFeatured();
  fillCalc(); fillAddSelect(); renderHoldings(); calc(); updateMiniCardButtons();
 }
@@ -1143,7 +1075,6 @@ function hideAllPages(){
  for (const key in charts) { try { charts[key].destroy(); } catch(e) {} delete charts[key]; }
 }
 
-// Menu Logic
 $('menuBtn').onclick=()=>{ $('drawer').classList.add('open'); $('drawerOverlay').classList.add('open'); };
 const closeDrawer = () => { $('drawer').classList.remove('open'); $('drawerOverlay').classList.remove('open'); };
 $('drawerOverlay').onclick=closeDrawer;
@@ -1158,24 +1089,6 @@ $('assetsBtn').onclick=()=>{closeDrawer();hideAllPages();$('assetsPage').classLi
 $('addBtn').onclick=addHolding;
 $('refreshBtn').onclick=async()=>{ closeDrawer(); await Promise.allSettled([refreshPrices(),loadHistories()]); };
 
-// PWA Install Logic
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    $('installBtn').style.display = 'flex';
-});
-
-$('installBtn').onclick = async () => {
-    if (!deferredPrompt) {
-        alert('برای نصب در آیفون (Safari): دکمه Share (مربع با فلش) را بزنید و گزینه "Add to Home Screen" را انتخاب کنید.\n\nبرای اندروید (Chrome): از منوی مرورگر گزینه "Add to Home screen" را انتخاب کنید.');
-        return;
-    }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') $('installBtn').style.display = 'none';
-    deferredPrompt = null;
-};
-
 (async function init(){
  loadSettings();
  loadIntraday();
@@ -1186,13 +1099,9 @@ $('installBtn').onclick = async () => {
  
  applyTheme(); applyLang(); renderFeatured();
  
- if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
- }
- 
  refreshPrices().then(() => { applyLang(); });
  setTimeout(() => { loadHistories(); }, 1000);
 })();
 </script>
 </body>
-</html>
+ </html>
