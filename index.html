@@ -269,7 +269,6 @@ async function refreshPrices(){
         $('dot').classList.toggle('bad',!ok);
         $('status').textContent=ok?t('connected'):t('failed');
         
-        // بروزرسانی نمودارها با دیتای جدید
         updatePricesOnly();
         if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
         
@@ -378,10 +377,8 @@ async function loadHistories(){
     }
     saveHistoryCache();
     
-    // *** رفرش کامل نمودارهای صفحه اصلی بعد از لود کامل داده‌ها ***
     refreshHomeCharts();
     
-    // آپدیت نمودارهای سایر صفحات
     for(const chartKey in charts){
         if(chartKey.startsWith('feat-')) continue;
         let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];
@@ -406,7 +403,6 @@ function pointsFor(id){
                 const time=parseTime(p.time);
                 if(!Number.isFinite(time)||time<1e12||dayKey(time)!==today)continue;
                 
-                // *** فیلتر دقیق برای حذف نقطه 00:00 ***
                 const d = new Date(time);
                 const timeParts = new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d);
                 const hh = timeParts.find(x=>x.type==='hour')?.value;
@@ -642,14 +638,10 @@ function renderCharts(grid,filterIds,prefix=''){
 function refreshHomeCharts(){
     if($('homePage').classList.contains('hidden')) return;
     const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
-    
-    // نابود کردن کامل نمودارهای قبلی صفحه اصلی
     featured.forEach(a => {
         const chartKey = 'feat-' + a.id;
         if(charts[chartKey]) { try{charts[chartKey].destroy()}catch(e){} delete charts[chartKey]; }
     });
-    
-    // ساخت مجدد با دیتای جدید
     featured.forEach(a => {
         drawOrUpdateChart(a, null, 'feat-');
     });
@@ -660,10 +652,7 @@ function renderHome(){
     const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt');
     $('gridFeatured').innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
     bindRanges($('gridFeatured'),'feat-');
-    
-    // استفاده از renderCharts برای بار اول
     renderCharts($('gridFeatured'),featured.map(a=>a.id),'feat-');
-    
     $('gridMini').innerHTML=rest.map(a=>miniCardHTML(a)).join('');
     rest.forEach(a=>updateChange(a));
 }
@@ -685,7 +674,6 @@ function applyLang(){document.documentElement.lang=lang;document.documentElement
 function applyTheme(){
     document.documentElement.setAttribute('data-theme',theme);
     $('themeBtn').textContent = theme==='obsidian' ? '👑' : theme==='neon' ? '⚡' : '💎';
-    
     const chartKeys = Object.keys(charts);
     let i = 0;
     function updateNext() {
