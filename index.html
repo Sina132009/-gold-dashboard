@@ -212,14 +212,13 @@ const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
-const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV18',FAVORITES_KEY='pulseFavoritesV18';
+const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV21',FAVORITES_KEY='pulseFavoritesV21';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
 function num(v,d=0){return Number.isFinite(Number(v))?new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US',{maximumFractionDigits:d}).format(Number(v)):'---'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-// توابع زمان اصلاح شدند تا باگ 00:00 را رفع کنند
 function parseTime(v){
     if(v==null||v===''||v===0||v==='0')return NaN; 
     if(typeof v==='number')return v<1e12?v*1000:v;
@@ -230,12 +229,13 @@ function parseTime(v){
     return NaN
 }
 function dayKey(time=Date.now()){const p=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(time));const g=x=>p.find(y=>y.type===x)?.value||'00';return `${g('year')}-${g('month')}-${g('day')}`}
+
 function getLabel(p,mode){
     if(!p || !p.time || p.time < 1e12) return '---';
     const d=new Date(p.time);
     if(isNaN(d.getTime())) return '---';
-    if(mode==='daily') return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
-    return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+    if(mode==='daily') return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Tehran'});
+    return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Tehran'}).format(d);
 }
 
 async function fetchJson(url,tm=5000){const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(id)}}
@@ -258,7 +258,7 @@ async function refreshPrices(){
             else{let isDirectMap=true;for(const k in intraData){if(!Array.isArray(intraData[k])){isDirectMap=false;break}}if(isDirectMap)remoteIntraday={[dayKey()]:intraData};else remoteIntraday=intraData}
         }
         if(data&&data.prices&&Object.keys(data.prices).length>0){
-            const updatedAt = Date.now(); // زورچپان کردن زمان دقیق الان
+            const updatedAt = Date.now(); 
             for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k]}
             Object.assign(prices,data.prices);
             if(data.sources)Object.assign(sources,data.sources);
@@ -268,7 +268,11 @@ async function refreshPrices(){
         const ok=Object.keys(prices).filter(k=>!k.startsWith('_')).length>0;
         $('dot').classList.toggle('bad',!ok);
         $('status').textContent=ok?t('connected'):t('failed');
+        
+        // بروزرسانی نمودارها با دیتای جدید
         updatePricesOnly();
+        if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
+        
     }catch(e){
         $('dot').classList.add('bad');$('status').textContent=t('failed')
     }
@@ -372,7 +376,17 @@ async function loadHistories(){
         }catch(e){}
         await new Promise(r=>setTimeout(r, 50)); 
     }
-    for(const chartKey in charts){let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];const a=assets.find(x=>x.id===aId);if(a){updateChartData(a,charts[chartKey])}}
+    saveHistoryCache();
+    
+    // *** رفرش کامل نمودارهای صفحه اصلی بعد از لود کامل داده‌ها ***
+    refreshHomeCharts();
+    
+    // آپدیت نمودارهای سایر صفحات
+    for(const chartKey in charts){
+        if(chartKey.startsWith('feat-')) continue;
+        let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];
+        const a=assets.find(x=>x.id===aId);if(a){updateChartData(a,charts[chartKey])}
+    }
 }
 
 function sampleByDay(pts,max){if(pts.length<=max)return pts;const byDay={};pts.forEach(p=>{byDay[dayKey(p.time)]=p});const days=Object.values(byDay).sort((a,b)=>a.time-b.time);if(days.length<=max)return days;return Array.from({length:max},(_,i)=>days[Math.round(i*(days.length-1)/(max-1))])}
@@ -392,12 +406,13 @@ function pointsFor(id){
                 const time=parseTime(p.time);
                 if(!Number.isFinite(time)||time<1e12||dayKey(time)!==today)continue;
                 
-                // حذف نقطه 00:00 از تاریخچه برای جلوگیری از باگ تولتیپ
-                if (pts === all) {
-                    const d = new Date(time);
-                    if (d.getHours() === 0 && d.getMinutes() === 0) continue; 
-                }
-                
+                // *** فیلتر دقیق برای حذف نقطه 00:00 ***
+                const d = new Date(time);
+                const timeParts = new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d);
+                const hh = timeParts.find(x=>x.type==='hour')?.value;
+                const mm = timeParts.find(x=>x.type==='minute')?.value;
+                if(hh === '00' && mm === '00') continue; 
+
                 const key=Math.floor(time/60000);
                 if(seen.has(key))continue;
                 seen.add(key);merged.push({time,price})
@@ -405,9 +420,10 @@ function pointsFor(id){
         };
         addPts(intraday[id]||[]);
         if(remoteIntraday[today])addPts(remoteIntraday[today][id]||[]);
-        addPts(all);
         
         if(merged.length>0)return merged.sort((a,b)=>a.time-b.time);
+        const currentPrice = getPrice(id);
+        if (currentPrice > 0) return [{ time: Date.now(), price: currentPrice }];
         return [];
     }
     if(mode==='weekly'){const merged=getMergedRawPoints(id,7);if(merged.length>0)return sampleByDay(merged,7)}
@@ -417,6 +433,23 @@ function pointsFor(id){
     return all;
 }
 function getMergedRawPoints(id,days){const cutoff=Date.now()-days*86400000;const all=history[id]||[];return all.filter(p=>p.time>=cutoff).sort((a,b)=>a.time-b.time)}
+
+window.toggleFav = function(e, id) {
+    if(e) e.preventDefault();
+    let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    const idx = favs.indexOf(id);
+    if (idx > -1) { 
+        favs.splice(idx, 1); 
+        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.remove('active')); 
+    }
+    else { 
+        favs.push(id); 
+        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.add('active')); 
+    }
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
+    favorites = favs;
+    if (!$('favPage').classList.contains('hidden')) renderFavorites();
+};
 
 function fullCardHTML(a,prefix=''){
     const p=getPrice(a.id);const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);
@@ -428,7 +461,7 @@ function fullCardHTML(a,prefix=''){
     <article class="card">
         <div class="card-top">
             <div class="card-title-wrap">
-                <button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button>
+                <button class="star-btn ${isFav?'active':''}" data-id="${a.id}" onclick="toggleFav(event, '${a.id}')">⭐</button>
                 <div>
                     <div class="card-name">${esc(nm(a))}</div>
                     <div class="card-sym">${a.symbol}</div>
@@ -452,7 +485,7 @@ function fullCardHTML(a,prefix=''){
     </article>`;
 }
 
-function miniCardHTML(a){const p=getPrice(a.id);const ohlc=todayOHLC(a.id);const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';const isFav=favorites.includes(a.id);return`<div class="mini-card" id="mini-${a.id}"><div class="mini-title-wrap"><button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button><div class="mini-name">${esc(nm(a))}</div></div><div class="mini-sym">${a.symbol}</div><div class="mini-price">${priceHTML}</div><div class="mini-chg" id="chg-${a.id}">—</div><div class="mini-range"><span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span></div></div>`}
+function miniCardHTML(a){const p=getPrice(a.id);const ohlc=todayOHLC(a.id);const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';const isFav=favorites.includes(a.id);return`<div class="mini-card" id="mini-${a.id}"><div class="mini-title-wrap"><button class="star-btn ${isFav?'active':''}" data-id="${a.id}" onclick="toggleFav(event, '${a.id}')">⭐</button><div class="mini-name">${esc(nm(a))}</div></div><div class="mini-sym">${a.symbol}</div><div class="mini-price">${priceHTML}</div><div class="mini-chg" id="chg-${a.id}">—</div><div class="mini-range"><span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span></div></div>`}
 
 function bindRanges(grid,prefix=''){
     grid.querySelectorAll('.range').forEach(b=>{
@@ -578,8 +611,8 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         const p=items[0].chart._rawPoints[idx];
         if(!p || !p.time || p.time < 1e12) return ''; 
         const d=new Date(p.time);
-        if(mode==='daily')return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
-        else return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+        if(mode==='daily')return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Tehran'});
+        else return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Tehran'}).format(d);
     },label:c=>(mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'))}}},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
     
     newChart._rawPoints = pts;
@@ -606,12 +639,31 @@ function renderCharts(grid,filterIds,prefix=''){
     drawNext();
 }
 
+function refreshHomeCharts(){
+    if($('homePage').classList.contains('hidden')) return;
+    const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
+    
+    // نابود کردن کامل نمودارهای قبلی صفحه اصلی
+    featured.forEach(a => {
+        const chartKey = 'feat-' + a.id;
+        if(charts[chartKey]) { try{charts[chartKey].destroy()}catch(e){} delete charts[chartKey]; }
+    });
+    
+    // ساخت مجدد با دیتای جدید
+    featured.forEach(a => {
+        drawOrUpdateChart(a, null, 'feat-');
+    });
+}
+
 function renderHome(){
     const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
     const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt');
     $('gridFeatured').innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
     bindRanges($('gridFeatured'),'feat-');
+    
+    // استفاده از renderCharts برای بار اول
     renderCharts($('gridFeatured'),featured.map(a=>a.id),'feat-');
+    
     $('gridMini').innerHTML=rest.map(a=>miniCardHTML(a)).join('');
     rest.forEach(a=>updateChange(a));
 }
@@ -630,21 +682,24 @@ function addHolding(){const id=$('addAsset')?.value;const qty=Number($('addQty')
 
 function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==='fa'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);else el.textContent=t(el.dataset.t)});$('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome();fillCalc();fillAddSelect();renderHoldings();calc()}
 
-// تغییر تم بهینه‌شده (بدون نابودی نمودارها که باعث فریز میشد)
 function applyTheme(){
     document.documentElement.setAttribute('data-theme',theme);
-    $('themeBtn').textContent=theme==='obsidian'?'👑':theme==='neon'?'⚡':'💎';
-    requestAnimationFrame(() => {
-        for (const chartKey in charts) {
-            let aId = chartKey;
-            if (chartKey.includes('-')) aId = chartKey.split('-')[1];
-            const a = assets.find(x=>x.id===aId);
-            if(a && charts[chartKey]._isUp !== undefined) {
-                updateChartTheme(charts[chartKey], a, charts[chartKey]._isUp);
-                charts[chartKey].update('none');
-            }
+    $('themeBtn').textContent = theme==='obsidian' ? '👑' : theme==='neon' ? '⚡' : '💎';
+    
+    const chartKeys = Object.keys(charts);
+    let i = 0;
+    function updateNext() {
+        if (i >= chartKeys.length) return;
+        const key = chartKeys[i++];
+        let aId = key; if (key.includes('-')) aId = key.split('-')[1];
+        const a = assets.find(x=>x.id===aId);
+        if (a && charts[key] && charts[key]._isUp !== undefined) {
+            updateChartTheme(charts[key], a, charts[key]._isUp);
+            charts[key].update('none');
         }
-    });
+        requestAnimationFrame(updateNext);
+    }
+    requestAnimationFrame(updateNext);
 }
 
 function hideAllPages(){
@@ -653,28 +708,6 @@ function hideAllPages(){
     for(const key in charts){try{charts[key].destroy()}catch(e){}delete charts[key];}
     $('gridAll').innerHTML=''; $('gridFavorites').innerHTML='';
 }
-
-// حل قطعی مشکل ستاره‌ها با Event Delegation
-document.body.addEventListener('click', function(e) {
-    const btn = e.target.closest('.star-btn');
-    if (!btn) return;
-    e.preventDefault();
-    const id = btn.getAttribute('data-id');
-    if (!id) return;
-    let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    const idx = favs.indexOf(id);
-    if (idx > -1) { 
-        favs.splice(idx, 1); 
-        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.remove('active')); 
-    }
-    else { 
-        favs.push(id); 
-        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.add('active')); 
-    }
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
-    favorites = favs;
-    if (!$('favPage').classList.contains('hidden')) renderFavorites();
-});
 
 $('menuBtn').onclick=()=>{$('drawer').classList.add('open');$('drawerOverlay').classList.add('open')};
 const closeDrawer=()=>{$('drawer').classList.remove('open');$('drawerOverlay').classList.remove('open')};
