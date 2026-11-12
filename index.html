@@ -271,9 +271,6 @@ canvas{width:100%!important;height:100%!important;display:block}
  <div class="section-title" id="mainTitle">📊 بازار</div>
  <div class="grid" id="gridFeatured"></div>
  <div id="expandedChartContainer" class="hidden" style="margin-top:16px;margin-bottom:16px;"></div>
- 
- <div class="section-title" style="margin-top:30px;">سایر دارایی‌ها</div>
- <div class="grid-mini" id="gridMini"></div>
 </div>
 
 <div id="favPage" class="fav-page hidden">
@@ -371,8 +368,8 @@ let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={
 let expandedAssetId = null;
 const INTRADAY_KEY='mktDashV29';
 const HOLDINGS_KEY='mktDashHoldingsV2';
-const HISTORY_CACHE_KEY='pulseHistoryCacheV2';
-const FAVORITES_KEY='pulseFavoritesV2';
+const HISTORY_CACHE_KEY='pulseHistoryCacheV3';
+const FAVORITES_KEY='pulseFavoritesV3';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
@@ -417,7 +414,7 @@ function dayKey(time=Date.now()){
  return `${g('year')}-${g('month')}-${g('day')}`;
 }
 
-async function fetchJson(url,tm=10000){
+async function fetchJson(url,tm=5000){
  const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);
  try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json();}
  finally{clearTimeout(id);}
@@ -481,13 +478,28 @@ function toggleFavorite(id, btnElement){
     if (!$('favPage').classList.contains('hidden')) renderFavorites();
 }
 
+// دریافت اطلاعات با یک سیستم پشتیبان قوی
 async function refreshPrices(){
- $('status').textContent=t('loading');
+ $('status').textContent = 'در حال دریافت...';
+ $('dot').classList.remove('bad');
  try{
-  const [data, intraData] = await Promise.all([
-   fetchFirstSuccess(GITHUB_URLS_PRICES),
-   fetchFirstSuccess(GITHUB_URLS_INTRADAY)
-  ]);
+  let data = await fetchFirstSuccess(GITHUB_URLS_PRICES);
+  let intraData = await fetchFirstSuccess(GITHUB_URLS_INTRADAY);
+
+  // اگر دیتای گیت‌هاب خالی بود، از API نرخ‌آرا استفاده کن
+  if (!data || !data.prices || Object.keys(data.prices).length === 0) {
+      try {
+          const fallbackRes = await fetch('https://api.nerkhara.com/v1/currencies');
+          const fallbackJson = await fallbackRes.json();
+          if (fallbackJson && fallbackJson.data && fallbackJson.data.categories) {
+              data = { prices: {}, updated_at: Date.now() };
+              const map = { 'USD_IRR_FREE': 'usd', 'USDT_IRR': 'usdt', 'EUR_IRR_FREE': 'eur', 'GOLD_18K_IRR': 'g18', 'GOLD_24K_IRR': 'g24', 'SILVER_999': 'silver', 'COIN_EMAMI_IRR': 'emami', 'COIN_BAHAR_IRR': 'bahar', 'COIN_HALF_IRR': 'half', 'COIN_QUARTER_IRR': 'quarter' };
+              Object.values(fallbackJson.data.categories).flat().forEach(item => {
+                  if (map[item.symbol]) data.prices[map[item.symbol]] = item.price;
+              });
+          }
+      } catch (e) { console.warn("API fallback failed", e); }
+  }
 
   if(intraData){
    if(intraData.days) remoteIntraday = intraData.days;
@@ -512,6 +524,7 @@ async function refreshPrices(){
   $('status').textContent=ok?t('connected'):t('failed');
   updatePricesOnly();
  }catch(e){
+  console.error("Refresh Error:", e);
   $('dot').classList.add('bad');
   $('status').textContent=t('failed');
  }
@@ -768,28 +781,6 @@ function fullCardHTML(a, prefix=''){
   </article>`;
 }
 
-function miniCardHTML(a){
- const p=getPrice(a.id); const ohlc=todayOHLC(a.id); const isUSD = a.currency === 'USD'; const priceHTML = formatPrice(a, p);
- const lowStr = ohlc.low>0 ? (isUSD ? `$${num(ohlc.low, 2)}` : num(ohlc.low)) : '—';
- const highStr = ohlc.high>0 ? (isUSD ? `$${num(ohlc.high, 2)}` : num(ohlc.high)) : '—';
- const isFav = favorites.includes(a.id);
-
- return `
-  <div class="mini-card" id="mini-${a.id}">
-   <div style="display:flex; align-items:center; gap:6px;">
-     <button class="star-btn ${isFav?'active':''}" onclick="toggleFavorite('${a.id}', this)">⭐</button>
-     <div class="mini-name">${esc(nm(a))}</div>
-   </div>
-   <div class="mini-sym">${a.symbol}</div>
-   <div class="mini-price">${priceHTML}</div>
-   <div class="mini-range">
-    <span>${t('lowDaily')}: <b>${lowStr}</b></span>
-    <span>${t('highDaily')}: <b>${highStr}</b></span>
-   </div>
-   <button class="btn-mini toggle-mini-chart" data-id="${a.id}">${t('showChart')}</button>
-  </div>`;
-}
-
 function bindRanges(grid, prefix=''){
  grid.querySelectorAll('.range').forEach(b=>{
   b.onclick=()=>{
@@ -803,305 +794,4 @@ function bindRanges(grid, prefix=''){
      if(card) {
        const dr = card.querySelector('.day-range');
        if(dr) {
-         const ohlc = getRangeOHLC(a.id); const labels = getRangeLabels(b.dataset.r); const isUSD = a.currency === 'USD';
-         const lowStr = ohlc.low>0 ? (isUSD ? `$${num(ohlc.low, 2)}` : num(ohlc.low)) : '—';
-         const highStr = ohlc.high>0 ? (isUSD ? `$${num(ohlc.high, 2)}` : num(ohlc.high)) : '—';
-         dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
-       }
-     }
-     updateChange(a);
-   }
-   grid.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
-   b.classList.add('active');
-  };
- });
-}
-
-function updateChartTheme(chartInstance, a, isUp) {
- const neon=theme==='neon', glass=theme==='glass', obsidian=theme==='obsidian';
- const gc=neon?'rgba(168,85,247,.15)':glass?'rgba(255,255,255,.05)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
- const tc=neon?'#b39ddb':glass?'#94a3b8':obsidian?'#888888':'#8fa0bd';
- chartInstance.options.scales.y.grid.color = gc; chartInstance.options.scales.y.ticks.color = tc;
- const isUSD = a.currency === 'USD'; const ctx = chartInstance.ctx; const width = chartInstance.width || 500;
-
- if (glass) {
-   const lineGrad = ctx.createLinearGradient(0, 0, width, 0); lineGrad.addColorStop(0, '#38bdf8'); lineGrad.addColorStop(1, '#818cf8');
-   const fillGrad = ctx.createLinearGradient(0, 0, 0, 200); fillGrad.addColorStop(0, 'rgba(56, 189, 248, 0.2)'); fillGrad.addColorStop(1, 'rgba(129, 140, 248, 0)');
-   chartInstance.data.datasets[0].borderColor = lineGrad; chartInstance.data.datasets[0].backgroundColor = fillGrad;
-   chartInstance.data.datasets[0].shadowColor = 'rgba(56, 189, 248, 0.5)'; chartInstance.data.datasets[0].shadowBlur = 10; chartInstance.data.datasets[0].borderWidth = 2.5;
- } else if (obsidian) {
-   const lineGrad = ctx.createLinearGradient(0, 0, width, 0); lineGrad.addColorStop(0, '#f3c623'); lineGrad.addColorStop(1, '#ff8f00');
-   const fillGrad = ctx.createLinearGradient(0, 0, 0, 210); fillGrad.addColorStop(0, 'rgba(243, 198, 35, 0.15)'); fillGrad.addColorStop(1, 'rgba(255, 143, 0, 0)');
-   chartInstance.data.datasets[0].borderColor = lineGrad; chartInstance.data.datasets[0].backgroundColor = fillGrad;
-   chartInstance.data.datasets[0].shadowColor = 'transparent'; chartInstance.data.datasets[0].shadowBlur = 0; chartInstance.data.datasets[0].borderWidth = 3;
- } else {
-   let color = isUp ? '#00e676' : '#ff1744'; if (neon) color = isUp ? '#00ffc6' : '#ff2e88';
-   const grad = ctx.createLinearGradient(0,0,0,200);
-   if(neon){ grad.addColorStop(0,isUp?'rgba(0,255,198,.55)':'rgba(255,46,136,.5)'); grad.addColorStop(1,'rgba(10,4,28,0)'); }
-   else { grad.addColorStop(0,isUp?'rgba(0,230,118,.4)':'rgba(255,23,68,.4)'); grad.addColorStop(1,'rgba(20,30,50,0)'); }
-   chartInstance.data.datasets[0].borderColor = color; chartInstance.data.datasets[0].backgroundColor = grad;
-   chartInstance.data.datasets[0].shadowColor = neon?(isUp?'rgba(0,255,198,.6)':'rgba(255,46,136,.6)'):'transparent';
-   chartInstance.data.datasets[0].shadowBlur = neon ? 15 : 0; chartInstance.data.datasets[0].borderWidth = neon?2.8:2.2;
- }
- chartInstance.options.plugins.tooltip.backgroundColor = neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)';
- chartInstance.options.plugins.tooltip.borderColor = neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(56,189,248,.5)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88';
- chartInstance.options.plugins.tooltip.callbacks.label = c=> (isUSD ? '$' : '') + num(c.parsed.y, isUSD ? 2 : 0) + ' ' + (isUSD ? '' : t('tomanUnit'));
- chartInstance.options.scales.y.ticks.callback = v=> (isUSD ? '$' : '') + num(v, isUSD ? 2 : 0);
-}
-
-function drawOrUpdateChart(a, chartInstance, prefix = '') {
- const pts = pointsFor(a.id); if(pts.length === 0) return;
- const mode = ranges[a.id] || 'daily'; const neon=theme==='neon', glass=theme==='glass', obsidian=theme==='obsidian';
- const isUSD = a.currency === 'USD'; const isUp = pts.length > 1 ? (pts[pts.length-1].price >= pts[0].price) : true;
- const vals = pts.map(p=>p.price).filter(v => Number.isFinite(v) && v > 0);
- let yMin=0, yMax=100;
- if (vals.length > 0) { yMin = Math.min(...vals); yMax = Math.max(...vals); if(yMin===yMax){yMin*=.99;yMax*=1.01;} const pad=(yMax-yMin)*.1; yMin-=pad;yMax+=pad; }
- const labels = pts.map(p => getLabel(p, mode)); const dataVals = pts.map(p=>p.price);
- const sparse = dataVals.length < 3; const pointR = sparse ? 4 : 0;
-
- if(chartInstance) {
-    chartInstance.data.labels = labels;
-    chartInstance.data.datasets.forEach(ds => { ds.data = dataVals; if (ds.pointRadius !== undefined) ds.pointRadius = pointR; });
-    chartInstance.options.scales.y.min = yMin; chartInstance.options.scales.y.max = yMax;
-    updateChartTheme(chartInstance, a, isUp); chartInstance.update('none'); return;
- }
-
- const cv=$(`ch-${prefix}${a.id}`); if(!cv)return;
- const ctx=cv.getContext('2d'); let dataset = {};
-
- if (glass) {
-  const width = cv.offsetWidth || 500;
-  const lineGrad = ctx.createLinearGradient(0, 0, width, 0); lineGrad.addColorStop(0, '#38bdf8'); lineGrad.addColorStop(1, '#818cf8');
-  const fillGrad = ctx.createLinearGradient(0, 0, 0, 200); fillGrad.addColorStop(0, 'rgba(56, 189, 248, 0.2)'); fillGrad.addColorStop(1, 'rgba(129, 140, 248, 0)');
-  dataset = { data: dataVals, borderColor: lineGrad, backgroundColor: fillGrad, fill: true, tension: 0.35, borderWidth: 2.5, pointRadius: pointR, pointHoverRadius: 6, pointBackgroundColor: '#ffffff', pointBorderColor: '#38bdf8', shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: 10, shadowColor: 'rgba(56, 189, 248, 0.5)', spanGaps: true };
- } else if (obsidian) {
-  const lineGrad = ctx.createLinearGradient(0, 0, cv.offsetWidth || 500, 0); lineGrad.addColorStop(0, '#f3c623'); lineGrad.addColorStop(1, '#ff8f00');
-  const fillGrad = ctx.createLinearGradient(0, 0, 0, 210); fillGrad.addColorStop(0, 'rgba(243, 198, 35, 0.15)'); fillGrad.addColorStop(1, 'rgba(255, 143, 0, 0)');
-  dataset = { data: dataVals, borderColor: lineGrad, backgroundColor: fillGrad, fill: true, tension: 0.35, borderWidth: 3, pointRadius: pointR, pointHoverRadius: 6, pointBackgroundColor: '#ffffff', pointBorderColor: '#f3c623', spanGaps: true };
- } else {
-  let color = isUp ? '#00e676' : '#ff1744'; if (neon) color = isUp ? '#00ffc6' : '#ff2e88';
-  const grad = ctx.createLinearGradient(0, 0, 0, 200);
-  if(neon){ grad.addColorStop(0, isUp?'rgba(0,255,198,.55)':'rgba(255,46,136,.5)'); grad.addColorStop(1,'rgba(10,4,28,0)'); }
-  else { grad.addColorStop(0, isUp?'rgba(0,230,118,.4)':'rgba(255,23,68,.4)'); grad.addColorStop(1,'rgba(20,30,50,0)'); }
-  dataset = { data: dataVals, borderColor: color, backgroundColor: grad, fill: true, tension: 0.35, borderWidth: neon?2.8:2.2, pointRadius: pointR, pointHoverRadius: 6, pointBackgroundColor: '#ffffff', pointBorderColor: color, shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: neon ? 15 : 0, shadowColor: neon ? (isUp?'rgba(0,255,198,.6)':'rgba(255,46,136,.6)') : 'transparent', spanGaps: true };
- }
-
- const gc=neon?'rgba(168,85,247,.15)':glass?'rgba(255,255,255,.05)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
- const tc=neon?'#b39ddb':glass?'#94a3b8':obsidian?'#888888':'#8fa0bd';
-
- const newChart = new Chart(ctx,{
-  type:'line', data:{ labels: labels, datasets: [dataset] },
-  options:{
-   responsive:true,maintainAspectRatio:false, animation:false, interaction:{mode:'index',intersect:false},
-   plugins:{ legend:{display:false}, tooltip:{ backgroundColor: neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)', borderColor: neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(56,189,248,.5)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88', borderWidth:1, titleFont:{family:'Tahoma',size:11},bodyFont:{family:'Tahoma',size:11}, callbacks:{ 
-      title: (items) => {
-          if (!items.length) return '';
-          const idx = items[0].dataIndex; const p = pts[idx]; if (!p) return '';
-          const d = new Date(p.time);
-          if (mode === 'daily') return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
-          else return p.date || new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
-      }, 
-      label: c => (mode==='daily'?'لحظه‌ای: ':'پایانی: ') + (isUSD ? '$' : '') + num(c.parsed.y, isUSD ? 2 : 0) + ' ' + (isUSD ? '' : t('tomanUnit')) 
-    } } },
-   scales:{ x:{display:false}, y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:v=> (isUSD ? '$' : '') + num(v, isUSD ? 2 : 0)}} }
-  }
- });
- const chartKey = prefix + a.id; charts[chartKey] = newChart;
-}
-
-const chartObserver = new IntersectionObserver((entries, observer) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const wrap = entry.target; const canvas = wrap.querySelector('canvas');
-      if (canvas) {
-        const aId = canvas.dataset.id; const prefix = canvas.dataset.prefix;
-        if (aId && prefix !== undefined) {
-          const a = assets.find(x => x.id === aId);
-          if (a) {
-            const chartKey = prefix + a.id;
-            if (!charts[chartKey]) requestAnimationFrame(() => { drawOrUpdateChart(a, null, prefix); });
-            else drawOrUpdateChart(a, charts[chartKey], prefix);
-          }
-        }
-      }
-      observer.unobserve(wrap);
-    }
-  });
-}, { rootMargin: '100px' });
-
-function renderCharts(grid, filterIds, prefix=''){
- const assetsToRender = assets.filter(a => !filterIds || filterIds.includes(a.id));
- assetsToRender.forEach(a => {
-   const canvas = $(`ch-${prefix}${a.id}`);
-   if (canvas && canvas.parentElement) {
-     canvas.dataset.id = a.id; canvas.dataset.prefix = prefix;
-     if (charts[prefix + a.id]) drawOrUpdateChart(a, charts[prefix + a.id], prefix);
-     else chartObserver.observe(canvas.parentElement);
-   }
- });
-}
-
-function renderFeatured(){
- const grid=$('gridFeatured'), mini=$('gridMini');
- if(!grid||!mini)return;
- const featured=assets.filter(a=>a.id!=='oil');
- grid.innerHTML = featured.map(a=>fullCardHTML(a, 'feat-')).join('');
- bindRanges(grid, 'feat-');
- renderCharts(grid, featured.map(a=>a.id), 'feat-');
- mini.innerHTML = ''; 
-}
-
-function renderFavorites(){
- const grid=$('gridFavorites'); if(!grid) return;
- const favAssets = assets.filter(a => favorites.includes(a.id));
- if (favAssets.length === 0) {
-     grid.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); grid-column: 1/-1;">هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.</div>`;
-     return;
- }
- grid.innerHTML = favAssets.map(a=>fullCardHTML(a, 'fav-')).join('');
- bindRanges(grid, 'fav-');
- renderCharts(grid, favAssets.map(a=>a.id), 'fav-');
-}
-
-function renderAll(){
- const grid=$('gridAll'); if(!grid)return;
- if(!grid.innerHTML) { grid.innerHTML=assets.map(a=>fullCardHTML(a, 'all-')).join(''); bindRanges(grid, 'all-'); }
- renderCharts(grid, null, 'all-');
-}
-
-function updateChange(a){
- const el=$('chg-'+a.id); if(!el) return;
- const pct = getRangeChange(a.id); const pts = pointsFor(a.id);
- if(pts.length < 2) { el.textContent = '—'; el.classList.remove('neg'); return; }
- el.textContent=(pct>0?'+':'')+num(pct,2)+'%'; el.classList.toggle('neg',pct<0);
-}
-
-function renderHoldings(){
- const box=$('holdings'); if(!box)return;
- if(!holdings.length){ box.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px">${t('emptyAssets')}</div>`; $('totalAssets').textContent='---'; $('totalProfit').innerHTML = ''; return; }
- let totalValue = 0, totalCost = 0;
- box.innerHTML=holdings.map((h,idx)=>{
-  const a=assets.find(x=>x.id===h.id); const p=getPrice(h.id); const val=p*Number(h.qty); totalValue += val;
-  const buyPrice = Number(h.buyPrice) || 0; let profitHTML = `<span style="color:var(--muted);font-size:10px;">وارد نشده</span>`; let pColor = 'var(--muted)', pSign = '';
-  if (buyPrice > 0) {
-      const cost = buyPrice * Number(h.qty); totalCost += cost; const profit = val - cost; const profitPct = (profit / cost) * 100;
-      pColor = profit > 0 ? 'var(--green)' : profit < 0 ? 'var(--red)' : 'var(--muted)'; pSign = profit > 0 ? '+' : ''; const pIcon = profit > 0 ? '📈' : profit < 0 ? '📉' : '';
-      profitHTML = `<span style="color:${pColor}; font-size:11px;" dir="ltr">${pIcon} ${pSign}${num(profitPct,2)}%<br><span style="font-size:10px;">${pSign}${num(profit)}</span></span>`;
-  }
-  return `
-  <div class="holding">
-   <div class="h-name">${esc(a?nm(a):h.id)}</div>
-   <div class="h-qty">${num(h.qty,4)}</div>
-   <div class="h-buy"><span style="color:var(--muted); font-size:10px;">خرید:</span>${buyPrice > 0 ? num(buyPrice) : '—'}<button class="h-edit" data-idx="${idx}" title="ویرایش قیمت خرید">✏️</button></div>
-   <div class="h-val">${val>0?num(val)+' '+t('tomanUnit'):'—'}</div>
-   <div class="h-profit">${profitHTML}</div>
-   <button class="h-del" data-idx="${idx}">${t('del')}</button>
-  </div>`;
- }).join('');
- $('totalAssets').textContent=num(totalValue)+' '+t('tomanUnit');
- const profitEl = $('totalProfit');
- if (totalCost > 0) { const profit = totalValue - totalCost; const profitPct = (profit / totalCost) * 100; const sign = profit > 0 ? '+' : ''; const color = profit > 0 ? 'var(--green)' : profit < 0 ? 'var(--red)' : 'var(--muted)'; const icon = profit > 0 ? '📈' : profit < 0 ? '📉' : ''; profitEl.innerHTML = `<span style="color:${color}">${icon} ${sign}${num(profitPct, 2)}% (${sign}${num(profit)} ${t('tomanUnit')})</span>`; }
- else { profitEl.innerHTML = `<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>`; }
-
- box.querySelectorAll('.h-del').forEach(b=>{ b.onclick=()=>{holdings.splice(Number(b.dataset.idx),1);saveHoldings();renderHoldings();}; });
- box.querySelectorAll('.h-edit').forEach(b=>{
-  b.onclick=()=>{ const idx = Number(b.dataset.idx); const h = holdings[idx]; const currentPrompt = h.buyPrice ? h.buyPrice : ''; const newPrice = prompt("قیمت خریداری شده (به تومان) را وارد کنید:", currentPrompt); if (newPrice !== null) { const parsed = parseFloat(newPrice.replace(/,/g, '')); if (!isNaN(parsed) && parsed >= 0) { h.buyPrice = parsed; saveHoldings(); renderHoldings(); } } };
- });
-}
-
-function fillAddSelect(){
- const s=$('addAsset'); if(!s)return; const old=s.value; const availableAssets = assets.filter(a => a.id !== 'oil');
- s.innerHTML=availableAssets.map(a=>`<option value="${a.id}">${esc(nm(a))}</option>`).join('');
- if(availableAssets.some(a=>a.id===old))s.value=old;
-}
-
-function fillCalc(){
- const sFrom = $('calcFrom'), sTo = $('calcTo'); if(!sFrom || !sTo) return;
- const oldFrom = sFrom.value || 'toman', oldTo = sTo.value || 'usd';
- const options = [`<option value="toman">${t('toman')}</option>`, ...assets.map(a => `<option value="${a.id}">${esc(nm(a))}</option>`)].join('');
- sFrom.innerHTML = options; sTo.innerHTML = options;
- if(sFrom.querySelector(`option[value="${oldFrom}"]`)) sFrom.value = oldFrom;
- if(sTo.querySelector(`option[value="${oldTo}"]`)) sTo.value = oldTo;
-}
-
-function formatCalcInput(e) {
- let val = e.target.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
- const parts = val.split('.'); parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
- e.target.value = parts.join('.'); calc();
-}
-
-function calc(){
- const amountStr = $('calcAmount')?.value || '0'; const amount = parseFloat(amountStr.replace(/,/g, '')) || 0;
- const fromId = $('calcFrom')?.value, toId = $('calcTo')?.value; if(!fromId || !toId) return;
- const fromVal = getTomanValue(fromId), toVal = getTomanValue(toId);
- if(fromVal <= 0 || toVal <= 0 || !Number.isFinite(amount)){ $('total').textContent = t('noPrice'); $('calcUnit').textContent = ''; return; }
- const totalToman = amount * fromVal; const result = totalToman / toVal;
- let decimals = (toId === 'usd' || toId === 'oil') ? 4 : (toId === 'toman') ? 0 : 2;
- const formattedResult = num(result, decimals);
- const toName = toId === 'toman' ? t('toman') : nm(assets.find(x=>x.id===toId)); const fromName = fromId === 'toman' ? t('toman') : nm(assets.find(x=>x.id===fromId));
- let unitLabel = t('tomanUnit');
- if (toId === 'usd') unitLabel = 'دلار'; else if (toId === 'oil') unitLabel = 'دلار'; else if (toId !== 'toman') { const a = assets.find(x=>x.id===toId); unitLabel = lang === 'fa' ? a.fa : a.en; }
- $('total').textContent = `${formattedResult} ${unitLabel}`;
- $('calcUnit').textContent = `${num(amount, 4)} ${fromName} ➔ ${formattedResult} ${toName}`;
-}
-
-function addHolding(){
- const id=$('addAsset')?.value; const qty=Number($('addQty')?.value||0); if(!id||id==='oil'||!(qty>0))return;
- const ex=holdings.find(h=>h.id===id);
- if(ex) ex.qty=Number(ex.qty)+qty; else holdings.push({id, qty, buyPrice: 0});
- saveHoldings(); $('addQty').value=''; renderHoldings();
-}
-
-function applyLang(){
- document.documentElement.lang=lang; document.documentElement.dir=lang==='fa'?'rtl':'ltr';
- document.querySelectorAll('[data-t]').forEach(el=>{ if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t); else el.textContent=t(el.dataset.t); });
- $('langBtn').innerHTML = lang==='fa'?'🌐 English':'🌐 فارسی';
- hideAllPages(); $('homePage').classList.remove('hidden'); $('homeBtn').classList.add('active'); renderFeatured();
- fillCalc(); fillAddSelect(); renderHoldings(); calc(); updateMiniCardButtons();
-}
-
-function applyTheme(){
- document.documentElement.setAttribute('data-theme',theme);
- $('themeBtn').textContent = theme==='obsidian' ? '👑' : theme==='neon' ? '⚡' : '💎';
- for (const key in charts) { try { charts[key].destroy(); } catch(e) {} delete charts[key]; }
- if(!$('homePage').classList.contains('hidden')) renderFeatured();
- if(!$('favPage').classList.contains('hidden')) renderFavorites();
- if(!$('allPage').classList.contains('hidden') && $('gridAll').innerHTML) renderAll();
-}
-
-function hideAllPages(){
- $('homePage').classList.add('hidden'); $('favPage').classList.add('hidden'); $('allPage').classList.add('hidden'); $('calcPage').classList.remove('show'); $('assetsPage').classList.remove('show');
- ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
- for (const key in charts) { try { charts[key].destroy(); } catch(e) {} delete charts[key]; }
-}
-
-$('menuBtn').onclick=()=>{ $('drawer').classList.add('open'); $('drawerOverlay').classList.add('open'); };
-const closeDrawer = () => { $('drawer').classList.remove('open'); $('drawerOverlay').classList.remove('open'); };
-$('drawerOverlay').onclick=closeDrawer;
-
-$('langBtn').onclick=()=>{lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang(); closeDrawer();};
-$('themeBtn').onclick=()=>{ theme = theme === 'obsidian' ? 'neon' : theme === 'neon' ? 'glass' : 'obsidian'; try{localStorage.setItem('mktTheme',theme)}catch(e){} applyTheme(); };
-$('homeBtn').onclick=()=>{closeDrawer();hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderFeatured();};
-$('favBtn').onclick=()=>{closeDrawer();hideAllPages();$('favPage').classList.remove('hidden');$('favBtn').classList.add('active');renderFavorites();};
-$('allBtn').onclick=()=>{closeDrawer();hideAllPages();$('allPage').classList.remove('hidden');$('allBtn').classList.add('active');renderAll();};
-$('calcBtn').onclick=()=>{closeDrawer();hideAllPages();$('calcPage').classList.add('show');$('calcBtn').classList.add('active');fillCalc();calc();};
-$('assetsBtn').onclick=()=>{closeDrawer();hideAllPages();$('assetsPage').classList.add('show');$('assetsBtn').classList.add('active');fillAddSelect();renderHoldings();};
-$('addBtn').onclick=addHolding;
-$('refreshBtn').onclick=async()=>{ closeDrawer(); await Promise.allSettled([refreshPrices(),loadHistories()]); };
-
-(async function init(){
- loadSettings();
- loadIntraday();
- 
- $('calcAmount').addEventListener('input', formatCalcInput);
- $('calcFrom').addEventListener('change', calc);
- $('calcTo').addEventListener('change', calc);
- 
- applyTheme(); applyLang(); renderFeatured();
- 
- refreshPrices().then(() => { applyLang(); });
- setTimeout(() => { loadHistories(); }, 1000);
-})();
-</script>
-</body>
- </html>
+         const ohlc = getRangeOH
