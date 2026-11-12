@@ -20,13 +20,13 @@
  --green:#00ffc6; --red:#ff2e88; --accent:#a855f7;
  --shadow:0 5px 20px rgba(168,85,247,.2);
 }
-/* تم الماس (دیزاین جدید و فوق لوکس) */
+/* تم الماس (دیزاین شیشه‌ای فوق لوکس و بهینه) */
 [data-theme="glass"]{
- --bg1:#020617; --bg2:#0f172a;
- --card1:rgba(30, 41, 59, 0.5); --card2:rgba(15, 23, 42, 0.7);
- --line:rgba(56, 189, 248, 0.15); --txt:#f8fafc; --muted:#94a3b8;
- --green:#10b981; --red:#f43f5e; --accent:#38bdf8;
- --shadow:0 8px 32px 0 rgba(0, 0, 0, 0.5);
+ --bg1:#050B14; --bg2:#0A1428;
+ --card1:rgba(16, 30, 54, 0.7); --card2:rgba(10, 20, 38, 0.9);
+ --line:rgba(56, 189, 248, 0.15); --txt:#F8FAFC; --muted:#94A3B8;
+ --green:#10B981; --red:#F43F5E; --accent:#38BDF8;
+ --shadow:0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -99,15 +99,16 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  background:linear-gradient(135deg,#a855f7,#00ffc6);color:#0a0118;font-weight:bold;
 }
 [data-theme="glass"] .btn{
- border-color:rgba(56, 189, 248, 0.3);
+ border-color:rgba(56, 189, 248, 0.2);
  background: rgba(30, 41, 59, 0.5);
+ backdrop-filter: blur(10px);
 }
 [data-theme="glass"] .btn:hover{
  background: rgba(56, 189, 248, 0.1);
  border-color: var(--accent);
 }
 [data-theme="glass"] .btn.active{
- background: var(--accent); color: #020617; font-weight: bold; border-color: var(--accent);
+ background: linear-gradient(135deg, var(--accent), #818cf8); color: #020617; font-weight: bold; border-color: transparent;
  box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
 }
 .status{
@@ -128,14 +129,18 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 [data-theme="obsidian"] .mini-card:hover{ border-color:rgba(243,198,35,.3); }
 [data-theme="neon"] .card{ border:1px solid rgba(168,85,247,.3); }
 [data-theme="neon"] .card:hover{ box-shadow:0 0 25px #a855f755; }
-[data-theme="glass"] .card{
+[data-theme="glass"] .card,
+[data-theme="glass"] .mini-card{
  position: relative; overflow: hidden;
  background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+ backdrop-filter: blur(16px) saturate(180%);
+ -webkit-backdrop-filter: blur(16px) saturate(180%);
  border: 1px solid rgba(255, 255, 255, 0.08);
- box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+ box-shadow: var(--shadow);
  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
-[data-theme="glass"] .card:hover {
+[data-theme="glass"] .card:hover,
+[data-theme="glass"] .mini-card:hover {
  border-color: rgba(56, 189, 248, 0.4);
  box-shadow: 0 20px 50px -10px rgba(0,0,0,0.7), 0 0 30px rgba(56, 189, 248, 0.1);
 }
@@ -146,13 +151,6 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
  display:flex;flex-direction:column;
 }
 .mini-card:hover{transform:translateY(-2px)}
-[data-theme="glass"] .mini-card {
- background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
- border: 1px solid rgba(255, 255, 255, 0.05);
-}
-[data-theme="glass"] .mini-card:hover {
- border-color: rgba(56, 189, 248, 0.4);
-}
 .mini-name{font-size:12px;font-weight:bold}
 .mini-sym{font-size:9px;color:var(--muted);margin-top:2px}
 .mini-price{font-size:16px;font-weight:bold;direction:ltr;text-align:right;margin-top:8px}
@@ -426,9 +424,41 @@ function dayKey(time=Date.now()){
  return `${g('year')}-${g('month')}-${g('day')}`;
 }
 
+// تبدیل تاریخ شمسی به میلادی برای خواندن صحیح دیتای تاریخی
+function jalaliToGregorian(jy, jm, jd) {
+    jy += 1595;
+    let days = -355668 + (365 * jy) + (~~(jy / 33) * 8) + ~~(((jy % 33) + 3) / 4) + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+    let gy = 400 * ~~(days / 146097);
+    days %= 146097;
+    if (days > 36524) {
+        gy += 100 * ~~(--days / 36524);
+        days %= 36524;
+        if (days >= 365) days++;
+    }
+    gy += 4 * ~~(days / 1461);
+    days %= 1461;
+    if (days > 365) {
+        gy += ~~((days - 1) / 365);
+        days = (days - 1) % 365;
+    }
+    let gd = days + 1;
+    let sal_a = [0, 31, (gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let gm = 0;
+    for (gm = 0; gm < 13 && gd > sal_a[gm]; gm++) gd -= sal_a[gm];
+    return [gy, gm, gd];
+}
+
 function parseTime(v){
  if(v==null||v==='')return NaN;
  if(typeof v==='number') return v<1e12?v*1000:v;
+ 
+ // بررسی تاریخ شمسی
+ const jMatch = String(v).match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+ if (jMatch && parseInt(jMatch[1]) < 1500) {
+     const g = jalaliToGregorian(parseInt(jMatch[1]), parseInt(jMatch[2]), parseInt(jMatch[3]));
+     return new Date(g[0], g[1]-1, g[2]).getTime();
+ }
+
  const parsed = Date.parse(v);
  if (!isNaN(parsed)) return parsed;
  const numV = Number(v);
@@ -492,7 +522,8 @@ function saveHoldings(){
 }
 
 async function refreshPrices(){
- $('status').textContent=t('loading');
+ // آپدیت خودکار بی‌صدا (بدون ارور دادن به کاربر)
+ if ($('status').textContent !== t('connected')) $('status').textContent=t('loading');
  try{
   const [data, intraData] = await Promise.all([
    fetchFirstSuccess(GITHUB_URLS_PRICES),
@@ -531,6 +562,8 @@ async function refreshPrices(){
   const ok=Object.keys(prices).filter(k=>!k.startsWith('_')).length>0;
   $('dot').classList.toggle('bad',!ok);
   $('status').textContent=ok?t('connected'):t('failed');
+  
+  // فقط اطلاعات صفحه رو اپدیت میکنه، بدون اینکه صفحه رفرش بشه
   updatePricesOnly();
  }catch(e){
   $('dot').classList.add('bad');
@@ -680,6 +713,7 @@ function formatPrice(a, p){
  return `${num(p)} <span class="unit">${t('tomanUnit')}</span>`;
 }
 
+// این تابع فقط اعداد و نمودارها رو اپدیت میکنه تا صفحه رو رفرش نکنه
 function updatePricesOnly(){
  for(const a of assets){
   const p = getPrice(a.id);
@@ -733,7 +767,6 @@ function updatePricesOnly(){
  calc();
 }
 
-// تابع کمکی برای ساختن لیبل صحیح بر اساس حالت
 function getLabel(p, mode) {
     const d = new Date(p.time);
     if (mode === 'daily') {
@@ -1731,6 +1764,7 @@ window.addEventListener('resize',()=>{
     loadHistories();
  }, 2000);
 
+ // آپدیت خودکار هر 1 دقیقه بدون اینکه صفحه رفرش بشه
  setInterval(refreshPrices, 1*60*1000);
  setInterval(loadHistories, 30*60*1000);
 })();
