@@ -5,6 +5,11 @@ on:
     - cron: '*/15 * * * *' # هر ۱۵ دقیقه اجرا می‌شود
   workflow_dispatch: # امکان اجرای دستی هم وجود دارد
 
+# جلوگیری از اجرای همزمان چند اکشن
+concurrency:
+  group: update-prices-group
+  cancel-in-progress: true
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -13,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -32,6 +37,10 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          git add data/latest-prices.json data/intraday.json
-          git commit -m "Auto-update market prices" || exit 0
+          # کشیدن آخرین تغییرات برای جلوگیری از تداخل (اگر خودت همزمان کد رو آپدیت کردی)
+          git pull --rebase
+          # اضافه کردن کل پوشه data (در صورت وجود فایل‌های جدید)
+          git add data/
+          # [skip ci] باعث میشه این کامیت باعث اجرای مجدد اکشن‌ها نشه
+          git commit -m "Auto-update market prices [skip ci]" || exit 0
           git push
