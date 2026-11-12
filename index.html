@@ -264,21 +264,23 @@ canvas{width:100%!important;height:100%!important;display:block;transition:trans
 [data-theme="neon"] .add-row button{background:linear-gradient(135deg,#a855f7,#00ffc6);color:#0a0118}
 [data-theme="glass"] .add-row button{background:linear-gradient(135deg,#00ffd5,#7a5cff);color:#000}
 
-/* به‌روزرسانی استایل بخش دارایی‌ها */
+/* استایل بخش دارایی‌ها */
 .holdings{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .holding{
- display:grid;grid-template-columns:1.2fr 0.8fr 1.4fr 1.2fr auto;
+ display:grid;grid-template-columns:1.2fr 0.6fr 1.1fr 1.1fr 1.1fr auto;
  gap:10px;align-items:center;
  padding:12px 14px;border-radius:12px;
  background:var(--card2);border:1px solid var(--line);
+ font-size:12px;
 }
 .holding .h-name{font-weight:bold;font-size:13px}
-.holding .h-qty{font-size:12px;color:var(--muted);direction:ltr;text-align:right}
-.holding .h-buy{font-size:11px;direction:ltr;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:5px;}
-.holding .h-val{font-size:13px;font-weight:bold;direction:ltr;text-align:right;color:var(--green)}
+.holding .h-qty{color:var(--muted);direction:ltr;text-align:right}
+.holding .h-buy{direction:ltr;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:4px;}
+.holding .h-val{font-weight:bold;direction:ltr;text-align:right;color:var(--txt)}
+.holding .h-profit{font-weight:bold;direction:ltr;text-align:right;}
 .holding .h-del{
  background:transparent;border:1px solid var(--red);color:var(--red);
- border-radius:8px;padding:6px 10px;cursor:pointer;font-size:11px;
+ border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px;
 }
 .holding .h-del:hover{background:var(--red);color:#fff}
 .h-edit{background:transparent;border:none;cursor:pointer;font-size:14px;padding:2px;transition:transform 0.2s;filter:grayscale(100%);}
@@ -307,8 +309,9 @@ canvas{width:100%!important;height:100%!important;display:block;transition:trans
 @media(max-width:600px){
  .app{padding:12px}.calc-grid{grid-template-columns:1fr}
  .add-row{grid-template-columns:1fr}
- .holding{grid-template-columns:1fr 1fr;gap:6px}
- .holding .h-del{grid-column:1/-1}
+ .holding{grid-template-columns:1fr 1fr;gap:10px;padding:12px;font-size:11px}
+ .holding .h-name{font-size:13px}
+ .holding .h-del{grid-column:1/-1;margin-top:5px}
  .grid-mini{grid-template-columns:1fr 1fr}
 }
 </style>
@@ -434,7 +437,7 @@ let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={
 let expandedAssetId = null;
 let tiltHandlers = new WeakMap();
 const INTRADAY_KEY='mktDashV29';
-const HOLDINGS_KEY='mktDashHoldingsV2'; // تغییر نسخه برای اعمال تغییرات جدید
+const HOLDINGS_KEY='mktDashHoldingsV2';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
@@ -504,7 +507,6 @@ function record(id,price,time){
 
 function loadHoldings(){
  try{const s=JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'[]');
-  // مقادیر buyPrice هم باید حفظ بشن
   holdings=Array.isArray(s)?s.filter(h=>h&&h.id&&assets.some(a=>a.id===h.id)&&h.id!=='oil'&&Number(h.qty)>0):[];
  }catch(e){holdings=[];}
 }
@@ -1408,7 +1410,7 @@ function updateChange(a){
  el.classList.toggle('neg',pct<0);
 }
 
-// === مدیریت دارایی‌ها و قیمت خرید ===
+// === مدیریت دارایی‌ها و نمایش سود/ضرر تک‌تک ===
 function renderHoldings(){
  const box=$('holdings');
  if(!box)return;
@@ -1429,8 +1431,27 @@ function renderHoldings(){
   totalValue += val;
   
   const buyPrice = Number(h.buyPrice) || 0;
+  let profitHTML = `<span style="color:var(--muted);font-size:10px;">وارد نشده</span>`;
+  let pColor = 'var(--muted)';
+  let pSign = '';
+
   if (buyPrice > 0) {
-      totalCost += buyPrice * Number(h.qty);
+      const cost = buyPrice * Number(h.qty);
+      totalCost += cost;
+      
+      const profit = val - cost;
+      const profitPct = (profit / cost) * 100;
+      
+      pColor = profit > 0 ? 'var(--green)' : profit < 0 ? 'var(--red)' : 'var(--muted)';
+      pSign = profit > 0 ? '+' : '';
+      const pIcon = profit > 0 ? '📈' : profit < 0 ? '📉' : '';
+      
+      profitHTML = `
+        <span style="color:${pColor}; font-size:11px;" dir="ltr">
+          ${pIcon} ${pSign}${num(profitPct,2)}%
+          <br>
+          <span style="font-size:10px;">${pSign}${num(profit)}</span>
+        </span>`;
   }
 
   return `
@@ -1443,6 +1464,7 @@ function renderHoldings(){
       <button class="h-edit" data-idx="${idx}" title="ویرایش قیمت خرید">✏️</button>
    </div>
    <div class="h-val">${val>0?num(val)+' '+t('tomanUnit'):'—'}</div>
+   <div class="h-profit">${profitHTML}</div>
    <button class="h-del" data-idx="${idx}">${t('del')}</button>
   </div>`;
  }).join('');
@@ -1458,7 +1480,7 @@ function renderHoldings(){
      const icon = profit > 0 ? '📈' : profit < 0 ? '📉' : '';
      profitEl.innerHTML = `<span style="color:${color}">${icon} ${sign}${num(profitPct, 2)}% (${sign}${num(profit)} ${t('tomanUnit')})</span>`;
  } else {
-     profitEl.innerHTML = `<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر، قیمت خرید را وارد کنید</span>`;
+     profitEl.innerHTML = `<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>`;
  }
 
  // دکمه‌های حذف
@@ -1571,21 +1593,13 @@ function addHolding(){
  const id=$('addAsset')?.value;
  const qty=Number($('addQty')?.value||0);
  if(!id||id==='oil'||!(qty>0))return;
- 
- // پرسیدن قیمت خرید به صورت اختیاری
- let buyPrice = 0;
- const buyPriceStr = prompt("اگر قیمت خریداری شده را می‌دانید وارد کنید (به تومان):", "");
- if (buyPriceStr !== null && buyPriceStr.trim() !== '') {
-     const parsed = parseFloat(buyPriceStr.replace(/,/g, ''));
-     if (!isNaN(parsed) && parsed > 0) buyPrice = parsed;
- }
 
  const ex=holdings.find(h=>h.id===id);
  if(ex){
      ex.qty=Number(ex.qty)+qty;
-     if(buyPrice > 0) ex.buyPrice = buyPrice;
  } else {
-     holdings.push({id,qty,buyPrice});
+     // اینجا دیگه قیمت نمی‌پرسیم، فقط دارایی رو با قیمت خرید 0 (نامشخص) ذخیره می‌کنیم
+     holdings.push({id, qty, buyPrice: 0});
  }
  saveHoldings();
  $('addQty').value='';
@@ -1773,4 +1787,4 @@ window.addEventListener('resize',()=>{
 })();
 </script>
 </body>
- </html>
+</html>
