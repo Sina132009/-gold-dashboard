@@ -45,11 +45,15 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid-mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px}
 .section-title{font-size:16px;font-weight:bold;margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+
 .card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
 [data-theme="glass"] .card{background:linear-gradient(145deg,rgba(30,41,59,.9),rgba(15,23,42,.95));border:1px solid rgba(255,255,255,.08)}
-.star-btn{background:none;border:none;font-size:18px;cursor:pointer;opacity:.3;transition:.2s;filter:grayscale(1);padding:0;line-height:1;margin-top:2px}
+
+/* استایل ستاره علاقه‌مندی */
+.star-btn{background:none;border:none;font-size:18px;cursor:pointer;opacity:.3;transition:.2s;filter:grayscale(1);padding:0;line-height:1;margin-top:2px; z-index:10;}
 .star-btn:hover{opacity:.7;transform:scale(1.1)}
 .star-btn.active{opacity:1;filter:grayscale(0);text-shadow:0 0 10px rgba(243,198,35,.5)}
+
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .card-title-wrap{display:flex;align-items:flex-start;gap:8px}
 .card-name{font-size:15px;font-weight:bold}
@@ -69,6 +73,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 [data-theme="glass"] .range.active{background:var(--accent);color:#020617;border-color:var(--accent);font-weight:bold}
 .chart-wrap{height:190px;position:relative;min-height:190px;z-index:1}
 canvas{width:100%!important;height:100%!important;display:block}
+
 .mini-card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;position:relative}
 [data-theme="glass"] .mini-card{background:linear-gradient(145deg,rgba(30,41,59,.9),rgba(15,23,42,.95));border:1px solid rgba(255,255,255,.08)}
 .mini-title-wrap{display:flex;align-items:center;gap:6px}
@@ -81,10 +86,12 @@ canvas{width:100%!important;height:100%!important;display:block}
 [data-theme="glass"] .mini-chg.neg{background:rgba(244,63,94,.15);border:1px solid rgba(244,63,94,.2)}
 .mini-range{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 .mini-range b{color:var(--txt);font-weight:600}
+.mini-card .star-btn{font-size:14px;}
+
 .calc,.assets-page,.fav-page{display:none;margin-top:22px}
 .calc.show,.assets-page.show,.fav-page.show{display:block}
-.calc h2,.assets-page h2{font-size:18px;margin-bottom:6px}
-.calc p,.assets-page p{font-size:12px;color:var(--muted);margin-bottom:16px}
+.calc h2,.assets-page h2,.fav-page h2{font-size:18px;margin-bottom:6px}
+.calc p,.assets-page p,.fav-page p{font-size:12px;color:var(--muted);margin-bottom:16px}
 .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .calc-grid-3{grid-template-columns:1fr 1fr 1fr}
 @media(max-width:600px){.calc-grid-3{grid-template-columns:1fr}}
@@ -212,8 +219,7 @@ const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
-// تغییر نسخه کش برای پاکسازی داده‌های 00:00 قبلی
-const INTRADAY_KEY='mktDashV29_new',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV25',FAVORITES_KEY='pulseFavoritesV25';
+const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV25',FAVORITES_KEY='pulseFavoritesV25';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
@@ -230,8 +236,6 @@ function parseTime(v){
     return NaN
 }
 function dayKey(time=Date.now()){const p=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(time));const g=x=>p.find(y=>y.type===x)?.value||'00';return `${g('year')}-${g('month')}-${g('day')}`}
-
-// فیلتر دقیق برای تشخیص ساعت 00:00 به وقت تهران
 function isTehranMidnight(time) {
     const d = new Date(time);
     const tTime = d.toLocaleTimeString('en-US', { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -269,7 +273,6 @@ function loadIntraday(){
                 const price = Number(p.price);
                 const time = parseTime(p.time);
                 if(price>0&&Number.isFinite(time)) {
-                    // فیلتر نقاط 00:00 در هنگام لود از حافظه
                     if (isTehranMidnight(time)) return null;
                     return {time,price};
                 }
@@ -305,8 +308,8 @@ async function refreshPrices(){
         $('status').textContent=ok?t('connected'):t('failed');
         
         updatePricesOnly();
-        // *** آپدیت فوری صفحه اصلی بعد از لود شدن داده‌های جدید ***
         if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
+        if(!$('favPage').classList.contains('hidden')) renderFavorites();
         
     }catch(e){
         $('dot').classList.add('bad');$('status').textContent=t('failed')
@@ -412,11 +415,11 @@ async function loadHistories(){
         await new Promise(r=>setTimeout(r, 50)); 
     }
     
-    // *** رفرش کامل نمودارهای صفحه اصلی بعد از لود تاریخچه ***
     if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
+    if(!$('favPage').classList.contains('hidden')) renderFavorites();
     
     for(const chartKey in charts){
-        if(chartKey.startsWith('feat-')) continue;
+        if(chartKey.startsWith('feat-') || chartKey.startsWith('fav-')) continue;
         let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];
         const a=assets.find(x=>x.id===aId);if(a){updateChartData(a,charts[chartKey])}
     }
@@ -439,7 +442,6 @@ function pointsFor(id){
                 const time=parseTime(p.time);
                 if(!Number.isFinite(time)||time<1e12||dayKey(time)!==today)continue;
                 
-                // *** فیلتر نهایی و قطعی برای حذف هر نقطه 00:00 ***
                 if (isTehranMidnight(time)) continue; 
 
                 const key=Math.floor(time/60000);
@@ -464,34 +466,17 @@ function pointsFor(id){
 }
 function getMergedRawPoints(id,days){const cutoff=Date.now()-days*86400000;const all=history[id]||[];return all.filter(p=>p.time>=cutoff).sort((a,b)=>a.time-b.time)}
 
-window.toggleFav = function(e, id) {
-    if(e) e.preventDefault();
-    let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    const idx = favs.indexOf(id);
-    if (idx > -1) { 
-        favs.splice(idx, 1); 
-        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.remove('active')); 
-    }
-    else { 
-        favs.push(id); 
-        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.add('active')); 
-    }
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
-    favorites = favs;
-    if (!$('favPage').classList.contains('hidden')) renderFavorites();
-};
-
 function fullCardHTML(a,prefix=''){
     const p=getPrice(a.id);const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);
     const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);
     const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';
     const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
-    const isFav=favorites.includes(a.id);
+    const isFav = favorites.includes(a.id);
     return `
     <article class="card">
         <div class="card-top">
             <div class="card-title-wrap">
-                <button class="star-btn ${isFav?'active':''}" data-id="${a.id}" onclick="toggleFav(event, '${a.id}')">⭐</button>
+                <button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button>
                 <div>
                     <div class="card-name">${esc(nm(a))}</div>
                     <div class="card-sym">${a.symbol}</div>
@@ -515,7 +500,29 @@ function fullCardHTML(a,prefix=''){
     </article>`;
 }
 
-function miniCardHTML(a){const p=getPrice(a.id);const ohlc=todayOHLC(a.id);const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';const isFav=favorites.includes(a.id);return`<div class="mini-card" id="mini-${a.id}"><div class="mini-title-wrap"><button class="star-btn ${isFav?'active':''}" data-id="${a.id}" onclick="toggleFav(event, '${a.id}')">⭐</button><div class="mini-name">${esc(nm(a))}</div></div><div class="mini-sym">${a.symbol}</div><div class="mini-price">${priceHTML}</div><div class="mini-chg" id="chg-${a.id}">—</div><div class="mini-range"><span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span></div></div>`}
+function miniCardHTML(a){
+    const p=getPrice(a.id);
+    const ohlc=todayOHLC(a.id);
+    const isUSD=a.currency==='USD';
+    const priceHTML=formatPrice(a,p);
+    const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';
+    const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
+    const isFav = favorites.includes(a.id);
+    return `
+    <div class="mini-card" id="mini-${a.id}">
+        <div class="mini-title-wrap">
+            <button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button>
+            <div class="mini-name">${esc(nm(a))}</div>
+        </div>
+        <div class="mini-sym">${a.symbol}</div>
+        <div class="mini-price">${priceHTML}</div>
+        <div class="mini-chg" id="chg-${a.id}">—</div>
+        <div class="mini-range">
+            <span>${t('lowDaily')}: <b>${lowStr}</b></span>
+            <span>${t('highDaily')}: <b>${highStr}</b></span>
+        </div>
+    </div>`;
+}
 
 function bindRanges(grid,prefix=''){
     grid.querySelectorAll('.range').forEach(b=>{
@@ -699,7 +706,21 @@ function renderHome(){
     rest.forEach(a=>updateChange(a));
 }
 
-function renderFavorites(){const grid=$('gridFavorites');if(!grid)return;const favAssets=assets.filter(a=>favorites.includes(a.id));if(favAssets.length===0){grid.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted);grid-column:1/-1;">هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.</div>`;return}grid.innerHTML=favAssets.map(a=>fullCardHTML(a,'fav-')).join('');bindRanges(grid,'fav-');renderCharts(grid,favAssets.map(a=>a.id),'fav-')}
+function renderFavorites(){
+    const grid=$('gridFavorites');
+    if(!grid) return;
+    const favAssets = assets.filter(a => favorites.includes(a.id));
+    
+    if(favAssets.length === 0) {
+        grid.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); grid-column: 1/-1;">هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.</div>`;
+        return;
+    }
+    
+    grid.innerHTML = favAssets.map(a => fullCardHTML(a, 'fav-')).join('');
+    bindRanges(grid, 'fav-');
+    renderCharts(grid, favAssets.map(a => a.id), 'fav-');
+}
+
 function renderAll(){const grid=$('gridAll');if(!grid)return;if(!grid.innerHTML){grid.innerHTML=assets.map(a=>fullCardHTML(a,'all-')).join('');bindRanges(grid,'all-')}renderCharts(grid,null,'all-')}
 function updateChange(a){const el=$('chg-'+a.id);if(!el)return;const pct=getRangeChange(a.id);const pts=pointsFor(a.id);if(pts.length<2){el.textContent='—';el.classList.remove('neg');return}el.textContent=(pct>0?'+':'')+num(pct,2)+'%';el.classList.toggle('neg',pct<0)}
 
@@ -738,6 +759,35 @@ function hideAllPages(){
     for(const key in charts){try{charts[key].destroy()}catch(e){}delete charts[key];}
     $('gridAll').innerHTML=''; $('gridFavorites').innerHTML='';
 }
+
+// ** مکانیزم ضدضربه برای ستاره‌ها (Event Delegation) **
+document.body.addEventListener('click', function(e) {
+    const btn = e.target.closest('.star-btn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const id = btn.getAttribute('data-id');
+    if (!id) return;
+    
+    let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    const idx = favs.indexOf(id);
+    
+    if (idx > -1) {
+        favs.splice(idx, 1);
+        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.remove('active'));
+    } else {
+        favs.push(id);
+        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.add('active'));
+    }
+    
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
+    favorites = favs;
+    
+    if (!$('favPage').classList.contains('hidden')) {
+        renderFavorites();
+    }
+});
 
 $('menuBtn').onclick=()=>{$('drawer').classList.add('open');$('drawerOverlay').classList.add('open')};
 const closeDrawer=()=>{$('drawer').classList.remove('open');$('drawerOverlay').classList.remove('open')};
