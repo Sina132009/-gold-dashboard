@@ -1,0 +1,15 @@
+{
+  "name": "پالس | Pulse",
+  "short_name": "پالس",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#050B14",
+  "theme_color": "#38bdf8",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2933/2933245.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
