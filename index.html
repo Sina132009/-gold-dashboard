@@ -6,9 +6,9 @@
 <title>پالس | Pulse Market</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root,[data-theme="obsidian"]{--bg1:#000;--bg2:#050505;--card1:#111;--card2:#0a0a0a;--line:rgba(255,255,255,.06);--txt:#fff;--muted:#888;--green:#00e676;--red:#ff1744;--accent:#f3c623;--shadow:0 10px 30px -10px rgba(0,0,0,.8)}
-[data-theme="neon"]{--bg1:#05010f;--bg2:#0d0420;--card1:rgba(20,8,45,.95);--card2:rgba(10,4,28,.98);--line:rgba(180,100,255,.35);--txt:#f2e9ff;--muted:#b39ddb;--green:#00ffc6;--red:#ff2e88;--accent:#a855f7;--shadow:0 5px 20px rgba(168,85,247,.2)}
-[data-theme="glass"]{--bg1:#050B14;--bg2:#0A1428;--card1:rgba(16,30,54,.7);--card2:rgba(10,20,38,.9);--line:rgba(56,189,248,.15);--txt:#F8FAFC;--muted:#94A3B8;--green:#10B981;--red:#F43F5E;--accent:#38BDF8;--shadow:0 8px 32px 0 rgba(0,0,0,.4)}
+:root,[data-theme="obsidian"]{--bg1:#000;--bg2:#050505;--card1:#111;--card2:#0a0a0a;--line:rgba(255,255,255,.06);--txt:#fff;--muted:#888;--green:#00e676;--red:#ff1744;--accent:#f3c623;--shadow:0 4px 15px rgba(0,0,0,.5)}
+[data-theme="neon"]{--bg1:#05010f;--bg2:#0d0420;--card1:rgba(20,8,45,.95);--card2:rgba(10,4,28,.98);--line:rgba(180,100,255,.35);--txt:#f2e9ff;--muted:#b39ddb;--green:#00ffc6;--red:#ff2e88;--accent:#a855f7;--shadow:0 4px 15px rgba(168,85,247,.15)}
+[data-theme="glass"]{--bg1:#050B14;--bg2:#0A1428;--card1:rgba(16,30,54,.9);--card2:rgba(10,20,38,.95);--line:rgba(56,189,248,.15);--txt:#F8FAFC;--muted:#94A3B8;--green:#10B981;--red:#F43F5E;--accent:#38BDF8;--shadow:0 4px 15px rgba(0,0,0,.4)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;color:var(--txt);font-family:Tahoma,Arial,sans-serif;background:radial-gradient(circle at 50% 0%,#111 0%,#000 70%);background-attachment:fixed;transition:background .4s,color .3s}
 [data-theme="neon"] body{background:radial-gradient(circle at 10% 0%,#3d0a6b,transparent 45%),radial-gradient(circle at 90% 10%,#00605a,transparent 40%),radial-gradient(circle at 50% 100%,#6b0a4a,transparent 45%),linear-gradient(160deg,var(--bg1),var(--bg2))}
@@ -16,10 +16,10 @@ body{min-height:100vh;color:var(--txt);font-family:Tahoma,Arial,sans-serif;backg
 .app{max-width:1400px;margin:auto;padding:20px;position:relative;z-index:1}
 header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
 .brand{display:flex;align-items:center;gap:12px}
-.logo{width:45px;height:45px;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:bold;color:#fff;background:linear-gradient(145deg,#7eb0ff,#3158a4);box-shadow:0 8px 25px #315ba855,inset 0 1px 2px #ffffff55}
+.logo{width:45px;height:45px;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:bold;color:#fff;background:linear-gradient(145deg,#7eb0ff,#3158a4);box-shadow:0 4px 15px #315ba855}
 [data-theme="obsidian"] .logo{background:linear-gradient(135deg,#f3c623,#ff8f00);color:#000}
 [data-theme="neon"] .logo{background:linear-gradient(145deg,#a855f7,#00ffc6)}
-[data-theme="glass"] .logo{background:linear-gradient(145deg,#38bdf8,#818cf8);color:#fff;box-shadow:0 0 20px rgba(56,189,248,.5)}
+[data-theme="glass"] .logo{background:linear-gradient(145deg,#38bdf8,#818cf8);color:#fff}
 .brand h1{font-size:20px;font-weight:800}
 [data-theme="obsidian"] .brand h1{background:linear-gradient(90deg,#fff,#f3c623);-webkit-background-clip:text;background-clip:text;color:transparent}
 [data-theme="neon"] .brand h1{background:linear-gradient(90deg,#a855f7,#00ffc6,#ff2e88);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -29,12 +29,11 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .btn{padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card1);color:var(--txt);cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn:hover{filter:brightness(1.15)}
 .btn-icon{font-size:20px;padding:8px 12px}
-[data-theme="glass"] .btn{border-color:rgba(56,189,248,.2);background:rgba(30,41,59,.5);backdrop-filter:blur(10px)}
-[data-theme="glass"] .btn:hover{background:rgba(56,189,248,.1);border-color:var(--accent)}
-.drawer{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:var(--card1);border-left:1px solid var(--line);transition:right .3s cubic-bezier(.4,0,.2,1);z-index:1000;display:flex;flex-direction:column;padding:20px;box-shadow:-10px 0 30px rgba(0,0,0,.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-[data-theme="glass"] .drawer{background:rgba(15,23,42,.95);border-left:1px solid rgba(56,189,248,.2)}
+[data-theme="glass"] .btn{border-color:rgba(56,189,248,.2);background:rgba(30,41,59,.8)}
+.drawer{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:var(--card1);border-left:1px solid var(--line);transition:right .3s cubic-bezier(.4,0,.2,1);z-index:1000;display:flex;flex-direction:column;padding:20px;box-shadow:-10px 0 30px rgba(0,0,0,.5)}
+[data-theme="glass"] .drawer{background:rgba(15,23,42,.98)}
 .drawer.open{right:0}
-.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px)}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;opacity:0;pointer-events:none;transition:opacity .3s}
 .drawer-overlay.open{opacity:1;pointer-events:auto}
 .drawer .btn{width:100%;justify-content:flex-start;margin-bottom:10px;padding:12px 15px;font-size:14px;border:none;background:transparent}
 .drawer .btn:hover{background:rgba(255,255,255,.05)}
@@ -46,9 +45,8 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid-mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px}
 .section-title{font-size:16px;font-weight:bold;margin:20px 0 10px;display:flex;align-items:center;gap:8px}
-.card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s,background .4s;position:relative}
-[data-theme="glass"] .card{background:linear-gradient(145deg,rgba(30,41,59,.7),rgba(15,23,42,.9));border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow)}
-[data-theme="glass"] .card:hover{border-color:rgba(56,189,248,.4);box-shadow:0 20px 50px -10px rgba(0,0,0,.7),0 0 30px rgba(56,189,248,.1)}
+.card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
+[data-theme="glass"] .card{background:linear-gradient(145deg,rgba(30,41,59,.9),rgba(15,23,42,.95));border:1px solid rgba(255,255,255,.08)}
 .star-btn{background:none;border:none;font-size:18px;cursor:pointer;opacity:.3;transition:.2s;filter:grayscale(1);padding:0;line-height:1;margin-top:2px}
 .star-btn:hover{opacity:.7;transform:scale(1.1)}
 .star-btn.active{opacity:1;filter:grayscale(0);text-shadow:0 0 10px rgba(243,198,35,.5)}
@@ -71,9 +69,8 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 [data-theme="glass"] .range.active{background:var(--accent);color:#020617;border-color:var(--accent);font-weight:bold}
 .chart-wrap{height:190px;position:relative;min-height:190px;z-index:1}
 canvas{width:100%!important;height:100%!important;display:block}
-.mini-card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:14px;padding:12px;transition:transform .2s;display:flex;flex-direction:column;position:relative}
-[data-theme="glass"] .mini-card{background:linear-gradient(145deg,rgba(30,41,59,.7),rgba(15,23,42,.9));border:1px solid rgba(255,255,255,.08)}
-.mini-card:hover{transform:translateY(-2px)}
+.mini-card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;position:relative}
+[data-theme="glass"] .mini-card{background:linear-gradient(145deg,rgba(30,41,59,.9),rgba(15,23,42,.95));border:1px solid rgba(255,255,255,.08)}
 .mini-title-wrap{display:flex;align-items:center;gap:6px}
 .mini-name{font-size:13px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mini-sym{font-size:9px;color:var(--muted);margin-top:2px;margin-right:24px}
@@ -84,9 +81,8 @@ canvas{width:100%!important;height:100%!important;display:block}
 [data-theme="glass"] .mini-chg.neg{background:rgba(244,63,94,.15);border:1px solid rgba(244,63,94,.2)}
 .mini-range{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 .mini-range b{color:var(--txt);font-weight:600}
-.calc,.assets-page,.fav-page{display:none;margin-top:22px;animation:fadeIn .3s ease}
+.calc,.assets-page,.fav-page{display:none;margin-top:22px}
 .calc.show,.assets-page.show,.fav-page.show{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .calc h2,.assets-page h2{font-size:18px;margin-bottom:6px}
 .calc p,.assets-page p{font-size:12px;color:var(--muted);margin-bottom:16px}
 .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
@@ -113,8 +109,8 @@ canvas{width:100%!important;height:100%!important;display:block}
 .holding .h-profit{font-weight:bold;direction:ltr;text-align:right}
 .holding .h-del{background:transparent;border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px}
 .holding .h-del:hover{background:var(--red);color:#fff}
-.h-edit{background:transparent;border:none;cursor:pointer;font-size:14px;padding:2px;transition:transform .2s;filter:grayscale(100%)}
-.h-edit:hover{transform:scale(1.2);filter:grayscale(0%)}
+.h-edit{background:transparent;border:none;cursor:pointer;font-size:14px;padding:2px;filter:grayscale(100%)}
+.h-edit:hover{filter:grayscale(0%)}
 .total-box{padding:18px;border-radius:14px;text-align:center;background:linear-gradient(135deg,var(--accent),var(--card1));color:#fff}
 [data-theme="obsidian"] .total-box{color:#000;background:linear-gradient(135deg,#f3c623,#ff8f00)}
 [data-theme="glass"] .total-box{background:linear-gradient(135deg,var(--accent),#818cf8);color:#020617}
@@ -216,15 +212,34 @@ const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
-const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV14',FAVORITES_KEY='pulseFavoritesV14';
+const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV17',FAVORITES_KEY='pulseFavoritesV17';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
 function num(v,d=0){return Number.isFinite(Number(v))?new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US',{maximumFractionDigits:d}).format(Number(v)):'---'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-function parseTime(v){if(v==null||v==='')return NaN;if(typeof v==='number')return v<1e12?v*1000:v;const parsed=Date.parse(v);if(!isNaN(parsed))return parsed;const numV=Number(v);if(!isNaN(numV))return numV<1e12?numV*1000:numV;return NaN}
+// توابع زمان کاملاً استاندارد و اصلاح شده
+function parseTime(v){
+    if(v==null||v===''||v===0||v==='0')return NaN; 
+    if(typeof v==='number')return v<1e12?v*1000:v;
+    const parsed=Date.parse(v);
+    if(!isNaN(parsed))return parsed;
+    const numV=Number(v);
+    if(!isNaN(numV))return numV<1e12?numV*1000:numV;
+    return NaN
+}
 function dayKey(time=Date.now()){const p=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(time));const g=x=>p.find(y=>y.type===x)?.value||'00';return `${g('year')}-${g('month')}-${g('day')}`}
+
+// تابع getLabel دقیقاً مثل کدهای اول که کار میکرد
+function getLabel(p,mode){
+    if(!p || !p.time || p.time < 1e12) return '---';
+    const d=new Date(p.time);
+    if(isNaN(d.getTime())) return '---';
+    if(mode==='daily') return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
+    return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+}
+
 async function fetchJson(url,tm=5000){const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(id)}}
 async function fetchFirstSuccess(urls,tm=5000){for(const url of urls){try{const data=await fetchJson(url+(url.includes('?')?'&':'?')+'v='+Date.now(),tm);if(data)return data}catch(e){}}return null}
 
@@ -245,7 +260,7 @@ async function refreshPrices(){
             else{let isDirectMap=true;for(const k in intraData){if(!Array.isArray(intraData[k])){isDirectMap=false;break}}if(isDirectMap)remoteIntraday={[dayKey()]:intraData};else remoteIntraday=intraData}
         }
         if(data&&data.prices&&Object.keys(data.prices).length>0){
-            const updatedAt=parseTime(data.updated_at)||Date.now();
+            const updatedAt=Date.now(); 
             for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k]}
             Object.assign(prices,data.prices);
             if(data.sources)Object.assign(sources,data.sources);
@@ -327,13 +342,6 @@ function updatePricesOnly(){
     renderHoldings();calc();
 }
 
-function getLabel(p,mode){
-    const d=new Date(p.time);
-    if(isNaN(d.getTime())) return '---';
-    if(mode==='daily') return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
-    return p.date || d.toLocaleDateString(lang==='fa'?'fa-IR':'en-US');
-}
-
 function updateChartData(a,chartInstance){
     if(!chartInstance)return;
     const pts=pointsFor(a.id);if(pts.length===0)return;
@@ -341,12 +349,16 @@ function updateChartData(a,chartInstance){
     const vals=pts.map(p=>p.price).filter(v=>Number.isFinite(v)&&v>0);
     let yMin=0,yMax=100;
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
-    chartInstance._rawPoints=pts; 
+    
+    chartInstance._rawPoints = pts;
+    const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
+    chartInstance._isUp = isUp; // ذخیره وضعیت برای تغییر تم
+    
     chartInstance.data.labels=pts.map(p=>getLabel(p,mode));
     chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.price)});
     chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
     const sparse=pts.length<3;chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=sparse?4:0});
-    const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
+    
     updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');
 }
 
@@ -373,12 +385,30 @@ function pointsFor(id){
     const mode=ranges[id]||'daily';
     if(mode==='daily'){
         const today=dayKey();const merged=[];const seen=new Set();
-        const addPts=pts=>{if(!pts)return;for(const p of pts){if(!p)continue;const price=Number(p.price);if(!(price>0))continue;const time=parseTime(p.time);if(!Number.isFinite(time)||dayKey(time)!==today)continue;const key=Math.floor(time/60000);if(seen.has(key))continue;seen.add(key);merged.push({time,price})}};
+        const addPts=pts=>{
+            if(!pts)return;
+            for(const p of pts){
+                if(!p)continue;
+                const price=Number(p.price);
+                if(!(price>0))continue;
+                const time=parseTime(p.time);
+                if(!Number.isFinite(time)||time<1e12||dayKey(time)!==today)continue;
+                
+                if (pts === all) {
+                    const d = new Date(time);
+                    if (d.getHours() < 1) continue; // حذف نقطه 00:00 برای تاریخچه
+                }
+                
+                const key=Math.floor(time/60000);
+                if(seen.has(key))continue;
+                seen.add(key);merged.push({time,price})
+            }
+        };
         addPts(intraday[id]||[]);
         if(remoteIntraday[today])addPts(remoteIntraday[today][id]||[]);
         addPts(all);
+        
         if(merged.length>0)return merged.sort((a,b)=>a.time-b.time);
-        // Fake fallback removed to fix 00:00 issue
         return [];
     }
     if(mode==='weekly'){const merged=getMergedRawPoints(id,7);if(merged.length>0)return sampleByDay(merged,7)}
@@ -388,6 +418,22 @@ function pointsFor(id){
     return all;
 }
 function getMergedRawPoints(id,days){const cutoff=Date.now()-days*86400000;const all=history[id]||[];return all.filter(p=>p.time>=cutoff).sort((a,b)=>a.time-b.time)}
+
+// تابع سراسری ستاره‌ها برای کارکرد قطعی روی همه مرورگرها
+window.toggleFav = function(id, btn) {
+    let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    const idx = favs.indexOf(id);
+    if (idx > -1) { 
+        favs.splice(idx, 1); 
+        btn.classList.remove('active'); 
+    } else { 
+        favs.push(id); 
+        btn.classList.add('active'); 
+    }
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
+    favorites = favs;
+    if (!$('favPage').classList.contains('hidden')) renderFavorites();
+};
 
 function fullCardHTML(a,prefix=''){
     const p=getPrice(a.id);const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);
@@ -399,7 +445,7 @@ function fullCardHTML(a,prefix=''){
     <article class="card">
         <div class="card-top">
             <div class="card-title-wrap">
-                <button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button>
+                <button class="star-btn ${isFav?'active':''}" onclick="toggleFav('${a.id}', this)">⭐</button>
                 <div>
                     <div class="card-name">${esc(nm(a))}</div>
                     <div class="card-sym">${a.symbol}</div>
@@ -423,7 +469,7 @@ function fullCardHTML(a,prefix=''){
     </article>`;
 }
 
-function miniCardHTML(a){const p=getPrice(a.id);const ohlc=todayOHLC(a.id);const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';const isFav=favorites.includes(a.id);return`<div class="mini-card" id="mini-${a.id}"><div class="mini-title-wrap"><button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button><div class="mini-name">${esc(nm(a))}</div></div><div class="mini-sym">${a.symbol}</div><div class="mini-price">${priceHTML}</div><div class="mini-chg" id="chg-${a.id}">—</div><div class="mini-range"><span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span></div></div>`}
+function miniCardHTML(a){const p=getPrice(a.id);const ohlc=todayOHLC(a.id);const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';const isFav=favorites.includes(a.id);return`<div class="mini-card" id="mini-${a.id}"><div class="mini-title-wrap"><button class="star-btn ${isFav?'active':''}" onclick="toggleFav('${a.id}', this)">⭐</button><div class="mini-name">${esc(nm(a))}</div></div><div class="mini-sym">${a.symbol}</div><div class="mini-price">${priceHTML}</div><div class="mini-chg" id="chg-${a.id}">—</div><div class="mini-range"><span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span></div></div>`}
 
 function bindRanges(grid,prefix=''){
     grid.querySelectorAll('.range').forEach(b=>{
@@ -471,8 +517,6 @@ function updateChartTheme(chartInstance,a,isUp){
         fillGrad.addColorStop(0,'rgba(56,189,248,.2)');fillGrad.addColorStop(1,'rgba(129,140,248,0)');
         chartInstance.data.datasets[0].borderColor=lineGrad;
         chartInstance.data.datasets[0].backgroundColor=fillGrad;
-        chartInstance.data.datasets[0].shadowColor='rgba(56,189,248,.5)';
-        chartInstance.data.datasets[0].shadowBlur=10;
         chartInstance.data.datasets[0].borderWidth=2.5;
     } else if(obsidian){
         const lineGrad=ctx.createLinearGradient(0,0,width,0);
@@ -481,8 +525,6 @@ function updateChartTheme(chartInstance,a,isUp){
         fillGrad.addColorStop(0,'rgba(243,198,35,.15)');fillGrad.addColorStop(1,'rgba(255,143,0,0)');
         chartInstance.data.datasets[0].borderColor=lineGrad;
         chartInstance.data.datasets[0].backgroundColor=fillGrad;
-        chartInstance.data.datasets[0].shadowColor='transparent';
-        chartInstance.data.datasets[0].shadowBlur=0;
         chartInstance.data.datasets[0].borderWidth=3;
     } else {
         let color=isUp?'#00e676':'#ff1744';
@@ -492,8 +534,6 @@ function updateChartTheme(chartInstance,a,isUp){
         else{grad.addColorStop(0,isUp?'rgba(0,230,118,.4)':'rgba(255,23,68,.4)');grad.addColorStop(1,'rgba(20,30,50,0)')}
         chartInstance.data.datasets[0].borderColor=color;
         chartInstance.data.datasets[0].backgroundColor=grad;
-        chartInstance.data.datasets[0].shadowColor=neon?(isUp?'rgba(0,255,198,.6)':'rgba(255,46,136,.6)'):'transparent';
-        chartInstance.data.datasets[0].shadowBlur=neon?15:0;
         chartInstance.data.datasets[0].borderWidth=neon?2.8:2.2;
     }
     chartInstance.options.plugins.tooltip.backgroundColor=neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)';
@@ -518,6 +558,7 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     
     if(chartInstance){
         chartInstance._rawPoints = pts;
+        chartInstance._isUp = isUp;
         chartInstance.data.labels=labels;
         chartInstance.data.datasets.forEach(ds=>{ds.data=dataVals;if(ds.pointRadius!==undefined)ds.pointRadius=pointR});
         chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
@@ -531,7 +572,7 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         const width=cv.offsetWidth||500;
         const lineGrad=ctx.createLinearGradient(0,0,width,0);lineGrad.addColorStop(0,'#38bdf8');lineGrad.addColorStop(1,'#818cf8');
         const fillGrad=ctx.createLinearGradient(0,0,0,200);fillGrad.addColorStop(0,'rgba(56,189,248,.2)');fillGrad.addColorStop(1,'rgba(129,140,248,0)');
-        dataset={data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35,borderWidth:2.5,pointRadius:pointR,pointHoverRadius:6,pointBackgroundColor:'#fff',pointBorderColor:'#38bdf8',shadowOffsetX:0,shadowOffsetY:0,shadowBlur:10,shadowColor:'rgba(56,189,248,.5)',spanGaps:true};
+        dataset={data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35,borderWidth:2.5,pointRadius:pointR,pointHoverRadius:6,pointBackgroundColor:'#fff',pointBorderColor:'#38bdf8',spanGaps:true};
     } else if(obsidian){
         const lineGrad=ctx.createLinearGradient(0,0,cv.offsetWidth||500,0);lineGrad.addColorStop(0,'#f3c623');lineGrad.addColorStop(1,'#ff8f00');
         const fillGrad=ctx.createLinearGradient(0,0,0,210);fillGrad.addColorStop(0,'rgba(243,198,35,.15)');fillGrad.addColorStop(1,'rgba(255,143,0,0)');
@@ -542,7 +583,7 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         const grad=ctx.createLinearGradient(0,0,0,200);
         if(neon){grad.addColorStop(0,isUp?'rgba(0,255,198,.55)':'rgba(255,46,136,.5)');grad.addColorStop(1,'rgba(10,4,28,0)')}
         else{grad.addColorStop(0,isUp?'rgba(0,230,118,.4)':'rgba(255,23,68,.4)');grad.addColorStop(1,'rgba(20,30,50,0)')}
-        dataset={data:dataVals,borderColor:color,backgroundColor:grad,fill:true,tension:.35,borderWidth:neon?2.8:2.2,pointRadius:pointR,pointHoverRadius:6,pointBackgroundColor:'#fff',pointBorderColor:color,shadowOffsetX:0,shadowOffsetY:0,shadowBlur:neon?15:0,shadowColor:neon?(isUp?'rgba(0,255,198,.6)':'rgba(255,46,136,.6)'):'transparent',spanGaps:true};
+        dataset={data:dataVals,borderColor:color,backgroundColor:grad,fill:true,tension:.35,borderWidth:neon?2.8:2.2,pointRadius:pointR,pointHoverRadius:6,pointBackgroundColor:'#fff',pointBorderColor:color,spanGaps:true};
     }
     
     const gc=neon?'rgba(168,85,247,.15)':glass?'rgba(255,255,255,.05)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
@@ -552,13 +593,14 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         if(!items.length)return'';
         const idx=items[0].dataIndex;
         const p=items[0].chart._rawPoints[idx];
-        if(!p)return'';
+        if(!p || !p.time || p.time < 1e12) return ''; 
         const d=new Date(p.time);
         if(mode==='daily')return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
-        else return p.date || d.toLocaleDateString(lang==='fa'?'fa-IR':'en-US')
+        else return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
     },label:c=>(mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'))}}},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
     
     newChart._rawPoints = pts;
+    newChart._isUp = isUp;
     const chartKey=prefix+a.id;charts[chartKey]=newChart;
 }
 
@@ -576,7 +618,7 @@ function renderCharts(grid,filterIds,prefix=''){
             if(charts[prefix+a.id])drawOrUpdateChart(a,charts[prefix+a.id],prefix);
             else chartObserver.observe(canvas.parentElement);
         }
-        setTimeout(drawNext, 10); // 10ms delay to prevent freeze
+        setTimeout(drawNext, 30); 
     }
     drawNext();
 }
@@ -604,42 +646,30 @@ function calc(){const amountStr=$('calcAmount')?.value||'0';const amount=parseFl
 function addHolding(){const id=$('addAsset')?.value;const qty=Number($('addQty')?.value||0);if(!id||id==='oil'||!(qty>0))return;const ex=holdings.find(h=>h.id===id);if(ex)ex.qty=Number(ex.qty)+qty;else holdings.push({id,qty,buyPrice:0});saveHoldings();$('addQty').value='';renderHoldings()}
 
 function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==='fa'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);else el.textContent=t(el.dataset.t)});$('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome();fillCalc();fillAddSelect();renderHoldings();calc()}
-function applyTheme(){document.documentElement.setAttribute('data-theme',theme);$('themeBtn').textContent=theme==='obsidian'?'👑':theme==='neon'?'⚡':'💎';for(const key in charts){try{charts[key].destroy()}catch(e){}delete charts[key]}if(!$('homePage').classList.contains('hidden'))renderHome();if(!$('favPage').classList.contains('hidden'))renderFavorites();if(!$('allPage').classList.contains('hidden')&&$('gridAll').innerHTML)renderAll()}
+
+// تابع تغییر تم بهینه‌شده (بدون رفرش کردن کل صفحه)
+function applyTheme(){
+    document.documentElement.setAttribute('data-theme',theme);
+    $('themeBtn').textContent=theme==='obsidian'?'👑':theme==='neon'?'⚡':'💎';
+    // فقط رنگ‌ها رو آپدیت میکنیم، نمودارها رو نابود نمیکنیم
+    for (const chartKey in charts) {
+        let aId = chartKey;
+        if (chartKey.includes('-')) aId = chartKey.split('-')[1];
+        const a = assets.find(x=>x.id===aId);
+        if(a && charts[chartKey]._isUp !== undefined) {
+            updateChartTheme(charts[chartKey], a, charts[chartKey]._isUp);
+            charts[chartKey].update('none');
+        }
+    }
+}
 
 function hideAllPages(){
     $('homePage').classList.add('hidden');$('favPage').classList.add('hidden');$('allPage').classList.add('hidden');$('calcPage').classList.remove('show');$('assetsPage').classList.remove('show');
     ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
-    
-    // Free memory on leaving All Charts
-    for (const key in charts) {
-        if (key.startsWith('all-')) {
-            try { charts[key].destroy(); } catch(e) {}
-            delete charts[key];
-        }
-    }
-    $('gridAll').innerHTML = '';
+    // فقط وقتی از صفحه خارج میشیم حافظه رو آزاد میکنیم
+    for(const key in charts){try{charts[key].destroy()}catch(e){}delete charts[key];}
+    $('gridAll').innerHTML=''; $('gridFavorites').innerHTML='';
 }
-
-document.body.addEventListener('click', function(e) {
-    const btn = e.target.closest('.star-btn');
-    if (!btn) return;
-    e.preventDefault();
-    const id = btn.getAttribute('data-id');
-    if (!id) return;
-    
-    let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    const idx = favs.indexOf(id);
-    if (idx > -1) { 
-        favs.splice(idx, 1); 
-        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.remove('active')); 
-    } else { 
-        favs.push(id); 
-        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.add('active')); 
-    }
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
-    favorites = favs;
-    if (!$('favPage').classList.contains('hidden')) renderFavorites();
-});
 
 $('menuBtn').onclick=()=>{$('drawer').classList.add('open');$('drawerOverlay').classList.add('open')};
 const closeDrawer=()=>{$('drawer').classList.remove('open');$('drawerOverlay').classList.remove('open')};
