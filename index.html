@@ -87,7 +87,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 .mini-range b{color:var(--txt);font-weight:600}
 .mini-card .star-btn{font-size:14px;}
 
-/* اصلاح اساسی استایل صفحات برای جلوگیری از مخفی شدن */
+/* اصلاح اساسی استایل صفحات */
 #favPage, #calcPage, #assetsPage { margin-top: 22px; }
 .calc h2,.assets-page h2,.fav-page h2{font-size:18px;margin-bottom:6px}
 .calc p,.assets-page p,.fav-page p{font-size:12px;color:var(--muted);margin-bottom:16px}
@@ -218,7 +218,7 @@ const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
-const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV26',FAVORITES_KEY='pulseFavoritesV26'; // کلید جدید برای دور زدن کش خراب
+const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV27',FAVORITES_KEY='pulseFavoritesV27'; // کلید جدید برای دور زدن کش خراب
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
@@ -265,7 +265,6 @@ function loadSettings(){
         const s=localStorage.getItem('mktLang'); if(s==='fa'||s==='en') lang=s;
         const th=localStorage.getItem('mktTheme'); if(['obsidian','neon','glass'].includes(th)) theme=th;
         
-        // خواندن صحیح لیست علاقه‌مندی‌ها با کلید جدید
         const f = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
         favorites = Array.isArray(f) ? f : [];
         
@@ -702,21 +701,47 @@ function refreshHomeCharts(){
     const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
     featured.forEach(a => {
         const chartKey = 'feat-' + a.id;
-        if(charts[chartKey]) { try{charts[chartKey].destroy()}catch(e){} delete charts[chartKey]; }
-    });
-    featured.forEach(a => {
-        drawOrUpdateChart(a, null, 'feat-');
+        if(charts[chartKey]) {
+            // Update data without destroying the chart
+            updateChartData(a, charts[chartKey]);
+        } else {
+            // Create if it doesn't exist
+            drawOrUpdateChart(a, null, 'feat-');
+        }
     });
 }
 
 function renderHome(){
+    const grid=$('gridFeatured');
+    const mini=$('gridMini');
+    if(!grid||!mini)return;
+    
     const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
     const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt');
-    $('gridFeatured').innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
-    bindRanges($('gridFeatured'),'feat-');
-    renderCharts($('gridFeatured'),featured.map(a=>a.id),'feat-');
-    $('gridMini').innerHTML=rest.map(a=>miniCardHTML(a)).join('');
+    
+    if(!grid.innerHTML) {
+        grid.innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
+        mini.innerHTML=rest.map(a=>miniCardHTML(a)).join('');
+        bindRanges(grid, 'feat-');
+        updateMiniCardButtons();
+    }
+    
+    // Use setTimeout to allow the browser to finish layout before drawing
+    setTimeout(() => {
+        renderCharts(grid, featured.map(a=>a.id), 'feat-');
+        ['usd', 'usdt'].forEach(id => {
+            if(charts['feat-'+id]) charts['feat-'+id].resize();
+        });
+        if (expandedAssetId) renderExpandedChart();
+    }, 10);
+    
     rest.forEach(a=>updateChange(a));
+    
+    if (theme === 'glass') {
+        setTimeout(apply3DTilt, 100);
+    } else {
+        remove3DTilt();
+    }
 }
 
 function renderFavorites(){
@@ -731,10 +756,23 @@ function renderFavorites(){
     
     grid.innerHTML = favAssets.map(a => fullCardHTML(a, 'fav-')).join('');
     bindRanges(grid, 'fav-');
-    renderCharts(grid, favAssets.map(a => a.id), 'fav-');
+    
+    setTimeout(() => {
+        renderCharts(grid, favAssets.map(a => a.id), 'fav-');
+    }, 10);
 }
 
-function renderAll(){const grid=$('gridAll');if(!grid)return;if(!grid.innerHTML){grid.innerHTML=assets.map(a=>fullCardHTML(a,'all-')).join('');bindRanges(grid,'all-')}renderCharts(grid,null,'all-')}
+function renderAll(){
+    const grid=$('gridAll');
+    if(!grid)return;
+    if(!grid.innerHTML){
+        grid.innerHTML=assets.map(a=>fullCardHTML(a,'all-')).join('');
+        bindRanges(grid,'all-');
+    }
+    setTimeout(() => {
+        renderCharts(grid, null, 'all-');
+    }, 10);
+}
 function updateChange(a){const el=$('chg-'+a.id);if(!el)return;const pct=getRangeChange(a.id);const pts=pointsFor(a.id);if(pts.length<2){el.textContent='—';el.classList.remove('neg');return}el.textContent=(pct>0?'+':'')+num(pct,2)+'%';el.classList.toggle('neg',pct<0)}
 
 function renderHoldings(){const box=$('holdings');if(!box)return;if(!holdings.length){box.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px">${t('emptyAssets')}</div>`;$('totalAssets').textContent='---';$('totalProfit').innerHTML='';return}let totalValue=0,totalCost=0;box.innerHTML=holdings.map((h,idx)=>{const a=assets.find(x=>x.id===h.id);const p=getPrice(h.id);const val=p*Number(h.qty);totalValue+=val;const buyPrice=Number(h.buyPrice)||0;let profitHTML=`<span style="color:var(--muted);font-size:10px;">وارد نشده</span>`;let pColor='var(--muted)',pSign='';if(buyPrice>0){const cost=buyPrice*Number(h.qty);totalCost+=cost;const profit=val-cost;const profitPct=(profit/cost)*100;pColor=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';pSign=profit>0?'+':'';const pIcon=profit>0?'📈':profit<0?'📉':'';profitHTML=`<span style="color:${pColor};font-size:11px;" dir="ltr">${pIcon} ${pSign}${num(profitPct,2)}%<br><span style="font-size:10px;">${pSign}${num(profit)}</span></span>`}return`<div class="holding"><div class="h-name">${esc(a?nm(a):h.id)}</div><div class="h-qty">${num(h.qty,4)}</div><div class="h-buy"><span style="color:var(--muted);font-size:10px;">خرید:</span>${buyPrice>0?num(buyPrice):'—'}<button class="h-edit" data-idx="${idx}" title="ویرایش قیمت خرید">✏️</button></div><div class="h-val">${val>0?num(val)+' '+t('tomanUnit'):'—'}</div><div class="h-profit">${profitHTML}</div><button class="h-del" data-idx="${idx}">${t('del')}</button></div>`}).join('');$('totalAssets').textContent=num(totalValue)+' '+t('tomanUnit');const profitEl=$('totalProfit');if(totalCost>0){const profit=totalValue-totalCost;const profitPct=(profit/totalCost)*100;const sign=profit>0?'+':'';const color=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';const icon=profit>0?'📈':profit<0?'📉':'';profitEl.innerHTML=`<span style="color:${color}">${icon} ${sign}${num(profitPct,2)}% (${sign}${num(profit)} ${t('tomanUnit')})</span>`}else{profitEl.innerHTML=`<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>`}box.querySelectorAll('.h-del').forEach(b=>{b.onclick=()=>{holdings.splice(Number(b.dataset.idx),1);saveHoldings();renderHoldings()}});box.querySelectorAll('.h-edit').forEach(b=>{b.onclick=()=>{const idx=Number(b.dataset.idx);const h=holdings[idx];const currentPrompt=h.buyPrice?h.buyPrice:'';const newPrice=prompt("قیمت خریداری شده (به تومان) را وارد کنید:",currentPrompt);if(newPrice!==null){const parsed=parseFloat(newPrice.replace(/,/g,''));if(!isNaN(parsed)&&parsed>=0){h.buyPrice=parsed;saveHoldings();renderHoldings()}}}})}
@@ -773,8 +811,16 @@ function hideAllPages(){
     $('calcPage').classList.add('hidden');
     $('assetsPage').classList.add('hidden');
     ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
-    for(const key in charts){try{charts[key].destroy()}catch(e){}delete charts[key];}
-    $('gridAll').innerHTML=''; $('gridFavorites').innerHTML='';
+    
+    // *** FIX: Only destroy All and Favorites charts to save memory. Keep Home charts! ***
+    for(const key in charts){
+        if(key.startsWith('all-') || key.startsWith('fav-')) {
+            try{charts[key].destroy()}catch(e){} 
+            delete charts[key];
+        }
+    }
+    $('gridAll').innerHTML='';
+    $('gridFavorites').innerHTML='';
 }
 
 // ** مکانیزم ضدضربه برای ستاره‌ها **
@@ -788,7 +834,7 @@ document.body.addEventListener('click', function(e) {
     if (!id) return;
     
     let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    if(!Array.isArray(favs)) favs = []; // Fallback safety
+    if(!Array.isArray(favs)) favs = [];
     
     const idx = favs.indexOf(id);
     if (idx > -1) {
