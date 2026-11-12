@@ -87,7 +87,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 .mini-range b{color:var(--txt);font-weight:600}
 .mini-card .star-btn{font-size:14px;}
 
-/* اصلاح اساسی استایل صفحات برای جلوگیری از مخفی شدن */
+/* اصلاح اساسی استایل صفحات */
 #favPage, #calcPage, #assetsPage { margin-top: 22px; }
 .calc h2,.assets-page h2,.fav-page h2{font-size:18px;margin-bottom:6px}
 .calc p,.assets-page p,.fav-page p{font-size:12px;color:var(--muted);margin-bottom:16px}
@@ -257,22 +257,6 @@ function getLabel(p,mode){
     return `${yyyy}/${mm}/${dd}`;
 }
 
-// *** تابع جدید برای اصلاح نمایش تولتیپ ***
-function formatTooltipTitle(p, mode) {
-    if(!p || !p.time || p.time < 1e12) return '';
-    const d = new Date(p.time);
-    if(mode === 'daily') {
-        const hh = String(d.getHours()).padStart(2, '0');
-        const mm = String(d.getMinutes()).padStart(2, '0');
-        return `${hh}:${mm}`;
-    }
-    if (p.date) return p.date;
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}/${mm}/${dd}`;
-}
-
 async function fetchJson(url,tm=5000){const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(id)}}
 async function fetchFirstSuccess(urls,tm=5000){for(const url of urls){try{const data=await fetchJson(url+(url.includes('?')?'&':'?')+'v='+Date.now(),tm);if(data)return data}catch(e){}}return null}
 
@@ -419,7 +403,7 @@ function updateChartData(a,chartInstance){
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
     
     chartInstance._rawPoints = pts;
-    chartInstance._currentMode = mode;
+    chartInstance._currentMode = mode; // <--- NEW: Store current mode
     const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
     chartInstance._isUp = isUp;
     
@@ -428,17 +412,29 @@ function updateChartData(a,chartInstance){
     chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
     const sparse=pts.length<3;chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=sparse?4:0});
     
-    // *** اصلاح تولتیپ در آپدیت داده‌ها ***
-    chartInstance.options.plugins.tooltip.callbacks.title = items => {
+    // <--- NEW: Update tooltip callbacks dynamically
+    chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
         if(!items.length) return '';
         const idx = items[0].dataIndex;
         const p = items[0].chart._rawPoints[idx];
-        return formatTooltipTitle(p, items[0].chart._currentMode);
+        if(!p || !p.time || p.time < 1e12) return ''; 
+        const d = new Date(p.time);
+        if(items[0].chart._currentMode === 'daily') {
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+        if (p.date) return p.date;
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}/${mm}/${dd}`;
     };
-    chartInstance.options.plugins.tooltip.callbacks.label = c => {
+    chartInstance.options.plugins.tooltip.callbacks.label = function(c) {
         const isUSD = a.currency === 'USD';
         return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
     };
+    // <--- END NEW
     
     updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');
 }
@@ -652,22 +648,34 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     
     if(chartInstance){
         chartInstance._rawPoints = pts;
-        chartInstance._currentMode = mode;
+        chartInstance._currentMode = mode; // <--- NEW: Store current mode
         chartInstance._isUp = isUp;
         chartInstance.data.labels=labels;
         chartInstance.data.datasets.forEach(ds=>{ds.data=dataVals;if(ds.pointRadius!==undefined)ds.pointRadius=pointR});
         chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
         
-        // *** اصلاح تولتیپ در آپدیت نمودار ***
-        chartInstance.options.plugins.tooltip.callbacks.title = items => {
+        // <--- NEW: Update tooltip callbacks dynamically
+        chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
             if(!items.length) return '';
             const idx = items[0].dataIndex;
             const p = items[0].chart._rawPoints[idx];
-            return formatTooltipTitle(p, items[0].chart._currentMode);
+            if(!p || !p.time || p.time < 1e12) return ''; 
+            const d = new Date(p.time);
+            if(items[0].chart._currentMode === 'daily') {
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                return `${hh}:${mm}`;
+            }
+            if (p.date) return p.date;
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd}`;
         };
-        chartInstance.options.plugins.tooltip.callbacks.label = c => {
+        chartInstance.options.plugins.tooltip.callbacks.label = function(c) {
             return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
         };
+        // <--- END NEW
         
         updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');return;
     }
@@ -697,19 +705,30 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     const tc=neon?'#b39ddb':glass?'#94a3b8':obsidian?'#888':'#8fa0bd';
     
     const newChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[dataset]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)',borderColor:neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(56,189,248,.5)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88',borderWidth:1,titleFont:{family:'Tahoma',size:11},bodyFont:{family:'Tahoma',size:11},callbacks:{
-        title: items => {
+        title: function(items) { // <--- NEW: using function and _currentMode
             if(!items.length) return '';
             const idx = items[0].dataIndex;
             const p = items[0].chart._rawPoints[idx];
-            return formatTooltipTitle(p, items[0].chart._currentMode);
+            if(!p || !p.time || p.time < 1e12) return ''; 
+            const d = new Date(p.time);
+            if(items[0].chart._currentMode === 'daily') {
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                return `${hh}:${mm}`;
+            }
+            if (p.date) return p.date;
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd}`;
         },
-        label: c => {
+        label: function(c) {
             return (mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'));
         }
     }},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
     
     newChart._rawPoints = pts;
-    newChart._currentMode = mode;
+    newChart._currentMode = mode; // <--- NEW
     newChart._isUp = isUp;
     const chartKey=prefix+a.id;charts[chartKey]=newChart;
 }
@@ -733,15 +752,17 @@ function renderCharts(grid,filterIds,prefix=''){
     drawNext();
 }
 
-// *** اصلاح اصلی لگ: آپدیت به جای ساخت مجدد ***
+// *** THE FIX FOR THE LAG ***
 function refreshHomeCharts(){
     if($('homePage').classList.contains('hidden')) return;
     const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
     featured.forEach(a => {
         const chartKey = 'feat-' + a.id;
         if(charts[chartKey]) {
+            // ONLY update data, don't destroy and recreate!
             updateChartData(a, charts[chartKey]);
         } else {
+            // If it doesn't exist, create it
             drawOrUpdateChart(a, null, 'feat-');
         }
     });
@@ -839,7 +860,7 @@ function hideAllPages(){
     $('assetsPage').classList.add('hidden');
     ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
     
-    // *** فقط نمودارهای صفحات فرعی نابود میشوند تا لگ نداشته باشیم ***
+    // Only destroy All and Favorites charts to save memory. Keep Home charts!
     for(const key in charts){
         if(key.startsWith('all-') || key.startsWith('fav-')) {
             try{charts[key].destroy()}catch(e){} 
@@ -906,4 +927,4 @@ $('refreshBtn').onclick=async()=>{closeDrawer();await Promise.allSettled([refres
 })();
 </script>
 </body>
-</html>
+    </html>
