@@ -1,18 +1,19 @@
 import json
 import os
+import requests
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
 import matplotlib as mpl
+import warnings
 
-# تنظیمات برای تم تیره و شفاف
+warnings.filterwarnings("ignore")
 mpl.rcParams['text.color'] = '#94a3b8'
 mpl.rcParams['axes.labelcolor'] = '#94a3b8'
 mpl.rcParams['xtick.color'] = '#94a3b8'
 mpl.rcParams['ytick.color'] = '#94a3b8'
 
 ASSETS = ['usd', 'usdt', 'eur', 'g18', 'g24', 'silver', 'emami', 'bahar', 'half', 'quarter', 'btc']
-RANGES = ['daily', 'weekly', 'monthly', 'yearly', 'all']
 SYMBOLS = {
     'usd': 'USD_IRR_FREE', 'usdt': 'USDT_IRR', 'eur': 'EUR_IRR_FREE',
     'g18': 'GOLD_18K_IRR', 'g24': 'GOLD_24K_IRR', 'silver': 'SILVER_999',
@@ -21,21 +22,23 @@ SYMBOLS = {
 }
 
 os.makedirs('data/charts', exist_ok=True)
+os.makedirs('data/history', exist_ok=True)
 
 def parse_time(t_str):
     try:
         if isinstance(t_str, (int, float)): return datetime.fromtimestamp(t_str / 1000)
         return datetime.strptime(str(t_str)[:10], '%Y-%m-%d')
     except:
-        return datetime.now()
+        return None
 
-def generate_chart(asset_id, symbol, days=None):
-    file_path = f'data/history/{symbol}.json'
-    if not os.path.exists(file_path):
+def generate_chart(asset_id, symbol, range_name, days=None):
+    url = f"https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/history/{symbol}.json"
+    try:
+        res = requests.get(url, timeout=10)
+        if res.status_code != 200: return
+        data = res.json()
+    except:
         return
-    
-    with open(file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
     
     rows = data if isinstance(data, list) else data.get('data', [])
     dates = []
@@ -44,30 +47,26 @@ def generate_chart(asset_id, symbol, days=None):
     for r in rows:
         d = parse_time(r.get('date') or r.get('t') or r.get('t_tehran'))
         p = float(r.get('close') or r.get('price') or 0)
-        if p > 0:
+        if d and p > 0:
             dates.append(d)
             prices.append(p)
             
     if not dates: return
 
-    # فیلتر بازه زمانی
     if days:
         cutoff = datetime.now().timestamp() - (days * 86400)
         filtered = [(d, p) for d, p in zip(dates, prices) if d.timestamp() >= cutoff]
         if not filtered: return
         dates, prices = zip(*filtered)
 
-    # رسم نمودار
-    fig, ax = plt.subplots(figsize=(4, 2), dpi=150)
-    fig.patch.set_alpha(0) # پس‌زمینه شفاف
+    fig, ax = plt.subplots(figsize=(4, 2), dpi=120)
+    fig.patch.set_alpha(0)
     ax.patch.set_alpha(0)
     
-    # رنگ گرادیانت
-    color = '#38bdf8' # آبی
+    color = '#38bdf8'
     ax.plot(dates, prices, color=color, linewidth=2)
     ax.fill_between(dates, prices, min(prices), color=color, alpha=0.15)
     
-    # حذف حاشیه‌ها
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(False)
@@ -76,30 +75,20 @@ def generate_chart(asset_id, symbol, days=None):
     ax.grid(axis='y', color='#333', linestyle='--', alpha=0.5)
     ax.tick_params(axis='both', which='both', length=0)
     
-    # فرمت تاریخ
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
-    plt.xticks(rotation=0, fontsize=8)
-    plt.yticks(fontsize=8)
+    plt.xticks(rotation=0, fontsize=7)
+    plt.yticks(fontsize=7)
     
     plt.tight_layout()
-    
-    range_name = 'all'
-    if days == 7: range_name = 'weekly'
-    elif days == 30: range_name = 'monthly'
-    elif days == 365: range_name = 'yearly'
-    elif days is None: range_name = 'daily'
-
-    # ذخیره عکس
     save_path = f'data/charts/{asset_id}_{range_name}.png'
     plt.savefig(save_path, transparent=True, bbox_inches='tight', pad_inches=0.1)
     plt.close()
 
-print("Generating charts...")
 for asset_id, symbol in SYMBOLS.items():
-    generate_chart(asset_id, symbol, 1)     # daily (1 day)
-    generate_chart(asset_id, symbol, 7)     # weekly
-    generate_chart(asset_id, symbol, 30)    # monthly
-    generate_chart(asset_id, symbol, 365)   # yearly
-    generate_chart(asset_id, symbol, 3650)  # all
+    generate_chart(asset_id, symbol, 'daily', 1)
+    generate_chart(asset_id, symbol, 'weekly', 7)
+    generate_chart(asset_id, symbol, 'monthly', 30)
+    generate_chart(asset_id, symbol, 'yearly', 365)
+    generate_chart(asset_id, symbol, 'all', 3650)
 
-print("Done!")
+print("Charts generated successfully!")
