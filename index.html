@@ -212,14 +212,14 @@ const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
-const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV17',FAVORITES_KEY='pulseFavoritesV17';
+const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV18',FAVORITES_KEY='pulseFavoritesV18';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
 function num(v,d=0){return Number.isFinite(Number(v))?new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US',{maximumFractionDigits:d}).format(Number(v)):'---'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-// توابع زمان کاملاً استاندارد و اصلاح شده
+// توابع زمان اصلاح شدند تا باگ 00:00 را رفع کنند
 function parseTime(v){
     if(v==null||v===''||v===0||v==='0')return NaN; 
     if(typeof v==='number')return v<1e12?v*1000:v;
@@ -230,8 +230,6 @@ function parseTime(v){
     return NaN
 }
 function dayKey(time=Date.now()){const p=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(time));const g=x=>p.find(y=>y.type===x)?.value||'00';return `${g('year')}-${g('month')}-${g('day')}`}
-
-// تابع getLabel دقیقاً مثل کدهای اول که کار میکرد
 function getLabel(p,mode){
     if(!p || !p.time || p.time < 1e12) return '---';
     const d=new Date(p.time);
@@ -260,7 +258,7 @@ async function refreshPrices(){
             else{let isDirectMap=true;for(const k in intraData){if(!Array.isArray(intraData[k])){isDirectMap=false;break}}if(isDirectMap)remoteIntraday={[dayKey()]:intraData};else remoteIntraday=intraData}
         }
         if(data&&data.prices&&Object.keys(data.prices).length>0){
-            const updatedAt=Date.now(); 
+            const updatedAt = Date.now(); // زورچپان کردن زمان دقیق الان
             for(const k of Object.keys(prices)){if(k.startsWith('_'))delete prices[k]}
             Object.assign(prices,data.prices);
             if(data.sources)Object.assign(sources,data.sources);
@@ -352,7 +350,7 @@ function updateChartData(a,chartInstance){
     
     chartInstance._rawPoints = pts;
     const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
-    chartInstance._isUp = isUp; // ذخیره وضعیت برای تغییر تم
+    chartInstance._isUp = isUp;
     
     chartInstance.data.labels=pts.map(p=>getLabel(p,mode));
     chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.price)});
@@ -394,9 +392,10 @@ function pointsFor(id){
                 const time=parseTime(p.time);
                 if(!Number.isFinite(time)||time<1e12||dayKey(time)!==today)continue;
                 
+                // حذف نقطه 00:00 از تاریخچه برای جلوگیری از باگ تولتیپ
                 if (pts === all) {
                     const d = new Date(time);
-                    if (d.getHours() < 1) continue; // حذف نقطه 00:00 برای تاریخچه
+                    if (d.getHours() === 0 && d.getMinutes() === 0) continue; 
                 }
                 
                 const key=Math.floor(time/60000);
@@ -419,22 +418,6 @@ function pointsFor(id){
 }
 function getMergedRawPoints(id,days){const cutoff=Date.now()-days*86400000;const all=history[id]||[];return all.filter(p=>p.time>=cutoff).sort((a,b)=>a.time-b.time)}
 
-// تابع سراسری ستاره‌ها برای کارکرد قطعی روی همه مرورگرها
-window.toggleFav = function(id, btn) {
-    let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    const idx = favs.indexOf(id);
-    if (idx > -1) { 
-        favs.splice(idx, 1); 
-        btn.classList.remove('active'); 
-    } else { 
-        favs.push(id); 
-        btn.classList.add('active'); 
-    }
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
-    favorites = favs;
-    if (!$('favPage').classList.contains('hidden')) renderFavorites();
-};
-
 function fullCardHTML(a,prefix=''){
     const p=getPrice(a.id);const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);
     const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);
@@ -445,7 +428,7 @@ function fullCardHTML(a,prefix=''){
     <article class="card">
         <div class="card-top">
             <div class="card-title-wrap">
-                <button class="star-btn ${isFav?'active':''}" onclick="toggleFav('${a.id}', this)">⭐</button>
+                <button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button>
                 <div>
                     <div class="card-name">${esc(nm(a))}</div>
                     <div class="card-sym">${a.symbol}</div>
@@ -469,7 +452,7 @@ function fullCardHTML(a,prefix=''){
     </article>`;
 }
 
-function miniCardHTML(a){const p=getPrice(a.id);const ohlc=todayOHLC(a.id);const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';const isFav=favorites.includes(a.id);return`<div class="mini-card" id="mini-${a.id}"><div class="mini-title-wrap"><button class="star-btn ${isFav?'active':''}" onclick="toggleFav('${a.id}', this)">⭐</button><div class="mini-name">${esc(nm(a))}</div></div><div class="mini-sym">${a.symbol}</div><div class="mini-price">${priceHTML}</div><div class="mini-chg" id="chg-${a.id}">—</div><div class="mini-range"><span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span></div></div>`}
+function miniCardHTML(a){const p=getPrice(a.id);const ohlc=todayOHLC(a.id);const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';const isFav=favorites.includes(a.id);return`<div class="mini-card" id="mini-${a.id}"><div class="mini-title-wrap"><button class="star-btn ${isFav?'active':''}" data-id="${a.id}">⭐</button><div class="mini-name">${esc(nm(a))}</div></div><div class="mini-sym">${a.symbol}</div><div class="mini-price">${priceHTML}</div><div class="mini-chg" id="chg-${a.id}">—</div><div class="mini-range"><span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span></div></div>`}
 
 function bindRanges(grid,prefix=''){
     grid.querySelectorAll('.range').forEach(b=>{
@@ -647,29 +630,51 @@ function addHolding(){const id=$('addAsset')?.value;const qty=Number($('addQty')
 
 function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==='fa'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);else el.textContent=t(el.dataset.t)});$('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome();fillCalc();fillAddSelect();renderHoldings();calc()}
 
-// تابع تغییر تم بهینه‌شده (بدون رفرش کردن کل صفحه)
+// تغییر تم بهینه‌شده (بدون نابودی نمودارها که باعث فریز میشد)
 function applyTheme(){
     document.documentElement.setAttribute('data-theme',theme);
     $('themeBtn').textContent=theme==='obsidian'?'👑':theme==='neon'?'⚡':'💎';
-    // فقط رنگ‌ها رو آپدیت میکنیم، نمودارها رو نابود نمیکنیم
-    for (const chartKey in charts) {
-        let aId = chartKey;
-        if (chartKey.includes('-')) aId = chartKey.split('-')[1];
-        const a = assets.find(x=>x.id===aId);
-        if(a && charts[chartKey]._isUp !== undefined) {
-            updateChartTheme(charts[chartKey], a, charts[chartKey]._isUp);
-            charts[chartKey].update('none');
+    requestAnimationFrame(() => {
+        for (const chartKey in charts) {
+            let aId = chartKey;
+            if (chartKey.includes('-')) aId = chartKey.split('-')[1];
+            const a = assets.find(x=>x.id===aId);
+            if(a && charts[chartKey]._isUp !== undefined) {
+                updateChartTheme(charts[chartKey], a, charts[chartKey]._isUp);
+                charts[chartKey].update('none');
+            }
         }
-    }
+    });
 }
 
 function hideAllPages(){
     $('homePage').classList.add('hidden');$('favPage').classList.add('hidden');$('allPage').classList.add('hidden');$('calcPage').classList.remove('show');$('assetsPage').classList.remove('show');
     ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
-    // فقط وقتی از صفحه خارج میشیم حافظه رو آزاد میکنیم
     for(const key in charts){try{charts[key].destroy()}catch(e){}delete charts[key];}
     $('gridAll').innerHTML=''; $('gridFavorites').innerHTML='';
 }
+
+// حل قطعی مشکل ستاره‌ها با Event Delegation
+document.body.addEventListener('click', function(e) {
+    const btn = e.target.closest('.star-btn');
+    if (!btn) return;
+    e.preventDefault();
+    const id = btn.getAttribute('data-id');
+    if (!id) return;
+    let favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    const idx = favs.indexOf(id);
+    if (idx > -1) { 
+        favs.splice(idx, 1); 
+        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.remove('active')); 
+    }
+    else { 
+        favs.push(id); 
+        document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.add('active')); 
+    }
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
+    favorites = favs;
+    if (!$('favPage').classList.contains('hidden')) renderFavorites();
+});
 
 $('menuBtn').onclick=()=>{$('drawer').classList.add('open');$('drawerOverlay').classList.add('open')};
 const closeDrawer=()=>{$('drawer').classList.remove('open');$('drawerOverlay').classList.remove('open')};
