@@ -212,7 +212,7 @@ const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
-const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV23',FAVORITES_KEY='pulseFavoritesV23';
+const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV24',FAVORITES_KEY='pulseFavoritesV24';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
@@ -234,8 +234,19 @@ function getLabel(p,mode){
     if(!p || !p.time || p.time < 1e12) return '---';
     const d=new Date(p.time);
     if(isNaN(d.getTime())) return '---';
-    if(mode==='daily') return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
-    return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+    
+    // فرمت‌بندی مستقیم و ساده برای جلوگیری از باگ 00:00 در مرورگرها
+    if(mode==='daily') {
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+    }
+    if (p.date) return p.date;
+    
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}/${mm}/${dd}`;
 }
 
 async function fetchJson(url,tm=5000){const c=new AbortController(),id=setTimeout(()=>c.abort(),tm);try{const r=await fetch(url,{cache:'no-store',signal:c.signal});if(!r.ok)throw 0;return await r.json()}finally{clearTimeout(id)}}
@@ -403,8 +414,11 @@ function pointsFor(id){
                 const time=parseTime(p.time);
                 if(!Number.isFinite(time)||time<1e12||dayKey(time)!==today)continue;
                 
-                const d = new Date(time);
-                if (d.getHours() === 0 && d.getMinutes() === 0) continue; 
+                // حذف نقطه 00:00 از تاریخچه برای جلوگیری از باگ تولتیپ
+                if (pts === all) {
+                    const d = new Date(time);
+                    if (d.getHours() === 0 && d.getMinutes() === 0) continue; 
+                }
 
                 const key=Math.floor(time/60000);
                 if(seen.has(key))continue;
@@ -604,8 +618,16 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         const p=items[0].chart._rawPoints[idx];
         if(!p || !p.time || p.time < 1e12) return ''; 
         const d=new Date(p.time);
-        if(mode==='daily')return d.toLocaleTimeString(lang==='fa'?'fa-IR':'en-GB',{hour:'2-digit',minute:'2-digit'});
-        else return new Intl.DateTimeFormat(lang==='fa'?'fa-IR-u-ca-persian':'en-US',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+        if(mode==='daily'){
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+        if (p.date) return p.date;
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}/${mm}/${dd}`;
     },label:c=>(mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'))}}},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Tahoma',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
     
     newChart._rawPoints = pts;
