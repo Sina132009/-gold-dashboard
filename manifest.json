@@ -1,0 +1,26 @@
+{
+  "name": "پالس | نبض بازار",
+  "short_name": "پالس",
+  "description": "داشبورد حرفه‌ای رصد لحظه‌ای قیمت ارز، طلا، سکه و ارز دیجیتال",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#111111",
+  "dir": "rtl",
+  "lang": "fa",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
