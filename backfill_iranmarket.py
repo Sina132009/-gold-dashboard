@@ -10,7 +10,6 @@ SYMBOL_MAP = {
     "usdt": "USDT_IRR",
     "eur": "EUR_IRR_FREE",
     "g24": "GOLD_24K_IRR",
-    "silver": "SILVER_999",
     "emami": "COIN_EMAMI_IRR",
     "bahar": "COIN_BAHAR_IRR",
     "half": "COIN_HALF_IRR",
@@ -30,7 +29,6 @@ for our_id, symbol in SYMBOL_MAP.items():
         res.raise_for_status()
         data = res.json()
 
-        # استخراج لیست نقاط داده
         points = data.get("data", []) if isinstance(data, dict) else data
 
         if not points:
@@ -39,7 +37,6 @@ for our_id, symbol in SYMBOL_MAP.items():
 
         formatted = []
         for p in points:
-            # 1. تبدیل زمان (ISO 8601 به میلی‌ثانیه)
             t_raw = p.get("t_tehran") or p.get("t")
             if not t_raw:
                 continue
@@ -47,14 +44,12 @@ for our_id, symbol in SYMBOL_MAP.items():
             t = None
             if isinstance(t_raw, str):
                 try:
-                    # جایگزینی Z با +00:00 برای سازگاری با پایتون
                     clean_t = t_raw.replace("Z", "+00:00")
                     dt = datetime.fromisoformat(clean_t)
                     t = int(dt.timestamp() * 1000)
                 except Exception:
                     continue
             
-            # 2. خواندن قیمت پایانی
             close = p.get("close")
             if close is None:
                 continue
