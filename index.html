@@ -134,92 +134,23 @@
             transition: all 0.5s;
         }
 
-        /* Obsidian Atmosphere */
-        [data-theme="obsidian"] body::before {
-            background: radial-gradient(circle at 50% 0%, #111 0%, #000 70%);
-        }
+        [data-theme="obsidian"] body::before { background: radial-gradient(circle at 50% 0%, #111 0%, #000 70%); }
+        [data-theme="neon"] body::before { background: radial-gradient(circle at 10% 0%, #3d0a6b, transparent 45%), radial-gradient(circle at 90% 10%, #00605a, transparent 40%), radial-gradient(circle at 50% 100%, #6b0a4a, transparent 45%), linear-gradient(160deg, var(--bg1), var(--bg2)); }
+        [data-theme="glass"] body::before { background: radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.15), transparent 40%), radial-gradient(circle at 85% 90%, rgba(168, 85, 247, 0.15), transparent 40%), linear-gradient(160deg, var(--bg1), var(--bg2)); background-attachment: fixed; }
+        
+        [data-theme="cyberpunk"] body::before { background: linear-gradient(160deg, var(--bg1), var(--bg2)); }
+        [data-theme="cyberpunk"] body::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(rgba(0, 255, 204, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 204, 0.05) 1px, transparent 1px); background-size: 30px 30px; mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%); -webkit-mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%); }
 
-        /* Neon Atmosphere */
-        [data-theme="neon"] body::before {
-            background: radial-gradient(circle at 10% 0%, #3d0a6b, transparent 45%),
-                        radial-gradient(circle at 90% 10%, #00605a, transparent 40%),
-                        radial-gradient(circle at 50% 100%, #6b0a4a, transparent 45%),
-                        linear-gradient(160deg, var(--bg1), var(--bg2));
-        }
-
-        /* Glass Atmosphere */
-        [data-theme="glass"] body::before {
-            background: radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.15), transparent 40%),
-                        radial-gradient(circle at 85% 90%, rgba(168, 85, 247, 0.15), transparent 40%),
-                        linear-gradient(160deg, var(--bg1), var(--bg2));
-            background-attachment: fixed;
-        }
-
-        /* Cyberpunk Atmosphere (Grid + Neon) */
-        [data-theme="cyberpunk"] body::before {
-            background: linear-gradient(160deg, var(--bg1), var(--bg2));
-        }
-        [data-theme="cyberpunk"] body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            pointer-events: none;
-            background-image: linear-gradient(rgba(0, 255, 204, 0.05) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(0, 255, 204, 0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
-            mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
-            -webkit-mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
-        }
-
-        /* Oceanic Atmosphere (Deep Sea Light Rays) */
-        [data-theme="oceanic"] body::before {
-            background: radial-gradient(circle at 50% -20%, rgba(100, 255, 218, 0.15) 0%, transparent 60%),
-                        radial-gradient(circle at 10% 80%, rgba(0, 180, 216, 0.1) 0%, transparent 50%),
-                        linear-gradient(160deg, var(--bg1), var(--bg2));
-        }
-
-        /* Slate Atmosphere (Mesh Gradient) */
-        [data-theme="slate"] body::before {
-            background: radial-gradient(at 0% 0%, rgba(180, 142, 173, 0.15) 0px, transparent 50%),
-                        radial-gradient(at 100% 100%, rgba(143, 188, 187, 0.15) 0px, transparent 50%),
-                        linear-gradient(160deg, var(--bg1), var(--bg2));
-        }
-
-        /* Coffee Atmosphere (Warm Paper Texture) */
-        [data-theme="coffee"] body::before {
-            background: radial-gradient(circle at 20% 0%, rgba(216, 67, 21, 0.08) 0%, transparent 40%),
-                        radial-gradient(circle at 80% 100%, rgba(139, 90, 43, 0.08) 0%, transparent 40%),
-                        linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-        }
-
-        /* Sakura Atmosphere (Dreamy Bokeh) */
-        [data-theme="sakura"] body::before {
-            background: radial-gradient(circle at 10% 20%, rgba(255, 105, 180, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 90% 80%, rgba(147, 112, 219, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 50% 50%, rgba(255, 182, 193, 0.2) 0%, transparent 60%),
-                        linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-        }
+        [data-theme="oceanic"] body::before { background: radial-gradient(circle at 50% -20%, rgba(100, 255, 218, 0.15) 0%, transparent 60%), radial-gradient(circle at 10% 80%, rgba(0, 180, 216, 0.1) 0%, transparent 50%), linear-gradient(160deg, var(--bg1), var(--bg2)); }
+        [data-theme="slate"] body::before { background: radial-gradient(at 0% 0%, rgba(180, 142, 173, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(143, 188, 187, 0.15) 0px, transparent 50%), linear-gradient(160deg, var(--bg1), var(--bg2)); }
+        [data-theme="coffee"] body::before { background: radial-gradient(circle at 20% 0%, rgba(216, 67, 21, 0.08) 0%, transparent 40%), radial-gradient(circle at 80% 100%, rgba(139, 90, 43, 0.08) 0%, transparent 40%), linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%); }
+        [data-theme="sakura"] body::before { background: radial-gradient(circle at 10% 20%, rgba(255, 105, 180, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(147, 112, 219, 0.15) 0%, transparent 40%), radial-gradient(circle at 50% 50%, rgba(255, 182, 193, 0.2) 0%, transparent 60%), linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%); }
 
         /* =========================================
            BASE UI STYLES (استایل‌های پایه)
            ========================================= */
-        .skeleton {
-            background: #222;
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 8px;
-            color: transparent !important;
-            pointer-events: none;
-        }
-        [data-theme="light-glass"] .skeleton, 
-        [data-theme="coffee"] .skeleton, 
-        [data-theme="sakura"] .skeleton {
-            background: #e2e8f0;
-            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-            background-size: 200% 100%;
-        }
+        .skeleton { background: #222; background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; color: transparent !important; pointer-events: none; }
+        [data-theme="light-glass"] .skeleton, [data-theme="coffee"] .skeleton, [data-theme="sakura"] .skeleton { background: #e2e8f0; background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         
         .sk-card { height: 280px; border-radius: 18px; border: 1px solid var(--line); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
@@ -229,24 +160,14 @@
 
         .flash-up { animation: flashUp 0.8s ease-out; }
         .flash-down { animation: flashDown 0.8s ease-out; }
-        @keyframes flashUp {
-            0% { color: var(--green); text-shadow: 0 0 8px var(--green); }
-            100% { color: var(--txt); text-shadow: none; }
-        }
-        @keyframes flashDown {
-            0% { color: var(--red); text-shadow: 0 0 8px var(--red); }
-            100% { color: var(--txt); text-shadow: none; }
-        }
+        @keyframes flashUp { 0% { color: var(--green); text-shadow: 0 0 8px var(--green); } 100% { color: var(--txt); text-shadow: none; } }
+        @keyframes flashDown { 0% { color: var(--red); text-shadow: 0 0 8px var(--red); } 100% { color: var(--txt); text-shadow: none; } }
 
         .app { max-width: 1400px; margin: auto; padding: 20px; position: relative; z-index: 1; }
         header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
         
         .brand { display: flex; align-items: center; gap: 12px; }
-        .logo {
-            width: 45px; height: 45px; border-radius: 14px; display: grid; place-items: center;
-            font-size: 22px; font-weight: bold; color: #fff; background: linear-gradient(145deg, #7eb0ff, #3158a4);
-            box-shadow: 0 4px 15px #315ba855; transition: all 0.3s;
-        }
+        .logo { width: 45px; height: 45px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; font-weight: bold; color: #fff; background: linear-gradient(145deg, #7eb0ff, #3158a4); box-shadow: 0 4px 15px #315ba855; transition: all 0.3s; }
         [data-theme="obsidian"] .logo { background: linear-gradient(135deg, #f3c623, #ff8f00); color: #000; }
         [data-theme="neon"] .logo { background: linear-gradient(145deg, #a855f7, #00ffc6); }
         [data-theme="glass"] .logo { background: linear-gradient(145deg, #38bdf8, #818cf8); color: #fff; }
@@ -271,76 +192,44 @@
         .brand p { font-size: 11px; color: var(--muted); margin-top: 2px; }
         .actions { display: flex; gap: 10px; align-items: center; }
         
-        .btn {
-            padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card1);
-            color: var(--txt); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
-            gap: 8px; font-family: inherit; font-size: 13px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        }
+        .btn { padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card1); color: var(--txt); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 13px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .btn:hover { filter: brightness(1.15); }
         .btn-icon { font-size: 20px; padding: 8px 12px; }
 
         .search-wrap { position: relative; margin-bottom: 15px; width: 100%; max-width: 400px; }
-        .search-input {
-            width: 100%; padding: 12px 40px 12px 15px; border-radius: 12px; border: 1px solid var(--line);
-            background: var(--card1); color: var(--txt); font-family: inherit; font-size: 14px;
-            outline: none; transition: 0.2s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        }
+        .search-input { width: 100%; padding: 12px 40px 12px 15px; border-radius: 12px; border: 1px solid var(--line); background: var(--card1); color: var(--txt); font-family: inherit; font-size: 14px; outline: none; transition: 0.2s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(243, 198, 35, 0.2); }
         [data-theme="cyberpunk"] .search-input:focus { box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); }
         [data-theme="oceanic"] .search-input:focus { box-shadow: 0 0 10px rgba(0, 180, 216, 0.3); }
         [data-theme="sakura"] .search-input:focus { box-shadow: 0 0 10px rgba(255, 105, 180, 0.3); }
         .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
 
-        /* Drawer */
-        .drawer {
-            position: fixed; top: 0; right: -280px; width: 280px; height: 100vh; background: var(--card1);
-            border-left: 1px solid var(--line); transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000; display: flex; flex-direction: column; padding: 20px; padding-bottom: 30px;
-            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5); overflow-y: auto; overflow-x: hidden;
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        }
+        .drawer { position: fixed; top: 0; right: -280px; width: 280px; height: 100vh; background: var(--card1); border-left: 1px solid var(--line); transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px; padding-bottom: 30px; box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5); overflow-y: auto; overflow-x: hidden; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         .drawer::-webkit-scrollbar { width: 6px; }
         .drawer::-webkit-scrollbar-track { background: transparent; }
         .drawer::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
-        [data-theme="light-glass"] .drawer::-webkit-scrollbar-thumb, 
-        [data-theme="coffee"] .drawer::-webkit-scrollbar-thumb, 
-        [data-theme="sakura"] .drawer::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); }
+        [data-theme="light-glass"] .drawer::-webkit-scrollbar-thumb, [data-theme="coffee"] .drawer::-webkit-scrollbar-thumb, [data-theme="sakura"] .drawer::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); }
         .drawer.open { right: 0; }
         
-        .drawer-overlay {
-            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 999;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(5px);
-        }
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(5px); }
         .drawer-overlay.open { opacity: 1; pointer-events: auto; }
         
         .drawer .btn { width: 100%; justify-content: flex-start; margin-bottom: 10px; padding: 12px 15px; font-size: 14px; border: none; background: transparent; }
         .drawer .btn:hover { background: rgba(255, 255, 255, 0.05); }
         [data-theme="glass"] .drawer .btn.active { background: var(--accent); color: #020617; }
-        [data-theme="light-glass"] .drawer .btn:hover, 
-        [data-theme="coffee"] .drawer .btn:hover, 
-        [data-theme="sakura"] .drawer .btn:hover { background: rgba(0, 0, 0, 0.05); }
-        [data-theme="light-glass"] .drawer .btn.active, 
-        [data-theme="coffee"] .drawer .btn.active, 
-        [data-theme="sakura"] .drawer .btn.active { background: var(--accent); color: #fff; }
+        [data-theme="light-glass"] .drawer .btn:hover, [data-theme="coffee"] .drawer .btn:hover, [data-theme="sakura"] .drawer .btn:hover { background: rgba(0, 0, 0, 0.05); }
+        [data-theme="light-glass"] .drawer .btn.active, [data-theme="coffee"] .drawer .btn.active, [data-theme="sakura"] .drawer .btn.active { background: var(--accent); color: #fff; }
         [data-theme="cyberpunk"] .drawer .btn.active { background: rgba(0, 255, 204, 0.1); color: #00ffcc; border-left: 3px solid #00ffcc; }
         .drawer .divider { height: 1px; background: var(--line); margin: 15px 0; }
 
         .theme-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; padding-right: 10px; }
         [dir="ltr"] .theme-list { padding-right: 0; padding-left: 10px; }
-        .theme-option {
-            padding: 8px 12px; border-radius: 8px; background: transparent; border: 1px solid transparent;
-            color: var(--muted); font-size: 12px; cursor: pointer; text-align: right; transition: 0.2s;
-            display: flex; align-items: center; gap: 8px; font-family: inherit;
-        }
+        .theme-option { padding: 8px 12px; border-radius: 8px; background: transparent; border: 1px solid transparent; color: var(--muted); font-size: 12px; cursor: pointer; text-align: right; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
         [dir="ltr"] .theme-option { text-align: left; }
         .theme-option:hover { background: rgba(255, 255, 255, 0.05); color: var(--txt); }
-        [data-theme="light-glass"] .theme-option:hover, 
-        [data-theme="coffee"] .theme-option:hover, 
-        [data-theme="sakura"] .theme-option:hover { background: rgba(0, 0, 0, 0.05); }
+        [data-theme="light-glass"] .theme-option:hover, [data-theme="coffee"] .theme-option:hover, [data-theme="sakura"] .theme-option:hover { background: rgba(0, 0, 0, 0.05); }
         .theme-option.active-theme { border-color: var(--accent); color: var(--accent); font-weight: bold; background: rgba(255, 255, 255, 0.05); }
-        [data-theme="light-glass"] .theme-option.active-theme, 
-        [data-theme="coffee"] .theme-option.active-theme, 
-        [data-theme="sakura"] .theme-option.active-theme { background: rgba(0, 0, 0, 0.02); }
+        [data-theme="light-glass"] .theme-option.active-theme, [data-theme="coffee"] .theme-option.active-theme, [data-theme="sakura"] .theme-option.active-theme { background: rgba(0, 0, 0, 0.02); }
 
         .status { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); backdrop-filter: blur(10px); }
         .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
@@ -350,26 +239,15 @@
         .grid-mini { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; }
         .section-title { font-size: 16px; font-weight: bold; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
 
-        /* Cards */
-        .card, .mini-card {
-            background: linear-gradient(160deg, var(--card1), var(--card2)); border: 1px solid var(--line);
-            border-radius: 18px; box-shadow: var(--shadow); position: relative; backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px); transition: transform 0.3s, box-shadow 0.3s;
-        }
+        .card, .mini-card { background: linear-gradient(160deg, var(--card1), var(--card2)); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); position: relative; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: transform 0.3s, box-shadow 0.3s; }
         .card { padding: 16px; }
         
-        [data-theme="cyberpunk"] .card, [data-theme="cyberpunk"] .mini-card {
-            border: 1px solid rgba(0, 255, 204, 0.2); border-radius: 4px; border-top: 2px solid rgba(0, 255, 204, 0.6);
-            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
-        }
+        [data-theme="cyberpunk"] .card, [data-theme="cyberpunk"] .mini-card { border: 1px solid rgba(0, 255, 204, 0.2); border-radius: 4px; border-top: 2px solid rgba(0, 255, 204, 0.6); clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px)); }
         [data-theme="cyberpunk"] .card:hover, [data-theme="cyberpunk"] .mini-card:hover { box-shadow: 0 0 25px rgba(0, 255, 204, 0.3); }
         [data-theme="coffee"] .card, [data-theme="coffee"] .mini-card { border-radius: 8px; box-shadow: 0 10px 30px rgba(139, 90, 43, 0.15), 0 2px 5px rgba(139, 90, 43, 0.05); }
         [data-theme="sakura"] .card, [data-theme="sakura"] .mini-card { border-radius: 24px; }
         [data-theme="slate"] .card, [data-theme="slate"] .mini-card { border-radius: 12px; }
-        [data-theme="light-glass"] .card, [data-theme="light-glass"] .mini-card {
-            background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.82); box-shadow: 0 6px 24px 0 rgba(31, 41, 55, 0.06);
-        }
+        [data-theme="light-glass"] .card, [data-theme="light-glass"] .mini-card { background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.82); box-shadow: 0 6px 24px 0 rgba(31, 41, 55, 0.06); }
 
         .mini-card { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
         .mini-card:hover, .card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25); }
@@ -379,9 +257,7 @@
         .star-btn:hover, .cmp-btn:hover { opacity: 0.7; transform: scale(1.1); }
         .star-btn.active { opacity: 1; filter: grayscale(0); text-shadow: 0 0 10px var(--accent); }
         .cmp-btn.active-cmp { opacity: 1; filter: grayscale(0); color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        [data-theme="light-glass"] .star-btn, [data-theme="light-glass"] .cmp-btn, 
-        [data-theme="coffee"] .star-btn, [data-theme="coffee"] .cmp-btn, 
-        [data-theme="sakura"] .star-btn, [data-theme="sakura"] .cmp-btn { opacity: 0.4; }
+        [data-theme="light-glass"] .star-btn, [data-theme="light-glass"] .cmp-btn, [data-theme="coffee"] .star-btn, [data-theme="coffee"] .cmp-btn, [data-theme="sakura"] .star-btn, [data-theme="sakura"] .cmp-btn { opacity: 0.4; }
 
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
         .card-title-wrap { display: flex; align-items: flex-start; gap: 8px; }
@@ -398,10 +274,7 @@
         .day-range b { color: var(--txt); font-weight: 600; }
         
         .ranges { display: flex; gap: 5px; flex-wrap: wrap; margin: 12px 0 8px; }
-        .range {
-            padding: 6px 9px; font-size: 10px; border-radius: 8px; background: var(--card2); color: var(--muted);
-            border: 1px solid var(--line); cursor: pointer; transition: 0.2s; font-family: inherit;
-        }
+        .range { padding: 6px 9px; font-size: 10px; border-radius: 8px; background: var(--card2); color: var(--muted); border: 1px solid var(--line); cursor: pointer; transition: 0.2s; font-family: inherit; }
         .range.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
         [data-theme="obsidian"] .range.active, [data-theme="slate"] .range.active, [data-theme="cyberpunk"] .range.active { color: #000; font-weight: bold; }
         [data-theme="glass"] .range.active { background: var(--accent); color: #020617; border-color: var(--accent); font-weight: bold; }
@@ -422,11 +295,7 @@
         .mini-footer { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 2px; }
         .mini-footer b { color: var(--txt); font-weight: 600; }
 
-        .expand-btn {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); border-radius: 8px;
-            width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s; color: var(--muted); font-size: 14px;
-        }
+        .expand-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); border-radius: 8px; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; color: var(--muted); font-size: 14px; }
         .expand-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
         [data-theme="light-glass"] .expand-btn, [data-theme="coffee"] .expand-btn, [data-theme="sakura"] .expand-btn { background: rgba(0, 0, 0, 0.03); }
         [data-theme="cyberpunk"] .expand-btn { border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
@@ -521,6 +390,7 @@
         
         <button class="btn" id="themeToggleBtn" data-t="themeTitle">🎨 تغییر تم</button>
         <div id="themeList" class="theme-list hidden">
+            <button class="theme-option" data-t="theme_random" data-theme-val="random">🎲 شانسی (Random)</button>
             <button class="theme-option" data-t="theme_obsidian" data-theme-val="obsidian">🌑 تیره (Obsidian)</button>
             <button class="theme-option" data-t="theme_neon" data-theme-val="neon">🔮 نئون (Neon)</button>
             <button class="theme-option" data-t="theme_glass" data-theme-val="glass">💎 شیشه‌ای تیره (Glass)</button>
@@ -687,7 +557,7 @@
                 amount: 'مقدار', from: 'از', to: 'به', toman: 'تومان', usd: 'دلار', otherAssets: 'سایر دارایی‌ها',
                 favsTitle: '⭐ علاقه‌مندی‌ها', favsSub: 'دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.',
                 noFavs: 'هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.', themeTitle: '🎨 تغییر تم',
-                theme_obsidian: 'تیره (Obsidian)', theme_neon: 'نئون (Neon)', theme_glass: 'شیشه‌ای تیره (Glass)',
+                theme_random: 'شانسی (Random)', theme_obsidian: 'تیره (Obsidian)', theme_neon: 'نئون (Neon)', theme_glass: 'شیشه‌ای تیره (Glass)',
                 theme_light_glass: 'شیشه‌ای روشن (Light Glass)', theme_cyberpunk: 'سایبرپانک (Cyberpunk)',
                 theme_oceanic: 'اقیانوس (Oceanic)', theme_slate: 'اسلیت (Slate)', theme_coffee: 'قهوه‌ای (Coffee)',
                 theme_sakura: 'ساکورا (Sakura)', searchPlaceholder: 'جستجوی دارایی (مثلا: دلار، تتر، طلا...)',
@@ -708,7 +578,7 @@
                 del: 'Delete', showChart: 'Show Chart', hideChart: 'Hide Chart', amount: 'Amount', from: 'From', to: 'To',
                 toman: 'Toman', usd: 'USD', otherAssets: 'Other Assets', favsTitle: '⭐ Favorites',
                 favsSub: 'Assets you starred will appear here.', noFavs: 'No assets added to favorites yet.',
-                themeTitle: '🎨 Change Theme', theme_obsidian: 'Dark (Obsidian)', theme_neon: 'Neon',
+                themeTitle: '🎨 Change Theme', theme_random: 'Random', theme_obsidian: 'Dark (Obsidian)', theme_neon: 'Neon',
                 theme_glass: 'Dark Glass', theme_light_glass: 'Light Glass', theme_cyberpunk: 'Cyberpunk',
                 theme_oceanic: 'Oceanic', theme_slate: 'Slate', theme_coffee: 'Coffee', theme_sakura: 'Sakura',
                 searchPlaceholder: 'Search assets (e.g. USD, Gold...)', compareTitle: 'Assets Comparison',
@@ -720,7 +590,8 @@
            STATE & VARIABLES (متغیرهای وضعیت)
            ========================================= */
         let lang = 'fa';
-        let theme = 'obsidian';
+        let theme = 'obsidian'; // User selected theme (can be 'random')
+        let activeTheme = 'obsidian'; // Resolved theme for rendering
         let prices = {};
         let history = {};
         let intraday = {};
@@ -849,7 +720,7 @@
                 if (s === 'fa' || s === 'en') lang = s;
                 
                 const th = localStorage.getItem('mktTheme');
-                if (['obsidian', 'neon', 'glass', 'light-glass', 'cyberpunk', 'oceanic', 'slate', 'coffee', 'sakura'].includes(th)) theme = th;
+                if (['obsidian', 'neon', 'glass', 'light-glass', 'cyberpunk', 'oceanic', 'slate', 'coffee', 'sakura', 'random'].includes(th)) theme = th;
                 
                 const f = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
                 favorites = Array.isArray(f) ? f : [];
@@ -1333,7 +1204,7 @@
         Chart.register(chartGlowPlugin);
 
         function updateChartTheme(chartInstance, a, isUp) {
-            const themeName = theme;
+            const themeName = activeTheme;
             const isUSD = a.currency === 'USD';
             const ctx = chartInstance.ctx;
             const width = chartInstance.width || 500;
@@ -1352,7 +1223,11 @@
             chartInstance.options.scales.y.ticks.color = tc;
 
             if (['light-glass', 'coffee', 'sakura'].includes(themeName)) {
-                let themeColor = themeName === 'coffee' ? '#d84315' : (themeName === 'sakura' ? '#ff69b4' : '#3b82f6');
+                const colorMap = { usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', g24: '#eab308', emami: '#ec4899', bahar: '#f43f5e', half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' };
+                let themeColor = colorMap[a.id] || '#3b82f6';
+                if (themeName === 'coffee') themeColor = '#d84315';
+                if (themeName === 'sakura') themeColor = '#ec4899';
+                
                 const fillGradient = ctx.createLinearGradient(0, 0, 0, 190);
                 fillGradient.addColorStop(0, themeColor + '66');
                 fillGradient.addColorStop(0.65, themeColor + '18');
@@ -1565,11 +1440,16 @@
             
             let dataset = { data: dataVals, fill: true, tension: .35, pointRadius: 0, pointHoverRadius: 6, spanGaps: true };
             
-            if (theme === 'cyberpunk') dataset = { ...dataset, borderColor: '#00ffcc', backgroundColor: 'rgba(0,255,204,0.1)' };
-            else if (theme === 'oceanic') dataset = { ...dataset, borderColor: '#64ffda', backgroundColor: 'rgba(100,255,218,0.1)' };
-            else if (theme === 'slate') dataset = { ...dataset, borderColor: '#b48ead', backgroundColor: 'rgba(180,142,173,0.1)' };
-            else if (theme === 'coffee') dataset = { ...dataset, borderColor: '#d84315', backgroundColor: 'rgba(216,67,21,0.1)' };
-            else if (theme === 'sakura') dataset = { ...dataset, borderColor: '#ff69b4', backgroundColor: 'rgba(255,105,180,0.1)' };
+            if (activeTheme === 'cyberpunk') dataset = { ...dataset, borderColor: '#00ffcc', backgroundColor: 'rgba(0,255,204,0.1)' };
+            else if (activeTheme === 'oceanic') dataset = { ...dataset, borderColor: '#64ffda', backgroundColor: 'rgba(100,255,218,0.1)' };
+            else if (activeTheme === 'slate') dataset = { ...dataset, borderColor: '#b48ead', backgroundColor: 'rgba(180,142,173,0.1)' };
+            else if (activeTheme === 'coffee') dataset = { ...dataset, borderColor: '#d84315', backgroundColor: 'rgba(216,67,21,0.1)' };
+            else if (activeTheme === 'sakura') dataset = { ...dataset, borderColor: '#ff69b4', backgroundColor: 'rgba(255,105,180,0.1)' };
+            else if (activeTheme === 'light-glass') {
+                const colorMap = { usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', g24: '#eab308', emami: '#ec4899', bahar: '#f43f5e', half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' };
+                const c = colorMap[a.id] || '#3b82f6';
+                dataset = { ...dataset, borderColor: c, backgroundColor: c + '20' };
+            }
             else dataset = { ...dataset, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.1)' };
 
             const newChart = new Chart(ctx, {
@@ -2200,8 +2080,8 @@
             const labels = times.map(t => getLabel({ time: t }, compareRange));
             
             const ctx = $('compareChart').getContext('2d');
-            let txtColor = (theme === 'light-glass' || theme === 'coffee' || theme === 'sakura') ? '#1e293b' : '#fff';
-            let gridColor = (theme === 'light-glass' || theme === 'coffee' || theme === 'sakura') ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.1)';
+            let txtColor = (activeTheme === 'light-glass' || activeTheme === 'coffee' || activeTheme === 'sakura') ? '#1e293b' : '#fff';
+            let gridColor = (activeTheme === 'light-glass' || activeTheme === 'coffee' || activeTheme === 'sakura') ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.1)';
 
             compareChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -2322,7 +2202,14 @@
         }
 
         function applyTheme() {
-            document.documentElement.setAttribute('data-theme', theme);
+            if (theme === 'random') {
+                const themesArr = ['obsidian', 'neon', 'glass', 'light-glass', 'cyberpunk', 'oceanic', 'slate', 'coffee', 'sakura'];
+                activeTheme = themesArr[Math.floor(Math.random() * themesArr.length)];
+            } else {
+                activeTheme = theme;
+            }
+            
+            document.documentElement.setAttribute('data-theme', activeTheme);
             updateThemeListUI();
             
             const chartKeys = Object.keys(charts);
