@@ -19,16 +19,12 @@
 :root,[data-theme="obsidian"]{--bg1:#000;--bg2:#050505;--card1:#111;--card2:#0a0a0a;--line:rgba(255,255,255,.06);--txt:#fff;--muted:#888;--green:#00e676;--red:#ff1744;--accent:#f3c623;--shadow:0 4px 15px rgba(0,0,0,.5)}
 [data-theme="neon"]{--bg1:#05010f;--bg2:#0d0420;--card1:rgba(20,8,45,.95);--card2:rgba(10,4,28,.98);--line:rgba(180,100,255,.35);--txt:#f2e9ff;--muted:#b39ddb;--green:#00ffc6;--red:#ff2e88;--accent:#a855f7;--shadow:0 4px 15px rgba(168,85,247,.15)}
 [data-theme="glass"]{--bg1:#050B14;--bg2:#0A1428;--card1:rgba(16,30,54,.9);--card2:rgba(10,20,38,.95);--line:rgba(56,189,248,.15);--txt:#F8FAFC;--muted:#94A3B8;--green:#10B981;--red:#F43F5E;--accent:#38BDF8;--shadow:0 4px 15px rgba(0,0,0,.4)}
-
 [data-theme="light-glass"]{
     --bg1:#e2e8f0;--bg2:#cbd5e1;--card1:rgba(255,255,255,.78);--card2:rgba(248,250,252,.68);
     --line:rgba(51,65,85,.09);--txt:#263449;--muted:#64748b;--green:#10b981;--red:#ef4444;
     --accent:#3b82f6;--shadow:0 6px 24px rgba(31,41,55,.06);
 }
-[data-theme="light-glass"] body{
-    background:linear-gradient(135deg,#e2e8f0 0%,#cbd5e1 100%);
-    background-attachment:fixed;
-}
+[data-theme="light-glass"] body{background:linear-gradient(135deg,#e2e8f0 0%,#cbd5e1 100%);background-attachment:fixed;}
 [data-theme="light-glass"] .card,[data-theme="light-glass"] .mini-card{
     background:rgba(255,255,255,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     border:1px solid rgba(255,255,255,.82);box-shadow:0 6px 24px 0 rgba(31,41,55,.06);
@@ -146,7 +142,6 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .chart-wrap{height:190px;position:relative;min-height:190px;z-index:1}
 canvas{width:100%!important;height:100%!important;display:block}
 
-/* --- MINI CARD NEW DESIGN --- */
 .mini-card{
     background:linear-gradient(145deg,var(--card1),var(--card2));
     border:1px solid var(--line);
@@ -189,8 +184,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 .close-expand-btn{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0;margin-right:8px;transition:transform 0.2s;}
 .close-expand-btn:hover{transform:scale(1.2);}
 
-/* Expanded Card Styles */
-.expanded-card{grid-column:1/-1 !important; animation:fadeIn 0.3s ease;}
+.expanded-card{animation:fadeIn 0.3s ease;}
 @keyframes fadeIn{from{opacity:0;transform:scale(0.98);}to{opacity:1;transform:scale(1);}}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.3s;}
@@ -308,6 +302,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 
 <div id="homePage">
 <div class="grid" id="gridFeatured" style="margin-bottom:20px;"></div>
+<div id="expandedContainer" class="hidden" style="margin-bottom:20px;"></div>
 <div class="section-title" data-t="otherAssets">سایر دارایی‌ها</div>
 <div class="grid-mini" id="gridMini"></div>
 </div>
@@ -379,7 +374,7 @@ const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار',otherAssets:'سایر دارایی‌ها',favsTitle:'⭐ علاقه‌مندی‌ها',favsSub:'دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.',noFavs:'هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.',themeTitle:'🎨 تغییر تم',theme_obsidian:'تیره (Obsidian)',theme_neon:'نئون (Neon)',theme_glass:'شیشه‌ای تیره (Glass)',theme_light_glass:'شیشه‌ای روشن (Light Glass)',searchPlaceholder:'جستجوی دارایی (مثلا: دلار، تتر، طلا...)',compareTitle:'مقایسه دارایی‌ها',selectTwo:'برای مقایسه، دقیقاً دو دارایی را با دکمه 📊 انتخاب کنید.'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD',otherAssets:'Other Assets',favsTitle:'⭐ Favorites',favsSub:'Assets you starred will appear here.',noFavs:'No assets added to favorites yet.',themeTitle:'🎨 Change Theme',theme_obsidian:'Dark (Obsidian)',theme_neon:'Neon',theme_glass:'Dark Glass',theme_light_glass:'Light Glass',searchPlaceholder:'Search assets (e.g. USD, Gold...)',compareTitle:'Assets Comparison',selectTwo:'Select exactly two assets using the 📊 button.'}};
 
-let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[],selectedForCompare=[],compareChartInstance=null,compareRange='daily',prevPrices={},expandedAssetId=null;
+let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[],selectedForCompare=[],compareChartInstance=null,compareRange='daily',prevPrices={},expandedAssetId=null,lastMiniStateKey='';
 const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV30',FAVORITES_KEY='pulseFavoritesV27',HISTORY_CACHE_TIME_KEY='pulseHistoryTimeV2';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
@@ -426,15 +421,11 @@ function loadSettings(){
     try{
         const s=localStorage.getItem('mktLang'); if(s==='fa'||s==='en') lang=s;
         const th=localStorage.getItem('mktTheme'); if(['obsidian','neon','glass','light-glass'].includes(th)) theme=th;
-        
         const f = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
         favorites = Array.isArray(f) ? f : [];
-        
         const hc=JSON.parse(localStorage.getItem(HISTORY_CACHE_KEY)||'{}'); if(hc&&Object.keys(hc).length>0) history=hc;
         const hd=JSON.parse(localStorage.getItem(HOLDINGS_KEY)||'[]'); holdings=Array.isArray(hd)?hd.filter(h=>h&&h.id&&assets.some(a=>a.id===h.id)&&h.id!=='oil'&&Number(h.qty)>0):[];
-    }catch(e){
-        favorites = [];
-    }
+    }catch(e){ favorites = []; }
 }
 
 function loadIntraday(){
@@ -480,20 +471,16 @@ async function refreshPrices(){
         const ok=Object.keys(prices).filter(k=>!k.startsWith('_')).length>0;
         $('dot').classList.toggle('bad',!ok);
         $('status').textContent=ok?t('connected'):t('failed');
-        
         updatePricesOnly();
         if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
         if(!$('favPage').classList.contains('hidden')) renderFavorites();
-        
     }catch(e){
         $('dot').classList.add('bad');$('status').textContent=t('failed')
     }
 }
 
 function getTomanValue(id){if(id==='toman')return 1;const p=getPrice(id);if(p<=0)return 0;const a=assets.find(x=>x.id===id);if(a&&a.currency==='USD'){const usdRate=getPrice('usd');return usdRate>0?p*usdRate:0}return p}
-
 function getPrice(id){if(prices[id]>0)return prices[id];const h=history[id]||[];if(h.length>0)return h[h.length-1].close||h[h.length-1].price;return 0}
-
 function formatPrice(a,p){if(p<=0)return t('noPrice');if(a.currency==='USD')return`$${num(p,2)}`;return`${num(p)} <span class="unit">${t('tomanUnit')}</span>`}
 
 function todayOHLC(id){
@@ -532,8 +519,7 @@ function getRangeChange(id){
             const cutoff=Date.now()-86400000;
             rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
         }
-    }
-    else {
+    } else {
         const days = mode==='weekly'?7 : mode==='monthly'?30 : mode==='yearly'?365 : 3650;
         const cutoff=Date.now()-days*86400000;
         rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
@@ -549,7 +535,6 @@ function getRangeLabels(mode){if(mode==='weekly')return{low:t('lowWeekly'),high:
 function updatePricesOnly(){
     for(const a of assets){
         const p=getPrice(a.id);const priceHTML=formatPrice(a,p);
-        
         let flashClass = '';
         if(prevPrices[a.id] !== undefined && p > 0 && prevPrices[a.id] > 0 && p !== prevPrices[a.id]){
             flashClass = p > prevPrices[a.id] ? 'flash-up' : 'flash-down';
@@ -607,18 +592,14 @@ function updateChartData(a,chartInstance){
     const vals=pts.map(p=>p.close||p.price).filter(v=>Number.isFinite(v)&&v>0);
     let yMin=0,yMax=100;
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
-    
     chartInstance._rawPoints = pts;
     chartInstance._currentMode = mode; 
     const isUp=pts.length>1?((pts[pts.length-1].close||pts[pts.length-1].price)>=(pts[0].close||pts[0].price)):true;
     chartInstance._isUp = isUp;
-    
     chartInstance.data.labels=pts.map(p=>getLabel(p,mode));
     chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.close||p.price)});
     chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
-    
     chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=0});
-    
     chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
         if(!items.length) return '';
         const idx = items[0].dataIndex;
@@ -636,25 +617,22 @@ function updateChartData(a,chartInstance){
         const dd = String(d.getDate()).padStart(2, '0');
         return `${yyyy}/${mm}/${dd}`;
     };
-    
     updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');
 }
 
 async function loadHistories(){
     const lastCacheTime = Number(localStorage.getItem(HISTORY_CACHE_TIME_KEY) || 0);
     const isCacheValid = Object.keys(history).length > 0 && (Date.now() - lastCacheTime < 3600000); 
-    
     if(isCacheValid){
         if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
         if(!$('favPage').classList.contains('hidden')) renderFavorites();
         for(const chartKey in charts){
-            if(chartKey.startsWith('feat-') || chartKey.startsWith('fav-')) continue;
+            if(chartKey.startsWith('feat-') || chartKey.startsWith('fav-') || chartKey.startsWith('exp-')) continue;
             let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];
             const a=assets.find(x=>x.id===aId);if(a){updateChartData(a,charts[chartKey])}
         }
         return;
     }
-
     for(const a of assets){
         let bestPts = history[a.id] || null; 
         for(const base of HISTORY_URLS) {
@@ -669,29 +647,21 @@ async function loadHistories(){
                     low:Number(r.low??r.min??0),
                     high:Number(r.high??r.max??0)
                 })).filter(p=>Number.isFinite(p.time)&&p.close>0).sort((a,b)=>a.time-b.time);
-                
-                if (pts.length > 0 && (!bestPts || pts[0].time < bestPts[0].time)) {
-                    bestPts = pts;
-                }
-                if (bestPts && (Date.now() - bestPts[0].time) > 60 * 86400000) {
-                    break;
-                }
+                if (pts.length > 0 && (!bestPts || pts[0].time < bestPts[0].time)) bestPts = pts;
+                if (bestPts && (Date.now() - bestPts[0].time) > 60 * 86400000) break;
             } catch(e) {}
         }
         if (bestPts) history[a.id] = bestPts;
         await new Promise(r=>setTimeout(r, 50)); 
     }
-    
     try {
         localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(history));
         localStorage.setItem(HISTORY_CACHE_TIME_KEY, Date.now().toString());
     } catch(e) { console.warn("LocalStorage full, could not cache history."); }
-    
     if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
     if(!$('favPage').classList.contains('hidden')) renderFavorites();
-    
     for(const chartKey in charts){
-        if(chartKey.startsWith('feat-') || chartKey.startsWith('fav-')) continue;
+        if(chartKey.startsWith('feat-') || chartKey.startsWith('fav-') || chartKey.startsWith('exp-')) continue;
         let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];
         const a=assets.find(x=>x.id===aId);if(a){updateChartData(a,charts[chartKey])}
     }
@@ -713,9 +683,7 @@ function pointsFor(id, overrideMode){
                 if(!(price>0))continue;
                 const time=parseTime(p.time);
                 if(!Number.isFinite(time)||time<1e12||dayKey(time)!==today)continue;
-                
                 if (isTehranMidnight(time)) continue; 
-
                 const key=Math.floor(time/60000);
                 if(seen.has(key))continue;
                 seen.add(key);merged.push({time,close:price})
@@ -724,7 +692,6 @@ function pointsFor(id, overrideMode){
         addPts(intraday[id]||[]);
         if(remoteIntraday[today])addPts(remoteIntraday[today][id]||[]);
         addPts(all);
-        
         if(merged.length>0)return merged.sort((a,b)=>a.time-b.time);
         const currentPrice = getPrice(id);
         if (currentPrice > 0) return [{ time: Date.now(), close: currentPrice }];
@@ -738,16 +705,16 @@ function pointsFor(id, overrideMode){
 }
 function getMergedRawPoints(id,days){const cutoff=Date.now()-days*86400000;const all=history[id]||[];return all.filter(p=>p.time>=cutoff).sort((a,b)=>a.time-b.time)}
 
-function fullCardHTML(a,prefix='', isMiniExpanded=false){
+function fullCardHTML(a,prefix='', isExpanded=false){
     const p=getPrice(a.id);const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);
     const isUSD=a.currency==='USD';const priceHTML=formatPrice(a,p);
     const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';
     const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
     const isFav = favorites.includes(a.id);
     const isCmp = selectedForCompare.includes(a.id);
-    const closeBtn = isMiniExpanded ? `<button class="close-expand-btn" data-id="${a.id}">✖</button>` : '';
+    const closeBtn = isExpanded ? `<button class="close-expand-btn" data-id="${a.id}">✖</button>` : '';
     return `
-    <article class="card ${isMiniExpanded ? 'expanded-card' : ''}">
+    <article class="card ${isExpanded ? 'expanded-card' : ''}">
         <div class="card-top">
             <div class="card-title-wrap">
                 <button class="star-btn ${isFav?'active':''}" data-id="${a.id}" title="افزودن به علاقه‌مندی">⭐</button>
@@ -785,7 +752,6 @@ function miniCardHTML(a){
     const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
     const isFav = favorites.includes(a.id);
     const isCmp = selectedForCompare.includes(a.id);
-    
     return `
     <div class="mini-card" id="mini-${a.id}">
         <div class="mini-header">
@@ -812,8 +778,8 @@ function miniCardHTML(a){
     </div>`;
 }
 
-function bindRanges(grid,prefix=''){
-    grid.querySelectorAll('.range').forEach(b=>{
+function bindRanges(container,prefix=''){
+    container.querySelectorAll('.range').forEach(b=>{
         b.onclick=()=>{
             ranges[b.dataset.id]=b.dataset.r;
             const a=assets.find(x=>x.id===b.dataset.id);
@@ -835,7 +801,7 @@ function bindRanges(grid,prefix=''){
                 }
                 updateChange(a);
             }
-            grid.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
+            container.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
             b.classList.add('active');
         }
     });
@@ -843,29 +809,20 @@ function bindRanges(grid,prefix=''){
 
 function updateChartTheme(chartInstance,a,isUp){
     const neon=theme==='neon',glass=theme==='glass',obsidian=theme==='obsidian',lightGlass=theme==='light-glass';
-    
-    const colorMap = { 
-        usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', 
-        g24: '#eab308', emami: '#ec4899', bahar: '#f43f5e', 
-        half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' 
-    };
+    const colorMap = { usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', g24: '#eab308', emami: '#ec4899', bahar: '#f43f5e', half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' };
     const lightColor = colorMap[a.id] || '#3b82f6';
-
     const gc=lightGlass?'rgba(0,0,0,.04)':neon?'rgba(168,85,247,.15)':glass?'rgba(255,255,255,.05)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
     const tc=lightGlass?'#64748b':neon?'#b39ddb':glass?'#94a3b8':obsidian?'#888':'#8fa0bd';
-    
     chartInstance.options.scales.y.grid.color=gc;
     chartInstance.options.scales.y.ticks.color=tc;
     const isUSD=a.currency==='USD';
     const ctx=chartInstance.ctx;
     const width=chartInstance.width||500;
-    
     if(lightGlass){
         const fillGradient = ctx.createLinearGradient(0, 0, 0, 190);
         fillGradient.addColorStop(0, lightColor + '66');
         fillGradient.addColorStop(0.65, lightColor + '18');
         fillGradient.addColorStop(1, lightColor + '00');
-
         chartInstance.data.datasets[0].borderColor=lightColor;
         chartInstance.data.datasets[0].backgroundColor=fillGradient;
         chartInstance.data.datasets[0].borderWidth=3.5;
@@ -912,7 +869,6 @@ function updateChartTheme(chartInstance,a,isUp){
         chartInstance.data.datasets[0].pointHoverRadius=6;
         chartInstance.data.datasets[0].shadowBlur=0;
     }
-    
     chartInstance.options.plugins.tooltip.backgroundColor=lightGlass?'rgba(255,255,255,.9)':neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)';
     chartInstance.options.plugins.tooltip.titleColor=lightGlass?'#1e293b':'#fff';
     chartInstance.options.plugins.tooltip.bodyColor=lightGlass?'#334155':'#fff';
@@ -932,7 +888,6 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
     const labels=pts.map(p=>getLabel(p,mode));
     const dataVals=pts.map(p=>p.close||p.price);
-    
     if(chartInstance){
         chartInstance._rawPoints = pts;
         chartInstance._currentMode = mode;
@@ -940,7 +895,6 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         chartInstance.data.labels=labels;
         chartInstance.data.datasets.forEach(ds=>{ds.data=dataVals;});
         chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
-        
         chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
             if(!items.length) return '';
             const idx = items[0].dataIndex;
@@ -958,22 +912,17 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
             const dd = String(d.getDate()).padStart(2, '0');
             return `${yyyy}/${mm}/${dd}`;
         };
-        
         updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');return;
     }
-    
     const cv=$(`ch-${prefix}${a.id}`);if(!cv)return;
     const ctx=cv.getContext('2d');let dataset={};
-    
     if(lightGlass){
         const colorMap = { usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', g24: '#eab308', emami: '#ec4899', bahar: '#f43f5e', half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' };
         const c = colorMap[a.id] || '#3b82f6';
-        
         const fillGrad = ctx.createLinearGradient(0, 0, 0, 190);
         fillGrad.addColorStop(0, c + '66');
         fillGrad.addColorStop(0.65, c + '18');
         fillGrad.addColorStop(1, c + '00');
-
         dataset={data:dataVals,borderColor:c,backgroundColor:fillGrad,fill:true,tension:.4,borderWidth:3.5,pointRadius:0,pointHoverRadius:8,pointHoverBackgroundColor:'#fff',pointHoverBorderColor:c,pointHoverBorderWidth:3,shadowColor:c,shadowBlur:12,shadowOffsetY:3,spanGaps:true};
     } else if(glass){
         const width=cv.offsetWidth||500;
@@ -992,10 +941,8 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         else{grad.addColorStop(0,isUp?'rgba(0,230,118,.4)':'rgba(255,23,68,.4)');grad.addColorStop(1,'rgba(20,30,50,0)')}
         dataset={data:dataVals,borderColor:color,backgroundColor:grad,fill:true,tension:.35,borderWidth:neon?2.8:2.2,pointRadius:0,pointHoverRadius:6,spanGaps:true};
     }
-    
     const gc=lightGlass?'rgba(0,0,0,.04)':neon?'rgba(168,85,247,.15)':glass?'rgba(255,255,255,.05)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
     const tc=lightGlass?'#64748b':neon?'#b39ddb':glass?'#94a3b8':obsidian?'#888':'#8fa0bd';
-    
     const newChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[dataset]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:lightGlass?'rgba(255,255,255,.9)':neon?'rgba(10,4,28,.96)':glass?'rgba(15,23,42,.95)':obsidian?'rgba(10,10,10,.98)':'rgba(5,12,25,.96)',titleColor:lightGlass?'#1e293b':'#fff',bodyColor:lightGlass?'#334155':'#fff',borderColor:lightGlass?(a.id==='usd'?'#3b82f6':'#10b981'):neon?(isUp?'#00ffc6':'#ff2e88'):glass?'rgba(56,189,248,.5)':obsidian?'rgba(243,198,35,.5)':'#70a4ff88',borderWidth:1,titleFont:{family:'Vazirmatn',size:11},bodyFont:{family:'Vazirmatn',size:11},callbacks:{title:items=>{
         if(!items.length)return'';
         const idx=items[0].dataIndex;
@@ -1013,7 +960,6 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         const dd = String(d.getDate()).padStart(2, '0');
         return `${yyyy}/${mm}/${dd}`;
     },label:c=>(mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'))}}},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:'Vazirmatn',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
-    
     newChart._rawPoints = pts;
     newChart._currentMode = mode;
     newChart._isUp = isUp;
@@ -1022,7 +968,7 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
 
 const chartObserver=new IntersectionObserver((entries,observer)=>{entries.forEach(entry=>{if(entry.isIntersecting){const wrap=entry.target;const canvas=wrap.querySelector('canvas');if(canvas){const aId=canvas.dataset.id;const prefix=canvas.dataset.prefix;if(aId&&prefix!==undefined){const a=assets.find(x=>x.id===aId);if(a){const chartKey=prefix+a.id;if(!charts[chartKey])requestAnimationFrame(()=>{drawOrUpdateChart(a,null,prefix)});else drawOrUpdateChart(a,charts[chartKey],prefix)}}}observer.unobserve(wrap)}})},{rootMargin:'100px'});
 
-function renderCharts(grid,filterIds,prefix=''){
+function renderCharts(container,filterIds,prefix=''){
     const assetsToRender=assets.filter(a=>!filterIds||filterIds.includes(a.id));
     let i=0;
     function drawNext(){
@@ -1044,123 +990,124 @@ function refreshHomeCharts(){
     const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
     featured.forEach(a => {
         const chartKey = 'feat-' + a.id;
-        if(charts[chartKey]) {
-            updateChartData(a, charts[chartKey]);
-        } else {
-            drawOrUpdateChart(a, null, 'feat-');
-        }
+        if(charts[chartKey]) updateChartData(a, charts[chartKey]);
+        else drawOrUpdateChart(a, null, 'feat-');
     });
-    if (expandedAssetId) {
+    if(expandedAssetId){
         const a = assets.find(x => x.id === expandedAssetId);
-        if (a) {
-            const chartKey = 'mini-exp-' + a.id;
-            if (charts[chartKey]) updateChartData(a, charts[chartKey]);
-            else drawOrUpdateChart(a, null, 'mini-exp-');
+        if(a){
+            const chartKey = 'exp-' + a.id;
+            if(charts[chartKey]) updateChartData(a, charts[chartKey]);
+            else drawOrUpdateChart(a, null, 'exp-');
         }
     }
 }
 
-function showSkeletons() {
+function showSkeletons(){
     const grid=$('gridFeatured');
     const mini=$('gridMini');
     if(!grid||!mini)return;
     if(grid.innerHTML && !grid.innerHTML.includes('skeleton')) return;
-    
     const sk = `<div class="sk-card"><div class="skeleton sk-title"></div><div class="skeleton sk-price"></div><div class="skeleton sk-chart"></div></div>`;
     grid.innerHTML = sk + sk;
     mini.innerHTML = sk + sk + sk + sk;
 }
 
-function renderHome(){
-    const grid=$('gridFeatured');
-    const mini=$('gridMini');
-    if(!grid||!mini)return;
-    
-    const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
-    const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt');
-    
-    if(!grid.innerHTML || grid.innerHTML.includes('skeleton')) {
-        grid.innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
-        bindRanges(grid, 'feat-');
-    }
-    
-    // Destroy old expanded charts to prevent memory leaks
-    for (const key in charts) {
-        if (key.startsWith('mini-exp-')) {
-            try { charts[key].destroy(); } catch(e) {}
+function cleanupExpanded(){
+    const expContainer = $('expandedContainer');
+    if(!expContainer) return;
+    for(const key in charts){
+        if(key.startsWith('exp-')){
+            try{charts[key].destroy()}catch(e){}
             delete charts[key];
         }
     }
+    expContainer.classList.add('hidden');
+    expContainer.innerHTML = '';
+}
 
-    let miniHtml = '';
-    rest.forEach(a => {
-        if (a.id === expandedAssetId) {
-            miniHtml += fullCardHTML(a, 'mini-exp-', true);
-        } else {
-            miniHtml += miniCardHTML(a);
-        }
-    });
-    mini.innerHTML = miniHtml;
-
-    // Rebind ranges for the newly generated expanded card
-    mini.querySelectorAll('.range').forEach(b => {
-        b.onclick = () => {
-            ranges[b.dataset.id] = b.dataset.r;
-            const a = assets.find(x => x.id === b.dataset.id);
-            if(a) {
-                const chartKey = 'mini-exp-' + a.id;
-                if(charts[chartKey]) drawOrUpdateChart(a, charts[chartKey], 'mini-exp-');
-                else drawOrUpdateChart(a, null, 'mini-exp-');
-                
-                const card = b.closest('.card');
-                if(card) {
-                    const dr = card.querySelector('.day-range');
-                    if(dr) {
-                        const ohlc = getRangeOHLC(a.id);
-                        const labels = getRangeLabels(b.dataset.r);
-                        const isUSD = a.currency === 'USD';
-                        const lowStr = ohlc.low > 0 ? (isUSD ? `$${num(ohlc.low,2)}` : num(ohlc.low)) : '—';
-                        const highStr = ohlc.high > 0 ? (isUSD ? `$${num(ohlc.high,2)}` : num(ohlc.high)) : '—';
-                        dr.innerHTML = `<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
-                    }
-                }
-                updateChange(a);
-            }
-            mini.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
-            b.classList.add('active');
-        }
-    });
+function renderHome(force = false){
+    const grid=$('gridFeatured');
+    const mini=$('gridMini');
+    const expContainer=$('expandedContainer');
+    if(!grid||!mini||!expContainer)return;
     
-    setTimeout(() => {
-        renderCharts(grid, featured.map(a=>a.id), 'feat-');
-        ['usd', 'usdt'].forEach(id => {
-            if(charts['feat-'+id]) charts['feat-'+id].resize();
+    const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
+    // expanded item is removed from mini (it will be shown in expandedContainer)
+    const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt'&&a.id!==expandedAssetId);
+    
+    // --- Featured: build once, update in place afterwards ---
+    if(force || !grid.children.length || grid.innerHTML.includes('skeleton')){
+        grid.innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
+        bindRanges(grid, 'feat-');
+        setTimeout(()=>{
+            renderCharts(grid, featured.map(a=>a.id), 'feat-');
+            ['usd','usdt'].forEach(id=>{ if(charts['feat-'+id]) try{charts['feat-'+id].resize()}catch(e){} });
+        }, 10);
+    } else {
+        featured.forEach(a=>{
+            const key = 'feat-' + a.id;
+            if(charts[key]) updateChartData(a, charts[key]);
+            updateChange(a);
         });
-        if(expandedAssetId) {
-            const a = assets.find(x => x.id === expandedAssetId);
-            if(a) drawOrUpdateChart(a, null, 'mini-exp-');
-        }
-    }, 10);
+    }
     
-    rest.forEach(a=>updateChange(a));
+    // --- Mini: rebuild only if state changed (favorites/compare/expand) ---
+    const miniStateKey = rest.map(a =>
+        a.id + ':' + (favorites.includes(a.id) ? '1' : '0') + ':' + (selectedForCompare.includes(a.id) ? '1' : '0')
+    ).join('|');
+    
+    if(force || miniStateKey !== lastMiniStateKey){
+        mini.innerHTML = rest.map(a => miniCardHTML(a)).join('');
+        lastMiniStateKey = miniStateKey;
+    }
+    rest.forEach(a => updateChange(a));
+    
+    // --- Expanded container ---
+    if(expandedAssetId){
+        const a = assets.find(x => x.id === expandedAssetId);
+        if(a){
+            expContainer.classList.remove('hidden');
+            const currentCanvas = expContainer.querySelector('canvas');
+            const expectedId = 'ch-exp-' + a.id;
+            if(!currentCanvas || currentCanvas.id !== expectedId){
+                // Different asset (or first time) — rebuild container
+                for(const key in charts){
+                    if(key.startsWith('exp-')){ try{charts[key].destroy()}catch(e){}; delete charts[key]; }
+                }
+                expContainer.innerHTML = fullCardHTML(a, 'exp-', true);
+                bindRanges(expContainer, 'exp-');
+                setTimeout(()=>drawOrUpdateChart(a, null, 'exp-'), 30);
+            } else {
+                // Same asset — just update + resize (handles return-from-hidden case)
+                const key = 'exp-' + a.id;
+                if(charts[key]){
+                    updateChartData(a, charts[key]);
+                    setTimeout(()=>{ try{charts[key].resize()}catch(e){} }, 50);
+                } else {
+                    setTimeout(()=>drawOrUpdateChart(a, null, 'exp-'), 30);
+                }
+            }
+        } else {
+            expandedAssetId = null;
+            cleanupExpanded();
+        }
+    } else {
+        cleanupExpanded();
+    }
 }
 
 function renderFavorites(){
     const grid=$('gridFavorites');
     if(!grid) return;
     const favAssets = assets.filter(a => favorites.includes(a.id));
-    
     if(favAssets.length === 0) {
         grid.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); grid-column: 1/-1;">${t('noFavs')}</div>`;
         return;
     }
-    
     grid.innerHTML = favAssets.map(a => fullCardHTML(a, 'fav-')).join('');
     bindRanges(grid, 'fav-');
-    
-    setTimeout(() => {
-        renderCharts(grid, favAssets.map(a => a.id), 'fav-');
-    }, 10);
+    setTimeout(() => { renderCharts(grid, favAssets.map(a => a.id), 'fav-'); }, 10);
 }
 
 function renderAll(){
@@ -1170,9 +1117,7 @@ function renderAll(){
         grid.innerHTML=assets.map(a=>fullCardHTML(a,'all-')).join('');
         bindRanges(grid,'all-');
     }
-    setTimeout(() => {
-        renderCharts(grid, null, 'all-');
-    }, 10);
+    setTimeout(() => { renderCharts(grid, null, 'all-'); }, 10);
 }
 function updateChange(a){
     const pct=getRangeChange(a.id);
@@ -1227,32 +1172,26 @@ function renderHoldings(){
     $('totalAssets').textContent=num(totalValue)+' '+t('tomanUnit');
     const profitEl=$('totalProfit');
     if(totalCost>0){const profit=totalValue-totalCost;const profitPct=(profit/totalCost)*100;const sign=profit>0?'+':'';const color=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';const icon=profit>0?'📈':profit<0?'📉':'';profitEl.innerHTML=`<span style="color:${color}">${icon} ${sign}${num(profitPct,2)}% (${sign}${num(profit)} ${t('tomanUnit')})</span>`}else{profitEl.innerHTML=`<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>`}
-    
     box.querySelectorAll('.h-del').forEach(b=>{b.onclick=()=>{holdings.splice(Number(b.dataset.idx),1);saveHoldings();renderHoldings()}});
-    
     box.querySelectorAll('.h-edit').forEach(b=>{
         b.onclick=()=>{
             const idx = Number(b.dataset.idx);
             const h = holdings[idx];
             const parent = b.parentElement;
             const currentVal = h.buyPrice ? num(h.buyPrice) : '';
-
             parent.innerHTML = `
                 <span style="color:var(--muted);font-size:10px;">خرید:</span>
                 <input type="text" class="inline-edit-input" value="${currentVal}" />
             `;
-
             const input = parent.querySelector('.inline-edit-input');
             input.focus();
             input.setSelectionRange(input.value.length, input.value.length);
-
             input.addEventListener('input', function(e) {
                 let val = this.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
                 const parts = val.split('.');
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 this.value = parts.join('.');
             });
-
             let isSaved = false;
             const save = () => {
                 if (isSaved) return;
@@ -1264,12 +1203,9 @@ function renderHoldings(){
                 }
                 renderHoldings();
             };
-
             input.addEventListener('blur', save);
             input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    input.blur();
-                }
+                if (e.key === 'Enter') input.blur();
             });
         };
     });
@@ -1302,20 +1238,15 @@ function filterAssets(query) {
 
 function toggleCompare(id) {
     const idx = selectedForCompare.indexOf(id);
-    if (idx > -1) {
-        selectedForCompare.splice(idx, 1);
-    } else {
+    if (idx > -1) selectedForCompare.splice(idx, 1);
+    else {
         if (selectedForCompare.length >= 2) selectedForCompare.shift(); 
         selectedForCompare.push(id);
     }
-    
     document.querySelectorAll('.cmp-btn').forEach(btn => {
         btn.classList.toggle('active-cmp', selectedForCompare.includes(btn.dataset.id));
     });
-    
-    if(selectedForCompare.length === 2) {
-        openCompareModal();
-    }
+    if(selectedForCompare.length === 2) openCompareModal();
 }
 
 function openCompareModal() {
@@ -1331,29 +1262,22 @@ function drawCompareChart() {
     const a1 = assets.find(x => x.id === selectedForCompare[0]);
     const a2 = assets.find(x => x.id === selectedForCompare[1]);
     if(!a1 || !a2) return;
-    
     $('compareTitle').textContent = `${nm(a1)} vs ${nm(a2)}`;
-    
     const pts1 = pointsFor(a1.id, compareRange);
     const pts2 = pointsFor(a2.id, compareRange);
-    
     if(pts1.length === 0 || pts2.length === 0) {
         alert("داده کافی برای مقایسه وجود ندارد.");
         $('compareModal').classList.remove('open');
         return;
     }
-    
     const times = Array.from(new Set([...pts1.map(p=>p.time), ...pts2.map(p=>p.time)])).sort((a,b)=>a-b);
     const map1 = new Map(pts1.map(p=>[p.time, p.close||p.price]));
     const map2 = new Map(pts2.map(p=>[p.time, p.close||p.price]));
-    
     const base1 = pts1[0].close||pts1[0].price;
     const base2 = pts2[0].close||pts2[0].price;
-    
     const data1 = times.map(t => map1.has(t) ? ((map1.get(t) - base1) / base1) * 100 : null);
     const data2 = times.map(t => map2.has(t) ? ((map2.get(t) - base2) / base2) * 100 : null);
     const labels = times.map(t => getLabel({time: t}, compareRange));
-    
     const ctx = $('compareChart').getContext('2d');
     compareChartInstance = new Chart(ctx, {
         type: 'line',
@@ -1365,8 +1289,7 @@ function drawCompareChart() {
             ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: true, maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: { labels: { color: theme==='light-glass'?'#1e293b':'#fff', font: { family: 'Vazirmatn' } } },
@@ -1390,6 +1313,7 @@ function closeCompareModal() {
     if(compareChartInstance) { compareChartInstance.destroy(); compareChartInstance = null; }
     selectedForCompare = [];
     document.querySelectorAll('.cmp-btn').forEach(btn => btn.classList.remove('active-cmp'));
+    lastMiniStateKey = ''; // force mini rebuild so compare state refreshes
 }
 
 function updateCardTexts() {
@@ -1418,7 +1342,6 @@ function updateCardTexts() {
             }
         }
     });
-    
     document.querySelectorAll('.mini-card').forEach(card => {
         const btn = card.querySelector('.star-btn');
         if(!btn) return;
@@ -1435,7 +1358,6 @@ function updateCardTexts() {
             }
         }
     });
-    
     $('searchInput').placeholder = t('searchPlaceholder');
 }
 
@@ -1448,14 +1370,11 @@ function updateThemeListUI() {
 function applyLang(){
     document.documentElement.lang=lang;
     document.documentElement.dir=lang==='fa'?'rtl':'ltr';
-    
     document.querySelectorAll('[data-t]').forEach(el=>{
         if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);
         else el.textContent=t(el.dataset.t)
     });
-    
     updateCardTexts(); 
-    
     for(const a of assets){
         const p=getPrice(a.id);
         const priceHTML=formatPrice(a,p);
@@ -1468,7 +1387,6 @@ function applyLang(){
             if(mini) { const mp = mini.querySelector('.mini-price'); if(mp) mp.innerHTML = priceHTML; }
         });
     }
-
     for(const key in charts) {
         let aId = key.includes('-') ? key.split('-')[1] : key;
         const a = assets.find(x=>x.id===aId);
@@ -1478,14 +1396,12 @@ function applyLang(){
         }
     }
     if(compareChartInstance) drawCompareChart();
-
     fillCalc();fillAddSelect();renderHoldings();calc();
 }
 
 function applyTheme(){
     document.documentElement.setAttribute('data-theme',theme);
     updateThemeListUI();
-    
     const chartKeys = Object.keys(charts);
     let i = 0;
     function updateNext() {
@@ -1510,9 +1426,9 @@ function hideAllPages(){
     $('calcPage').classList.add('hidden');
     $('assetsPage').classList.add('hidden');
     ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
-    
+    // Destroy charts on OTHER pages only. feat- and exp- belong to home and must survive.
     for(const key in charts){
-        if(key.startsWith('all-') || key.startsWith('fav-') || key.startsWith('mini-exp-')) {
+        if(key.startsWith('all-') || key.startsWith('fav-')) {
             try{charts[key].destroy()}catch(e){} 
             delete charts[key];
         }
@@ -1534,48 +1450,39 @@ document.body.addEventListener('click', function(e) {
         else { favs.push(id); document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => b.classList.add('active')); }
         localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
         favorites = favs;
+        lastMiniStateKey = ''; // invalidate mini cache
         if (!$('favPage').classList.contains('hidden')) renderFavorites();
         return;
     }
-
     const cmpBtn = e.target.closest('.cmp-btn');
     if (cmpBtn) {
         e.preventDefault(); e.stopPropagation();
         toggleCompare(cmpBtn.getAttribute('data-id'));
         return;
     }
-
     const expandBtn = e.target.closest('.expand-btn');
     if (expandBtn) {
         e.preventDefault(); e.stopPropagation();
         const id = expandBtn.getAttribute('data-id');
-        
         if (expandedAssetId === id) {
             expandedAssetId = null;
         } else {
-            if (expandedAssetId) {
-                const oldChartKey = 'mini-exp-' + expandedAssetId;
-                if (charts[oldChartKey]) {
-                    try { charts[oldChartKey].destroy(); } catch(err){}
-                    delete charts[oldChartKey];
-                }
-            }
             expandedAssetId = id;
         }
         renderHome();
+        if (expandedAssetId) {
+            requestAnimationFrame(() => {
+                const container = $('expandedContainer');
+                if (container && !container.classList.contains('hidden')) {
+                    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        }
         return;
     }
-
     const closeExpandBtn = e.target.closest('.close-expand-btn');
     if (closeExpandBtn) {
         e.preventDefault(); e.stopPropagation();
-        if (expandedAssetId) {
-            const oldChartKey = 'mini-exp-' + expandedAssetId;
-            if (charts[oldChartKey]) {
-                try { charts[oldChartKey].destroy(); } catch(err){}
-                delete charts[oldChartKey];
-            }
-        }
         expandedAssetId = null;
         renderHome();
         return;
@@ -1585,7 +1492,7 @@ document.body.addEventListener('click', function(e) {
 $('menuBtn').onclick=()=>{$('drawer').classList.add('open');$('drawerOverlay').classList.add('open')};
 const closeDrawer=()=>{$('drawer').classList.remove('open');$('drawerOverlay').classList.remove('open')};
 $('drawerOverlay').onclick=closeDrawer;
-$('langBtn').onclick=()=>{lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang();closeDrawer()};
+$('langBtn').onclick=()=>{lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang();closeDrawer();lastMiniStateKey=''};
 $('themeToggleBtn').onclick=()=>{$('themeList').classList.toggle('hidden')};
 document.querySelectorAll('.theme-option').forEach(btn => {
     btn.onclick = () => {
@@ -1623,7 +1530,7 @@ document.querySelectorAll('.compare-ranges .range').forEach(btn => {
     $('calcTo').addEventListener('change',calc);
     applyTheme();
     applyLang(); 
-    showSkeletons(); // Show skeleton before loading
+    showSkeletons();
     renderHome(); 
     refreshPrices(); 
     setTimeout(()=>{loadHistories()}, 1000);
