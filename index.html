@@ -207,7 +207,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 <div class="brand"><div class="logo">P</div><div><h1 data-t="title">پالس</h1><p data-t="subtitle">نبض بازار</p></div></div>
 <div class="actions">
 <div class="status"><i class="dot" id="dot"></i><span id="status">...</span></div>
-<button class="btn btn-icon" id="langBtn" style="font-size:13px;font-weight:bold;padding:8px 12px;">EN</button>
+<button class="btn btn-icon" id="langBtn">🌐</button>
 <button class="btn btn-icon" id="menuBtn">☰</button>
 </div>
 </header>
@@ -1057,16 +1057,24 @@ function updateThemeListUI() {
 function applyLang(){
     document.documentElement.lang=lang;
     document.documentElement.dir=lang==='fa'?'rtl':'ltr';
+    
     document.querySelectorAll('[data-t]').forEach(el=>{
         if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);
         else el.textContent=t(el.dataset.t)
     });
-    $('langBtn').innerHTML=lang==='fa'?'🌐 EN':'🌐 FA';
     
-    // اصلاح عددها و واحد تومان
-    updatePricesOnly(); 
     updateCardTexts(); 
     
+    // فقط متن قیمت‌ها آپدیت میشن، نمودارها لمس نمیشن که لگ نداشته باشه
+    for(const a of assets){
+        const p=getPrice(a.id);
+        const priceHTML=formatPrice(a,p);
+        const card=document.querySelector(`#chg-${a.id}`)?.closest('.card');
+        if(card){const priceEl=card.querySelector('.price');if(priceEl)priceEl.innerHTML=priceHTML;}
+        const mini=document.querySelector(`#mini-${a.id}`);
+        if(mini){const mp=mini.querySelector('.mini-price');if(mp)mp.innerHTML=priceHTML;}
+    }
+
     for(const key in charts) {
         let aId = key.includes('-') ? key.split('-')[1] : key;
         const a = assets.find(x=>x.id===aId);
@@ -1075,6 +1083,7 @@ function applyLang(){
             charts[key].update('none');
         }
     }
+
     fillCalc();fillAddSelect();renderHoldings();calc();
 }
 
