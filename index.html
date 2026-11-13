@@ -444,10 +444,40 @@ function getRangeLabels(mode){if(mode==='weekly')return{low:t('lowWeekly'),high:
 function updatePricesOnly(){
     for(const a of assets){
         const p=getPrice(a.id);const priceHTML=formatPrice(a,p);
-        const card=document.querySelector(`#chg-${a.id}`)?.closest('.card');
-        if(card){const priceEl=card.querySelector('.price');if(priceEl)priceEl.innerHTML=priceHTML;const mode=ranges[a.id]||'daily';const ohlc=getRangeOHLC(a.id);const labels=getRangeLabels(mode);const dr=card.querySelector('.day-range');if(dr){const isUSD=a.currency==='USD';const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`}updateChange(a)}
-        const mini=document.querySelector(`#mini-${a.id}`);
-        if(mini){const mp=mini.querySelector('.mini-price');if(mp)mp.innerHTML=priceHTML;const mc=mini.querySelector('.mini-chg');if(mc)updateChange(a);const ohlc=todayOHLC(a.id);const mr=mini.querySelector('.mini-range');if(mr){const isUSD=a.currency==='USD';const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';mr.innerHTML=`<span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span>`}}
+        
+        document.querySelectorAll(`.chg[data-id="${a.id}"]`).forEach(el => {
+            const card = el.closest('.card');
+            if(!card) return;
+            const priceEl = card.querySelector('.price');
+            if(priceEl) priceEl.innerHTML = priceHTML;
+            const mode = ranges[a.id]||'daily';
+            const ohlc = getRangeOHLC(a.id);
+            const labels = getRangeLabels(mode);
+            const dr = card.querySelector('.day-range');
+            if(dr){
+                const isUSD=a.currency==='USD';
+                const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';
+                const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
+                dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
+            }
+        });
+        
+        document.querySelectorAll(`.mini-chg[data-id="${a.id}"]`).forEach(el => {
+            const mini = el.closest('.mini-card');
+            if(!mini) return;
+            const mp = mini.querySelector('.mini-price');
+            if(mp) mp.innerHTML = priceHTML;
+            const ohlc = todayOHLC(a.id);
+            const mr = mini.querySelector('.mini-range');
+            if(mr){
+                const isUSD=a.currency==='USD';
+                const lowStr=ohlc.low>0?(isUSD?`$${num(ohlc.low,2)}`:num(ohlc.low)):'—';
+                const highStr=ohlc.high>0?(isUSD?`$${num(ohlc.high,2)}`:num(ohlc.high)):'—';
+                mr.innerHTML=`<span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span>`;
+            }
+        });
+        
+        updateChange(a);
     }
     for(const chartKey in charts){let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];if((ranges[aId]||'daily')==='daily'){const a=assets.find(x=>x.id===aId);if(a)updateChartData(a,charts[chartKey])}}
     renderHoldings();calc();
@@ -573,7 +603,7 @@ function fullCardHTML(a,prefix=''){
                     <div class="card-sym">${a.symbol}</div>
                 </div>
             </div>
-            <div class="chg" id="chg-${a.id}">—</div>
+            <div class="chg" data-id="${a.id}">—</div>
         </div>
         <div class="price">${priceHTML}</div>
         <div class="day-range">
@@ -607,7 +637,7 @@ function miniCardHTML(a){
         </div>
         <div class="mini-sym">${a.symbol}</div>
         <div class="mini-price">${priceHTML}</div>
-        <div class="mini-chg" id="chg-${a.id}">—</div>
+        <div class="mini-chg" data-id="${a.id}">—</div>
         <div class="mini-range">
             <span>${t('lowDaily')}: <b>${lowStr}</b></span>
             <span>${t('highDaily')}: <b>${highStr}</b></span>
@@ -908,7 +938,24 @@ function renderAll(){
         renderCharts(grid, null, 'all-');
     }, 10);
 }
-function updateChange(a){const el=$('chg-'+a.id);if(!el)return;const pct=getRangeChange(a.id);const pts=pointsFor(a.id);if(pts.length<2){el.textContent='—';el.classList.remove('neg');return}el.textContent=(pct>0?'+':'')+num(pct,2)+'%';el.classList.toggle('neg',pct<0)}
+function updateChange(a){
+    const pct=getRangeChange(a.id);
+    const pts=pointsFor(a.id);
+    let text = '—';
+    let isNeg = false;
+    if(pts.length>=2){
+        text = (pct>0?'+':'')+num(pct,2)+'%';
+        isNeg = pct < 0;
+    }
+    document.querySelectorAll(`.chg[data-id="${a.id}"]`).forEach(el => {
+        el.textContent = text;
+        el.classList.toggle('neg', isNeg);
+    });
+    document.querySelectorAll(`.mini-chg[data-id="${a.id}"]`).forEach(el => {
+        el.textContent = text;
+        el.classList.toggle('neg', isNeg);
+    });
+}
 
 function renderHoldings(){
     const box=$('holdings');if(!box)return;
@@ -955,7 +1002,6 @@ function renderHoldings(){
             const parent = b.parentElement;
             const currentVal = h.buyPrice ? num(h.buyPrice) : '';
 
-            // Replace the contents of .h-buy with an input
             parent.innerHTML = `
                 <span style="color:var(--muted);font-size:10px;">خرید:</span>
                 <input type="text" class="inline-edit-input" value="${currentVal}" />
@@ -965,7 +1011,6 @@ function renderHoldings(){
             input.focus();
             input.setSelectionRange(input.value.length, input.value.length);
 
-            // Format input on typing
             input.addEventListener('input', function(e) {
                 let val = this.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
                 const parts = val.split('.');
@@ -973,7 +1018,6 @@ function renderHoldings(){
                 this.value = parts.join('.');
             });
 
-            // Save on blur or Enter
             let isSaved = false;
             const save = () => {
                 if (isSaved) return;
@@ -1069,10 +1113,14 @@ function applyLang(){
     for(const a of assets){
         const p=getPrice(a.id);
         const priceHTML=formatPrice(a,p);
-        const card=document.querySelector(`#chg-${a.id}`)?.closest('.card');
-        if(card){const priceEl=card.querySelector('.price');if(priceEl)priceEl.innerHTML=priceHTML;}
-        const mini=document.querySelector(`#mini-${a.id}`);
-        if(mini){const mp=mini.querySelector('.mini-price');if(mp)mp.innerHTML=priceHTML;}
+        document.querySelectorAll(`.chg[data-id="${a.id}"]`).forEach(el => {
+            const card = el.closest('.card');
+            if(card) { const priceEl = card.querySelector('.price'); if(priceEl) priceEl.innerHTML = priceHTML; }
+        });
+        document.querySelectorAll(`.mini-chg[data-id="${a.id}"]`).forEach(el => {
+            const mini = el.closest('.mini-card');
+            if(mini) { const mp = mini.querySelector('.mini-price'); if(mp) mp.innerHTML = priceHTML; }
+        });
     }
 
     for(const key in charts) {
