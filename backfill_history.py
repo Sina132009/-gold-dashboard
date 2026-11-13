@@ -10,11 +10,11 @@ BASE = "https://talasanj.info/api/v1"
 HISTORY_DIR = "data/history"
 os.makedirs(HISTORY_DIR, exist_ok=True)
 
-# فقط این سه دارایی در طلاسنج تاریخچه دارند
+# طبق مستندات، فقط این سه دارایی تاریخچه دارند
 ALLOWED_SYMBOLS = {
     "usd": "usd",
     "g18": "gram18",
-    "mazaneh": "mazaneh"  # اگر در سایت شما دارایی به نام mazaneh وجود دارد
+    "mazaneh": "mazaneh"
 }
 
 headers = {
@@ -36,7 +36,7 @@ for our_id, ts_id in ALLOWED_SYMBOLS.items():
         res.raise_for_status()
         data = res.json()
 
-        # ساختار پاسخ احتمالاً یک لیست از نقاط است. اگر داخل کلیدی بود، آن را استخراج می‌کنیم.
+        # استخراج لیست نقاط
         if isinstance(data, list):
             points = data
         elif isinstance(data, dict):
@@ -44,25 +44,49 @@ for our_id, ts_id in ALLOWED_SYMBOLS.items():
         else:
             points = []
 
+        if not points:
+            print(f"⚠️ No data points returned for {our_id}.")
+            continue
+            
+        # چاپ اولین نقطه برای اینکه ساختار خروجی رو ببینیم
+        print(f"    Sample data point: {points[0]}")
+
         formatted = []
         for p in points:
-            # تلاش برای خواندن زمان و قیمت با کلیدهای مختلف
-            t = p.get("time") or p.get("timestamp")
-            if isinstance(t, str):
-                try:
-                    t = int(datetime.strptime(t, "%Y-%m-%d").timestamp() * 1000)
-                except:
-                    t = int(datetime.now().timestamp() * 1000)
-            elif not isinstance(t, int):
-                t = int(datetime.now().timestamp() * 1000)
+            t, price, low, high = None, None, None, None
 
-            price = p.get("price") or p.get("close") or p.get("value")
-            if price:
+            # حالت اول: اگر داده یک دیکشنری باشد
+            if isinstance(p, dict):
+                t = p.get("time") or p.get("timestamp") or p.get("date")
+                price = p.get("price") or p.get("close") or p.get("value")
+                low = p.get("low", price)
+                high = p.get("high", price)
+            
+            # حالت دوم: اگر داده یک لیست باشد (مثلا [timestamp, price] یا [timestamp, open, high, low, close])
+            elif isinstance(p, list) or isinstance(p, tuple):
+                if len(p) >= 2:
+                    t = p[0]
+                    if len(p) >= 5:
+                        high, low, price = p[2], p[3], p[4]
+                    else:
+                        price = p[1]
+                        low = high = price
+
+            # اگر زمان و قیمت پیدا شد
+            if t is not None and price is not None:
+                # تبدیل زمان به میلی‌ثانیه
+                if isinstance(t, str):
+                    try: t = int(datetime.strptime(t, "%Y-%m-%d").timestamp() * 1000)
+                    except: t = int(datetime.now().timestamp() * 1000)
+                else:
+                    t = int(t)
+                    if t < 1e11: t *= 1000 # اگر ثانیه بود به میلی‌ثانیه تبدیل کن
+
                 formatted.append({
                     "time": t,
                     "close": float(price),
-                    "low": float(p.get("low", price)),
-                    "high": float(p.get("high", price))
+                    "low": float(low) if low else float(price),
+                    "high": float(high) if high else float(price)
                 })
 
         if formatted:
@@ -72,7 +96,7 @@ for our_id, ts_id in ALLOWED_SYMBOLS.items():
                 json.dump(formatted, f, ensure_ascii=False)
             print(f"✅ Saved {len(formatted)} points for {our_id}.")
         else:
-            print(f"⚠️ No valid points found for {our_id}.")
+            print(f"⚠️ Failed to parse points for {our_id}.")
 
     except Exception as e:
         print(f"❌ Error fetching {our_id}: {e}")
