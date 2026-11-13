@@ -10,6 +10,11 @@
     <meta property="og:url" content="https://sina132009.github.io/">
     <meta name="twitter:card" content="summary_large_image">
 
+    <!-- PWA Configurations -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111111">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
@@ -590,8 +595,8 @@
            STATE & VARIABLES (متغیرهای وضعیت)
            ========================================= */
         let lang = 'fa';
-        let theme = 'obsidian'; // User selected theme (can be 'random')
-        let activeTheme = 'obsidian'; // Resolved theme for rendering
+        let theme = 'obsidian'; 
+        let activeTheme = 'obsidian'; 
         let prices = {};
         let history = {};
         let intraday = {};
@@ -2417,6 +2422,17 @@
             refreshPrices();
             setTimeout(() => { loadHistories(); }, 1000);
         })();
+    </script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered!', reg))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
     </script>
 </body>
 </html>
