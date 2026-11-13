@@ -2,45 +2,79 @@ import os
 import json
 import requests
 import time
+from datetime import datetime
 
 API_KEY = os.environ.get("TALASANJ_API_KEY")
 BASE = "https://talasanj.info/api/v1"
 
-headers = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else {}
+HISTORY_DIR = "data/history"
+os.makedirs(HISTORY_DIR, exist_ok=True)
 
-# لیست تست‌های جدید برای کشف ساختار درست
-tests = [
-    # تست ۱: آیا پارامتر symbol برای قیمت لحظه‌ای کار میکنه؟
-    ("Prices with symbol only", f"{BASE}/prices", {"symbol": "usd"}),
-    
-    # تست ۲: تست History با symbol و limit
-    ("History with symbol & limit", f"{BASE}/history", {"symbol": "usd", "limit": 10}),
-    
-    # تست ۳: تست History با symbol و interval
-    ("History with symbol & interval", f"{BASE}/history", {"symbol": "usd", "interval": "1d"}),
-    
-    # تست ۴: تست History با پارامترهای جایگزین (asset)
-    ("History with asset", f"{BASE}/history", {"asset": "usd"}),
-    
-    # تست ۵: تست History با symbol و period
-    ("History with symbol & period", f"{BASE}/history", {"symbol": "usd", "period": "1d"}),
-]
+# فقط این سه دارایی در طلاسنج تاریخچه دارند
+ALLOWED_SYMBOLS = {
+    "usd": "usd",
+    "g18": "gram18",
+    "mazaneh": "mazaneh"  # اگر در سایت شما دارایی به نام mazaneh وجود دارد
+}
 
-print("--- شروع تست دقیق ساختار API ---")
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "X-Client-Name": "PulseMarket",
+    "X-Client-Url": "https://sina132009.github.io/"
+} if API_KEY else {}
 
-for name, url, params in tests:
-    print(f"\n🔍 تست: {name}")
-    print(f"   URL: {url} | Params: {params}")
+for our_id, ts_id in ALLOWED_SYMBOLS.items():
+    print(f"Fetching 1 year history for {our_id} ({ts_id})...")
     try:
-        res = requests.get(url, headers=headers, params=params, timeout=10)
-        print(f"   Status Code: {res.status_code}")
-        if res.status_code == 200:
-            # چاپ متن خام پاسخ (فقط ۵۰۰ کاراکتر اول) برای دیدن کلیدها
-            print(f"   ✅ RAW Response: {res.text[:500]}")
-        else:
-            print(f"   ❌ Error Response: {res.text[:200]}")
-    except Exception as e:
-        print(f"   ❌ Connection Error: {e}")
-    time.sleep(1)
+        url = f"{BASE}/history"
+        params = {
+            "symbol": ts_id,
+            "range": "1y",
+            "unit": "toman"
+        }
+        res = requests.get(url, headers=headers, params=params, timeout=15)
+        res.raise_for_status()
+        data = res.json()
 
-print("\n--- پایان تست ---")
+        # ساختار پاسخ احتمالاً یک لیست از نقاط است. اگر داخل کلیدی بود، آن را استخراج می‌کنیم.
+        if isinstance(data, list):
+            points = data
+        elif isinstance(data, dict):
+            points = data.get("data") or data.get("points") or data.get("history") or []
+        else:
+            points = []
+
+        formatted = []
+        for p in points:
+            # تلاش برای خواندن زمان و قیمت با کلیدهای مختلف
+            t = p.get("time") or p.get("timestamp")
+            if isinstance(t, str):
+                try:
+                    t = int(datetime.strptime(t, "%Y-%m-%d").timestamp() * 1000)
+                except:
+                    t = int(datetime.now().timestamp() * 1000)
+            elif not isinstance(t, int):
+                t = int(datetime.now().timestamp() * 1000)
+
+            price = p.get("price") or p.get("close") or p.get("value")
+            if price:
+                formatted.append({
+                    "time": t,
+                    "close": float(price),
+                    "low": float(p.get("low", price)),
+                    "high": float(p.get("high", price))
+                })
+
+        if formatted:
+            formatted.sort(key=lambda x: x["time"])
+            file_path = os.path.join(HISTORY_DIR, f"{our_id.upper()}.json")
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(formatted, f, ensure_ascii=False)
+            print(f"✅ Saved {len(formatted)} points for {our_id}.")
+        else:
+            print(f"⚠️ No valid points found for {our_id}.")
+
+    except Exception as e:
+        print(f"❌ Error fetching {our_id}: {e}")
+
+print("Backfill process completed.")
