@@ -154,6 +154,8 @@ canvas{width:100%!important;height:100%!important;display:block}
 .holding .h-del:hover{background:var(--red);color:#fff}
 .h-edit{background:transparent;border:none;cursor:pointer;font-size:14px;padding:2px;filter:grayscale(100%)}
 .h-edit:hover{filter:grayscale(0%)}
+.inline-edit-input{width: 75px;background:var(--card1);border:1px solid var(--accent);border-radius:6px;padding:4px 6px;color:var(--txt);font-family:inherit;font-size:11px;direction:ltr;text-align:right;outline:none;}
+[data-theme="light-glass"] .inline-edit-input{background:#fff;border-color:var(--accent);color:var(--txt);}
 .total-box{padding:18px;border-radius:14px;text-align:center;background:linear-gradient(135deg,var(--accent),var(--card1));color:#fff}
 [data-theme="obsidian"] .total-box{color:#000;background:linear-gradient(135deg,#f3c623,#ff8f00)}
 [data-theme="glass"] .total-box{background:linear-gradient(135deg,var(--accent),#818cf8);color:#020617}
@@ -890,7 +892,91 @@ function renderAll(){
 }
 function updateChange(a){const el=$('chg-'+a.id);if(!el)return;const pct=getRangeChange(a.id);const pts=pointsFor(a.id);if(pts.length<2){el.textContent='—';el.classList.remove('neg');return}el.textContent=(pct>0?'+':'')+num(pct,2)+'%';el.classList.toggle('neg',pct<0)}
 
-function renderHoldings(){const box=$('holdings');if(!box)return;if(!holdings.length){box.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px">${t('emptyAssets')}</div>`;$('totalAssets').textContent='---';$('totalProfit').innerHTML='';return}let totalValue=0,totalCost=0;box.innerHTML=holdings.map((h,idx)=>{const a=assets.find(x=>x.id===h.id);const p=getPrice(h.id);const val=p*Number(h.qty);totalValue+=val;const buyPrice=Number(h.buyPrice)||0;let profitHTML=`<span style="color:var(--muted);font-size:10px;">وارد نشده</span>`;let pColor='var(--muted)',pSign='';if(buyPrice>0){const cost=buyPrice*Number(h.qty);totalCost+=cost;const profit=val-cost;const profitPct=(profit/cost)*100;pColor=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';pSign=profit>0?'+':'';const pIcon=profit>0?'📈':profit<0?'📉':'';profitHTML=`<span style="color:${pColor};font-size:11px;" dir="ltr">${pIcon} ${pSign}${num(profitPct,2)}%<br><span style="font-size:10px;">${pSign}${num(profit)}</span></span>`}return`<div class="holding"><div class="h-name">${esc(a?nm(a):h.id)}</div><div class="h-qty">${num(h.qty,4)}</div><div class="h-buy"><span style="color:var(--muted);font-size:10px;">خرید:</span>${buyPrice>0?num(buyPrice):'—'}<button class="h-edit" data-idx="${idx}" title="ویرایش قیمت خرید">✏️</button></div><div class="h-val">${val>0?num(val)+' '+t('tomanUnit'):'—'}</div><div class="h-profit">${profitHTML}</div><button class="h-del" data-idx="${idx}">${t('del')}</button></div>`}).join('');$('totalAssets').textContent=num(totalValue)+' '+t('tomanUnit');const profitEl=$('totalProfit');if(totalCost>0){const profit=totalValue-totalCost;const profitPct=(profit/totalCost)*100;const sign=profit>0?'+':'';const color=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';const icon=profit>0?'📈':profit<0?'📉':'';profitEl.innerHTML=`<span style="color:${color}">${icon} ${sign}${num(profitPct,2)}% (${sign}${num(profit)} ${t('tomanUnit')})</span>`}else{profitEl.innerHTML=`<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>`}box.querySelectorAll('.h-del').forEach(b=>{b.onclick=()=>{holdings.splice(Number(b.dataset.idx),1);saveHoldings();renderHoldings()}});box.querySelectorAll('.h-edit').forEach(b=>{b.onclick=()=>{const idx=Number(b.dataset.idx);const h=holdings[idx];const currentPrompt=h.buyPrice?h.buyPrice:'';const newPrice=prompt("قیمت خریداری شده (به تومان) را وارد کنید:",currentPrompt);if(newPrice!==null){const parsed=parseFloat(newPrice.replace(/,/g,''));if(!isNaN(parsed)&&parsed>=0){h.buyPrice=parsed;saveHoldings();renderHoldings()}}}})}
+function renderHoldings(){
+    const box=$('holdings');if(!box)return;
+    if(!holdings.length){box.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px">${t('emptyAssets')}</div>`;$('totalAssets').textContent='---';$('totalProfit').innerHTML='';return}
+    let totalValue=0,totalCost=0;
+    box.innerHTML=holdings.map((h,idx)=>{
+        const a=assets.find(x=>x.id===h.id);
+        const p=getPrice(h.id);
+        const val=p*Number(h.qty);
+        totalValue+=val;
+        const buyPrice=Number(h.buyPrice)||0;
+        let profitHTML=`<span style="color:var(--muted);font-size:10px;">وارد نشده</span>`;
+        let pColor='var(--muted)',pSign='';
+        if(buyPrice>0){
+            const cost=buyPrice*Number(h.qty);totalCost+=cost;const profit=val-cost;const profitPct=(profit/cost)*100;
+            pColor=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';
+            pSign=profit>0?'+':'';const pIcon=profit>0?'📈':profit<0?'📉':'';
+            profitHTML=`<span style="color:${pColor};font-size:11px;" dir="ltr">${pIcon} ${pSign}${num(profitPct,2)}%<br><span style="font-size:10px;">${pSign}${num(profit)}</span></span>`;
+        }
+        return`<div class="holding">
+            <div class="h-name">${esc(a?nm(a):h.id)}</div>
+            <div class="h-qty">${num(h.qty,4)}</div>
+            <div class="h-buy">
+                <span style="color:var(--muted);font-size:10px;">خرید:</span>
+                ${buyPrice>0?num(buyPrice):'—'}
+                <button class="h-edit" data-idx="${idx}" title="ویرایش قیمت خرید">✏️</button>
+            </div>
+            <div class="h-val">${val>0?num(val)+' '+t('tomanUnit'):'—'}</div>
+            <div class="h-profit">${profitHTML}</div>
+            <button class="h-del" data-idx="${idx}">${t('del')}</button>
+        </div>`
+    }).join('');
+    $('totalAssets').textContent=num(totalValue)+' '+t('tomanUnit');
+    const profitEl=$('totalProfit');
+    if(totalCost>0){const profit=totalValue-totalCost;const profitPct=(profit/totalCost)*100;const sign=profit>0?'+':'';const color=profit>0?'var(--green)':profit<0?'var(--red)':'var(--muted)';const icon=profit>0?'📈':profit<0?'📉':'';profitEl.innerHTML=`<span style="color:${color}">${icon} ${sign}${num(profitPct,2)}% (${sign}${num(profit)} ${t('tomanUnit')})</span>`}else{profitEl.innerHTML=`<span style="color:var(--muted);font-size:12px;">برای مشاهده سود/ضرر کل، قیمت خرید را وارد کنید</span>`}
+    
+    box.querySelectorAll('.h-del').forEach(b=>{b.onclick=()=>{holdings.splice(Number(b.dataset.idx),1);saveHoldings();renderHoldings()}});
+    
+    // **Inline Edit Logic**
+    box.querySelectorAll('.h-edit').forEach(b=>{
+        b.onclick=()=>{
+            const idx = Number(b.dataset.idx);
+            const h = holdings[idx];
+            const parent = b.parentElement;
+            const currentVal = h.buyPrice ? num(h.buyPrice) : '';
+
+            // Replace the contents of .h-buy with an input
+            parent.innerHTML = `
+                <span style="color:var(--muted);font-size:10px;">خرید:</span>
+                <input type="text" class="inline-edit-input" value="${currentVal}" />
+            `;
+
+            const input = parent.querySelector('.inline-edit-input');
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+
+            // Format input on typing
+            input.addEventListener('input', function(e) {
+                let val = this.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
+                const parts = val.split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                this.value = parts.join('.');
+            });
+
+            // Save on blur or Enter
+            let isSaved = false;
+            const save = () => {
+                if (isSaved) return;
+                isSaved = true;
+                const parsed = parseFloat(input.value.replace(/,/g, ''));
+                if (!isNaN(parsed) && parsed >= 0) {
+                    h.buyPrice = parsed;
+                    saveHoldings();
+                }
+                renderHoldings();
+            };
+
+            input.addEventListener('blur', save);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    input.blur();
+                }
+            });
+        };
+    });
+}
 
 function fillAddSelect(){const s=$('addAsset');if(!s)return;const old=s.value;const availableAssets=assets.filter(a=>a.id!=='oil');s.innerHTML=availableAssets.map(a=>`<option value="${a.id}">${esc(nm(a))}</option>`).join('');if(availableAssets.some(a=>a.id===old))s.value=old}
 function fillCalc(){const sFrom=$('calcFrom'),sTo=$('calcTo');if(!sFrom||!sTo)return;const oldFrom=sFrom.value||'toman',oldTo=sTo.value||'usd';const options=[`<option value="toman">${t('toman')}</option>`,...assets.map(a=>`<option value="${a.id}">${esc(nm(a))}</option>`)].join('');sFrom.innerHTML=options;sTo.innerHTML=options;if(sFrom.querySelector(`option[value="${oldFrom}"]`))sFrom.value=oldFrom;if(sTo.querySelector(`option[value="${oldTo}"]`))sTo.value=oldTo}
