@@ -274,6 +274,11 @@ canvas{width:100%!important;height:100%!important;display:block}
     <input type="text" id="searchInput" class="search-input" placeholder="جستجوی دارایی (مثلا: دلار، تتر، طلا...)" autocomplete="off">
 </div>
 
+<!-- Talasanj Source Link -->
+<div style="text-align: center; margin-bottom: 15px; font-size: 13px; font-weight: bold;">
+    <a href="https://talasanj.info" style="color: var(--accent); text-decoration: none;">قیمت‌ها از طلاسنج</a>
+</div>
+
 <div id="homePage">
 <div class="grid" id="gridFeatured" style="margin-bottom:20px;"></div>
 <div class="section-title" data-t="otherAssets">سایر دارایی‌ها</div>
@@ -315,13 +320,18 @@ canvas{width:100%!important;height:100%!important;display:block}
 </section>
 <div class="footer">
 <span data-t="disclaimer">اطلاعات صرفاً جهت اطلاع‌رسانی است.</span><br>
-Data: <a href="https://nerkhara.com/en/api/" target="_blank">NerkhAra</a> · <a href="https://iran-market.github.io/" target="_blank">Iran Market</a>
+Data: <a href="https://nerkhara.com/en/api/" target="_blank">NerkhAra</a> · <a href="https://iran-market.github.io/" target="_blank">Iran Market</a> · <a href="https://talasanj.info" target="_blank">Talasanj</a>
 </div>
 </div>
 
 <script>
 'use strict';
-const IM_CDN='https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data';
+const HISTORY_URLS = [
+    './data/history/',
+    'https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/history/',
+    'https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/history/',
+    'https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/history/',
+];
 const GITHUB_URLS_PRICES=['./data/latest-prices.json','https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/latest-prices.json','https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/latest-prices.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/latest-prices.json'];
 const GITHUB_URLS_INTRADAY=['./data/intraday.json','https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/intraday.json','https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/intraday.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/intraday.json'];
 const assets=[
@@ -509,7 +519,6 @@ function updatePricesOnly(){
     for(const a of assets){
         const p=getPrice(a.id);const priceHTML=formatPrice(a,p);
         
-        // Flash Animation Logic
         let flashClass = '';
         if(prevPrices[a.id] !== undefined && p > 0 && prevPrices[a.id] > 0 && p !== prevPrices[a.id]){
             flashClass = p > prevPrices[a.id] ? 'flash-up' : 'flash-down';
@@ -615,15 +624,30 @@ async function loadHistories(){
         return;
     }
 
-    if(Object.keys(history).length>0){for(const chartKey in charts){let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];const a=assets.find(x=>x.id===aId);if(a){updateChartData(a,charts[chartKey])}}}
     for(const a of assets){
-        try{
-            const u=IM_CDN+'/history/'+encodeURIComponent(a.symbol)+'.json';
-            const pl=await fetchJson(u,10000);
-            const rows=Array.isArray(pl?.data)?pl.data:Array.isArray(pl)?pl:[];
-            const pts=rows.map(r=>({time:parseTime(r.t_tehran||r.t||r.timestamp||r.date),date:r.date_jalali||r.date||'',price:Number(r.close??r.price??r.value),low:Number(r.low??r.min??0),high:Number(r.high??r.max??0)})).filter(p=>Number.isFinite(p.time)&&p.price>0).sort((a,b)=>a.time-b.time);
-            if(pts.length>=1){history[a.id]=pts;}
-        }catch(e){}
+        let bestPts = history[a.id] || null; 
+        for(const base of HISTORY_URLS) {
+            try {
+                const u = base + encodeURIComponent(a.symbol) + '.json';
+                const pl = await fetchJson(u, 8000);
+                const rows = Array.isArray(pl?.data) ? pl.data : (Array.isArray(pl) ? pl : []);
+                const pts = rows.map(r=>({
+                    time:parseTime(r.t_tehran||r.t||r.timestamp||r.date),
+                    date:r.date_jalali||r.date||'',
+                    price:Number(r.close??r.price??r.value),
+                    low:Number(r.low??r.min??0),
+                    high:Number(r.high??r.max??0)
+                })).filter(p=>Number.isFinite(p.time)&&p.price>0).sort((a,b)=>a.time-b.time);
+                
+                if (pts.length > 0 && (!bestPts || pts[0].time < bestPts[0].time)) {
+                    bestPts = pts;
+                }
+                if (bestPts && (Date.now() - bestPts[0].time) > 60 * 86400000) {
+                    break;
+                }
+            } catch(e) {}
+        }
+        if (bestPts) history[a.id] = bestPts;
         await new Promise(r=>setTimeout(r, 50)); 
     }
     
@@ -1209,7 +1233,6 @@ function drawCompareChart() {
     
     $('compareTitle').textContent = `${nm(a1)} vs ${nm(a2)}`;
     
-    // Get data based on compareRange
     const pts1 = pointsFor(a1.id, compareRange);
     const pts2 = pointsFor(a2.id, compareRange);
     
@@ -1219,7 +1242,6 @@ function drawCompareChart() {
         return;
     }
     
-    // Align data by time
     const times = Array.from(new Set([...pts1.map(p=>p.time), ...pts2.map(p=>p.time)])).sort((a,b)=>a-b);
     const map1 = new Map(pts1.map(p=>[p.time, p.price]));
     const map2 = new Map(pts2.map(p=>[p.time, p.price]));
@@ -1464,7 +1486,7 @@ document.querySelectorAll('.compare-ranges .range').forEach(btn => {
     $('calcTo').addEventListener('change',calc);
     applyTheme();
     applyLang(); 
-    showSkeletons();
+    showSkeletons(); // Show skeleton before loading
     renderHome(); 
     refreshPrices(); 
     setTimeout(()=>{loadHistories()}, 1000);
