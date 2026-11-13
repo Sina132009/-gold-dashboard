@@ -4,10 +4,8 @@ import requests
 import time
 from datetime import datetime
 
-# آدرس پایه فایل‌های تاریخچه در ریپازیتوری ایران مارکت
 BASE_URL = "https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/history/"
 
-# لیست دارایی‌هایی که می‌خواهیم تاریخچه‌شان را از ایران مارکت بگیریم
 SYMBOL_MAP = {
     "usdt": "USDT_IRR",
     "eur": "EUR_IRR_FREE",
@@ -32,7 +30,7 @@ for our_id, symbol in SYMBOL_MAP.items():
         res.raise_for_status()
         data = res.json()
 
-        # استخراج لیست نقاط داده
+        # ساختار ایران مارکت معمولا یک لیست داخل کلید data است
         if isinstance(data, dict) and "data" in data:
             points = data["data"]
         elif isinstance(data, list):
@@ -47,21 +45,33 @@ for our_id, symbol in SYMBOL_MAP.items():
 
         formatted = []
         for p in points:
-            t = p.get("timestamp") or p.get("time") or p.get("date")
-            if isinstance(t, str):
-                try: t = int(datetime.strptime(t, "%Y-%m-%d").timestamp() * 1000)
-                except: continue
-            elif not isinstance(t, int):
+            # خواندن زمان با کلیدهایی که در کد HTML استفاده کردیم
+            t_raw = p.get("t_tehran") or p.get("t") or p.get("timestamp") or p.get("date")
+            close_raw = p.get("close") or p.get("price") or p.get("value")
+            
+            if not t_raw or not close_raw:
                 continue
 
-            close = p.get("close") or p.get("price")
-            if close:
-                formatted.append({
-                    "time": t,
-                    "close": float(close),
-                    "low": float(p.get("low", close)),
-                    "high": float(p.get("high", close))
-                })
+            # تبدیل زمان
+            if isinstance(t_raw, (int, float)):
+                t = int(t_raw)
+                if t < 1e11: t *= 1000 # اگر ثانیه بود به میلی‌ثانیه تبدیل کن
+            elif isinstance(t_raw, str):
+                try:
+                    t = int(t_raw)
+                    if t < 1e11: t *= 1000
+                except ValueError:
+                    try: t = int(datetime.strptime(t_raw, "%Y-%m-%d").timestamp() * 1000)
+                    except: continue
+            else:
+                continue
+
+            formatted.append({
+                "time": t,
+                "close": float(close_raw),
+                "low": float(p.get("low") or p.get("min") or close_raw),
+                "high": float(p.get("high") or p.get("max") or close_raw)
+            })
 
         if formatted:
             formatted.sort(key=lambda x: x["time"])
@@ -72,6 +82,11 @@ for our_id, symbol in SYMBOL_MAP.items():
         else:
             print(f"  ⚠️ No valid points after formatting for {our_id}.")
 
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 404:
+             print(f"  ❌ File not found for {our_id} (Symbol: {symbol}). Skipping.")
+        else:
+             print(f"  ❌ Error fetching {our_id}: {e}")
     except Exception as e:
         print(f"  ❌ Error fetching {our_id}: {e}")
     time.sleep(1)
