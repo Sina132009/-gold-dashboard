@@ -10,14 +10,14 @@
 [data-theme="neon"]{--bg1:#05010f;--bg2:#0d0420;--card1:rgba(20,8,45,.95);--card2:rgba(10,4,28,.98);--line:rgba(180,100,255,.35);--txt:#f2e9ff;--muted:#b39ddb;--green:#00ffc6;--red:#ff2e88;--accent:#a855f7;--shadow:0 4px 15px rgba(168,85,247,.15)}
 [data-theme="glass"]{--bg1:#050B14;--bg2:#0A1428;--card1:rgba(16,30,54,.9);--card2:rgba(10,20,38,.95);--line:rgba(56,189,248,.15);--txt:#F8FAFC;--muted:#94A3B8;--green:#10B981;--red:#F43F5E;--accent:#38BDF8;--shadow:0 4px 15px rgba(0,0,0,.4)}
 
-/* --- تم جدید: شیشه‌ای روشن (Light Glass) --- */
+/* --- تم جدید: شیشه‌ای روشن (Light Glass) با پس‌زمینه ملایم --- */
 [data-theme="light-glass"]{
-    --bg1:#f3f5f8;--bg2:#e9eef3;--card1:rgba(255,255,255,.78);--card2:rgba(248,250,252,.68);
+    --bg1:#e2e8f0;--bg2:#cbd5e1;--card1:rgba(255,255,255,.78);--card2:rgba(248,250,252,.68);
     --line:rgba(51,65,85,.09);--txt:#263449;--muted:#64748b;--green:#10b981;--red:#ef4444;
     --accent:#3b82f6;--shadow:0 6px 24px rgba(31,41,55,.06);
 }
 [data-theme="light-glass"] body{
-    background:linear-gradient(135deg,#f4f6f8 0%,#e9eef3 100%);
+    background:linear-gradient(135deg,#e2e8f0 0%,#cbd5e1 100%);
     background-attachment:fixed;
     font-family:"Vazirmatn","IRANSansX","Segoe UI",Tahoma,Arial,sans-serif;
 }
@@ -254,8 +254,8 @@ const assets=[
 {id:'btc',symbol:'BTC_USD',nid:'bitcoin',fa:'بیت‌کوین',en:'Bitcoin',unitFa:'هر بیت‌کوین',unitEn:'per BTC'},
 {id:'oil',symbol:'OIL',nid:'oil',fa:'نفت',en:'Oil',unitFa:'هر بشکه',unitEn:'per barrel',currency:'USD'}];
 const words={
-fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار'},
-en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD'}};
+fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار',otherAssets:'سایر دارایی‌ها',favsTitle:'⭐ علاقه‌مندی‌ها',favsSub:'دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.',noFavs:'هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.'},
+en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD',otherAssets:'Other Assets',favsTitle:'⭐ Favorites',favsSub:'Assets you starred will appear here.',noFavs:'No assets added to favorites yet.'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
 const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV27',FAVORITES_KEY='pulseFavoritesV27';
 const $=id=>document.getElementById(id);
@@ -442,7 +442,7 @@ function updateChartData(a,chartInstance){
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
     
     chartInstance._rawPoints = pts;
-    chartInstance._currentMode = mode; // <--- ذخیره حالت فعلی برای تولتیپ
+    chartInstance._currentMode = mode; 
     const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
     chartInstance._isUp = isUp;
     
@@ -452,7 +452,6 @@ function updateChartData(a,chartInstance){
     
     chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=0});
     
-    // آپدیت تولتیپ بر اساس حالت جدید
     chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
         if(!items.length) return '';
         const idx = items[0].dataIndex;
@@ -866,7 +865,7 @@ function renderFavorites(){
     const favAssets = assets.filter(a => favorites.includes(a.id));
     
     if(favAssets.length === 0) {
-        grid.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); grid-column: 1/-1;">هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.</div>`;
+        grid.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); grid-column: 1/-1;">${t('noFavs')}</div>`;
         return;
     }
     
@@ -899,7 +898,50 @@ function formatCalcInput(e){let val=e.target.value.replace(/,/g,'').replace(/[^0
 function calc(){const amountStr=$('calcAmount')?.value||'0';const amount=parseFloat(amountStr.replace(/,/g,''))||0;const fromId=$('calcFrom')?.value,toId=$('calcTo')?.value;if(!fromId||!toId)return;const fromVal=getTomanValue(fromId),toVal=getTomanValue(toId);if(fromVal<=0||toVal<=0||!Number.isFinite(amount)){$('total').textContent=t('noPrice');$('calcUnit').textContent='';return}const totalToman=amount*fromVal;const result=totalToman/toVal;let decimals=(toId==='usd'||toId==='oil')?4:(toId==='toman')?0:2;const formattedResult=num(result,decimals);const toName=toId==='toman'?t('toman'):nm(assets.find(x=>x.id===toId));const fromName=fromId==='toman'?t('toman'):nm(assets.find(x=>x.id===fromId));let unitLabel=t('tomanUnit');if(toId==='usd')unitLabel='دلار';else if(toId==='oil')unitLabel='دلار';else if(toId!=='toman'){const a=assets.find(x=>x.id===toId);unitLabel=lang==='fa'?a.fa:a.en}$('total').textContent=`${formattedResult} ${unitLabel}`;$('calcUnit').textContent=`${num(amount,4)} ${fromName} ➔ ${formattedResult} ${toName}`}
 function addHolding(){const id=$('addAsset')?.value;const qty=Number($('addQty')?.value||0);if(!id||id==='oil'||!(qty>0))return;const ex=holdings.find(h=>h.id===id);if(ex)ex.qty=Number(ex.qty)+qty;else holdings.push({id,qty,buyPrice:0});saveHoldings();$('addQty').value='';renderHoldings()}
 
-function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==='fa'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);else el.textContent=t(el.dataset.t)});$('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome();fillCalc();fillAddSelect();renderHoldings();calc()}
+// به‌روزرسانی سریع متن‌ها بدون ساخت مجدد DOM
+function updateCardTexts() {
+    document.querySelectorAll('.card').forEach(card => {
+        const btn = card.querySelector('.star-btn');
+        if(!btn) return;
+        const a = assets.find(x => x.id === btn.dataset.id);
+        if(a) { const el = card.querySelector('.card-name'); if(el) el.textContent = nm(a); }
+    });
+    document.querySelectorAll('.mini-card').forEach(card => {
+        const btn = card.querySelector('.star-btn');
+        if(!btn) return;
+        const a = assets.find(x => x.id === btn.dataset.id);
+        if(a) { const el = card.querySelector('.mini-name'); if(el) el.textContent = nm(a); }
+    });
+    const secTitle = document.querySelector('.section-title');
+    if(secTitle) secTitle.textContent = t('otherAssets');
+    const favTitle = document.querySelector('#favPage h2');
+    if(favTitle) favTitle.textContent = t('favsTitle');
+    const favSub = document.querySelector('#favPage p');
+    if(favSub) favSub.textContent = t('favsSub');
+}
+
+function applyLang(){
+    document.documentElement.lang=lang;
+    document.documentElement.dir=lang==='fa'?'rtl':'ltr';
+    document.querySelectorAll('[data-t]').forEach(el=>{
+        if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);
+        else el.textContent=t(el.dataset.t)
+    });
+    $('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';
+    
+    updateCardTexts(); 
+    
+    for(const key in charts) {
+        let aId = key.includes('-') ? key.split('-')[1] : key;
+        const a = assets.find(x=>x.id===aId);
+        if (a && charts[key]) {
+            updateChartTheme(charts[key], a, charts[key]._isUp);
+            charts[key].update('none');
+        }
+    }
+
+    fillCalc();fillAddSelect();renderHoldings();calc();
+}
 
 function applyTheme(){
     document.documentElement.setAttribute('data-theme',theme);
@@ -994,9 +1036,9 @@ $('refreshBtn').onclick=async()=>{closeDrawer();await Promise.allSettled([refres
     $('calcFrom').addEventListener('change',calc);
     $('calcTo').addEventListener('change',calc);
     applyTheme();
-    applyLang();
-    renderHome();
-    refreshPrices().then(()=>{applyLang()});
+    applyLang(); 
+    renderHome(); 
+    refreshPrices(); 
     setTimeout(()=>{loadHistories()}, 1000);
 })();
 </script>
