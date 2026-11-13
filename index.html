@@ -444,7 +444,9 @@ function updateChartData(a,chartInstance){
     chartInstance.data.labels=pts.map(p=>getLabel(p,mode));
     chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.price)});
     chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
-    const sparse=pts.length<3;chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=sparse?4:0});
+    
+    // همیشه نقاط را مخفی نگه دار، مگر در حالت هاور
+    chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=0});
     
     updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');
 }
@@ -620,22 +622,21 @@ function updateChartTheme(chartInstance,a,isUp){
     const width=chartInstance.width||500;
     
     if(lightGlass){
-        // افکت سایه‌ای گرادیان اصلاح شده: رنگ از بالا شروع می‌شود اما در نیمه راه کاملاً محو می‌شود تا کل فضا را پر نکند
         const fillGradient = ctx.createLinearGradient(0, 0, 0, 190);
-        fillGradient.addColorStop(0, lightColor + '20'); // شفافیت کم در بالا
-        fillGradient.addColorStop(0.6, lightColor + '00'); // محو شدن در نیمه راه
-        fillGradient.addColorStop(1, lightColor + '00'); // کاملا شفاف در پایین
+        fillGradient.addColorStop(0, lightColor + '20'); 
+        fillGradient.addColorStop(0.6, lightColor + '00'); 
+        fillGradient.addColorStop(1, lightColor + '00'); 
 
         chartInstance.data.datasets[0].borderColor=lightColor;
         chartInstance.data.datasets[0].backgroundColor=fillGradient;
         chartInstance.data.datasets[0].borderWidth=3;
-        chartInstance.data.datasets[0].pointBackgroundColor='#fff';
-        chartInstance.data.datasets[0].pointBorderColor=lightColor;
-        chartInstance.data.datasets[0].pointBorderWidth=3;
-        chartInstance.data.datasets[0].pointRadius=5; 
-        chartInstance.data.datasets[0].pointHoverRadius=8;
+        chartInstance.data.datasets[0].pointRadius=0; // <--- مخفی کردن کامل نقاط
+        chartInstance.data.datasets[0].pointHoverRadius=8; // <--- فقط در هاور نشان داده شود
+        chartInstance.data.datasets[0].pointHoverBackgroundColor='#fff';
+        chartInstance.data.datasets[0].pointHoverBorderColor=lightColor;
+        chartInstance.data.datasets[0].pointHoverBorderWidth=3;
         chartInstance.data.datasets[0].shadowColor=lightColor;
-        chartInstance.data.datasets[0].shadowBlur=15; // سایه قوی‌تر برای خط
+        chartInstance.data.datasets[0].shadowBlur=15;
     } else if(glass){
         const lineGrad=ctx.createLinearGradient(0,0,width,0);
         lineGrad.addColorStop(0,'#38bdf8');lineGrad.addColorStop(1,'#818cf8');
@@ -644,6 +645,8 @@ function updateChartTheme(chartInstance,a,isUp){
         chartInstance.data.datasets[0].borderColor=lineGrad;
         chartInstance.data.datasets[0].backgroundColor=fillGrad;
         chartInstance.data.datasets[0].borderWidth=2.5;
+        chartInstance.data.datasets[0].pointRadius=0; // <--- مخفی کردن نقاط
+        chartInstance.data.datasets[0].pointHoverRadius=6;
         chartInstance.data.datasets[0].shadowBlur=0;
     } else if(obsidian){
         const lineGrad=ctx.createLinearGradient(0,0,width,0);
@@ -653,6 +656,8 @@ function updateChartTheme(chartInstance,a,isUp){
         chartInstance.data.datasets[0].borderColor=lineGrad;
         chartInstance.data.datasets[0].backgroundColor=fillGrad;
         chartInstance.data.datasets[0].borderWidth=3;
+        chartInstance.data.datasets[0].pointRadius=0; // <--- مخفی کردن نقاط
+        chartInstance.data.datasets[0].pointHoverRadius=6;
         chartInstance.data.datasets[0].shadowBlur=0;
     } else {
         let color=isUp?'#00e676':'#ff1744';
@@ -663,6 +668,8 @@ function updateChartTheme(chartInstance,a,isUp){
         chartInstance.data.datasets[0].borderColor=color;
         chartInstance.data.datasets[0].backgroundColor=grad;
         chartInstance.data.datasets[0].borderWidth=neon?2.8:2.2;
+        chartInstance.data.datasets[0].pointRadius=0; // <--- مخفی کردن نقاط
+        chartInstance.data.datasets[0].pointHoverRadius=6;
         chartInstance.data.datasets[0].shadowBlur=0;
     }
     
@@ -685,14 +692,12 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
     const labels=pts.map(p=>getLabel(p,mode));
     const dataVals=pts.map(p=>p.price);
-    const sparse=dataVals.length<3;
-    const pointR=sparse?4:0;
     
     if(chartInstance){
         chartInstance._rawPoints = pts;
         chartInstance._isUp = isUp;
         chartInstance.data.labels=labels;
-        chartInstance.data.datasets.forEach(ds=>{ds.data=dataVals;if(ds.pointRadius!==undefined)ds.pointRadius=pointR});
+        chartInstance.data.datasets.forEach(ds=>{ds.data=dataVals;});
         chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
         updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');return;
     }
@@ -704,29 +709,28 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         const colorMap = { usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', g24: '#eab308', silver: '#94a3b8', emami: '#ec4899', bahar: '#f43f5e', half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' };
         const c = colorMap[a.id] || '#3b82f6';
         
-        // گرادیان محو شونده برای عدم پر شدن کل فضا
         const fillGrad = ctx.createLinearGradient(0, 0, 0, 190);
         fillGrad.addColorStop(0, c + '20');
         fillGrad.addColorStop(0.6, c + '00');
         fillGrad.addColorStop(1, c + '00');
 
-        dataset={data:dataVals,borderColor:c,backgroundColor:fillGrad,fill:true,tension:.4,borderWidth:3,pointRadius:sparse?6:5,pointHoverRadius:8,pointBackgroundColor:'#fff',pointBorderColor:c,pointBorderWidth:3,shadowColor:c,shadowBlur:15,spanGaps:true};
+        dataset={data:dataVals,borderColor:c,backgroundColor:fillGrad,fill:true,tension:.4,borderWidth:3,pointRadius:0,pointHoverRadius:8,pointHoverBackgroundColor:'#fff',pointHoverBorderColor:c,pointHoverBorderWidth:3,shadowColor:c,shadowBlur:15,spanGaps:true};
     } else if(glass){
         const width=cv.offsetWidth||500;
         const lineGrad=ctx.createLinearGradient(0,0,width,0);lineGrad.addColorStop(0,'#38bdf8');lineGrad.addColorStop(1,'#818cf8');
         const fillGrad=ctx.createLinearGradient(0,0,0,200);fillGrad.addColorStop(0,'rgba(56,189,248,.2)');fillGrad.addColorStop(1,'rgba(129,140,248,0)');
-        dataset={data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35,borderWidth:2.5,pointRadius:pointR,pointHoverRadius:6,pointBackgroundColor:'#fff',pointBorderColor:'#38bdf8',spanGaps:true};
+        dataset={data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35,borderWidth:2.5,pointRadius:0,pointHoverRadius:6,spanGaps:true};
     } else if(obsidian){
         const lineGrad=ctx.createLinearGradient(0,0,cv.offsetWidth||500,0);lineGrad.addColorStop(0,'#f3c623');lineGrad.addColorStop(1,'#ff8f00');
         const fillGrad=ctx.createLinearGradient(0,0,0,210);fillGrad.addColorStop(0,'rgba(243,198,35,.15)');fillGrad.addColorStop(1,'rgba(255,143,0,0)');
-        dataset={data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35,borderWidth:3,pointRadius:pointR,pointHoverRadius:6,pointBackgroundColor:'#fff',pointBorderColor:'#f3c623',spanGaps:true};
+        dataset={data:dataVals,borderColor:lineGrad,backgroundColor:fillGrad,fill:true,tension:.35,borderWidth:3,pointRadius:0,pointHoverRadius:6,spanGaps:true};
     } else {
         let color=isUp?'#00e676':'#ff1744';
         if(neon)color=isUp?'#00ffc6':'#ff2e88';
         const grad=ctx.createLinearGradient(0,0,0,200);
         if(neon){grad.addColorStop(0,isUp?'rgba(0,255,198,.55)':'rgba(255,46,136,.5)');grad.addColorStop(1,'rgba(10,4,28,0)')}
         else{grad.addColorStop(0,isUp?'rgba(0,230,118,.4)':'rgba(255,23,68,.4)');grad.addColorStop(1,'rgba(20,30,50,0)')}
-        dataset={data:dataVals,borderColor:color,backgroundColor:grad,fill:true,tension:.35,borderWidth:neon?2.8:2.2,pointRadius:pointR,pointHoverRadius:6,pointBackgroundColor:'#fff',pointBorderColor:color,spanGaps:true};
+        dataset={data:dataVals,borderColor:color,backgroundColor:grad,fill:true,tension:.35,borderWidth:neon?2.8:2.2,pointRadius:0,pointHoverRadius:6,spanGaps:true};
     }
     
     const gc=lightGlass?'rgba(0,0,0,.04)':neon?'rgba(168,85,247,.15)':glass?'rgba(255,255,255,.05)':obsidian?'rgba(255,255,255,.05)':'rgba(160,185,225,.1)';
