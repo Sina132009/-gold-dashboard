@@ -5,48 +5,66 @@ import time
 from datetime import datetime, timedelta
 
 API_KEY = os.environ.get("TALASANJ_API_KEY")
-
-# آدرس پایه
 BASE = "https://talasanj.info/api/v1"
 
-# تاریخ‌ها به فرمت‌های مختلف
-start_date = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
-end_date = datetime.now().strftime("%Y-%m-%d")
-start_ts = int((datetime.now() - timedelta(days=365)).timestamp() * 1000)
-end_ts = int(datetime.now().timestamp() * 1000)
+# ساخت پوشه
+HISTORY_DIR = "data/history"
+os.makedirs(HISTORY_DIR, exist_ok=True)
 
-# لیست حالت‌های مختلف برای تست
-# (نام حالت، آدرس کامل، پارامترها)
-tests = [
-    ("GET /prices/usd (start/end)", f"{BASE}/prices/usd", {"start": start_date, "end": end_date}),
-    ("GET /prices/usd (from/to)", f"{BASE}/prices/usd", {"from": start_date, "to": end_date}),
-    ("GET /prices?symbol=usd (start/end)", f"{BASE}/prices", {"symbol": "usd", "start": start_date, "end": end_date}),
-    ("GET /prices?symbol=usd (from/to)", f"{BASE}/prices", {"symbol": "usd", "from": start_date, "to": end_date}),
-    ("GET /history?symbol=usd (start/end)", f"{BASE}/history", {"symbol": "usd", "start": start_date, "end": end_date}),
-    ("GET /history?symbol=usd (from/to)", f"{BASE}/history", {"symbol": "usd", "from": start_date, "to": end_date}),
-    ("GET /history/usd (start/end)", f"{BASE}/history/usd", {"start": start_date, "end": end_date}),
-    ("GET /prices/usd (timestamp)", f"{BASE}/prices/usd", {"start": start_ts, "end": end_ts}),
-]
+# نقشه نمادها
+SYMBOL_MAP = {
+    "usd": "usd",
+    "usdt": "usdt",
+    "g18": "gram18",
+    "g24": "gram24",
+    "emami": "coin_full",
+    "bahar": "coin_bahar",
+    "half": "coin_half",
+    "quarter": "coin_quarter"
+}
 
-headers = {
-    "Authorization": f"Bearer {API_KEY}",
-    "X-Client-Name": "PulseMarket",
-    "X-Client-Url": "https://sina132009.github.io/"
-} if API_KEY else {}
+headers = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else {}
 
-print("--- شروع تست API تاریخچه طلاسنج ---")
+def get_urls(sym):
+    return [
+        f"{BASE}/history?symbol={sym}",
+        f"{BASE}/history/{sym}",
+        f"{BASE}/prices/{sym}/history"
+    ]
 
-for name, url, params in tests:
-    print(f"\n🔍 تست: {name}")
-    print(f"   URL: {url}")
-    print(f"   Params: {params}")
-    try:
-        res = requests.get(url, headers=headers, params=params, timeout=10)
-        print(f"   Status Code: {res.status_code}")
-        # فقط 200 کاراکتر اول پاسخ را چاپ می‌کنیم تا لاگ شلوغ نشود
-        print(f"   Response (بخش اول): {res.text[:200]}")
-    except Exception as e:
-        print(f"   ❌ خطا در اتصال: {e}")
-    time.sleep(1) # تاخیر بین تست‌ها
+for our_id, ts_id in SYMBOL_MAP.items():
+    print(f"Fetching history for {our_id} ({ts_id})...")
+    success = False
+    
+    for url in get_urls(ts_id):
+        try:
+            print(f"  Trying: {url}")
+            res = requests.get(url, headers=headers, timeout=10)
+            if res.status_code == 200:
+                raw = res.json()
+                rows = raw if isinstance(raw, list) else raw.get("data", [])
+                
+                if rows and len(rows) > 0:
+                    out = []
+                    for r in rows:
+                        out.append({
+                            "time": r.get("time") or r.get("timestamp") or int(time.time()*1000),
+                            "close": float(r.get("price") or r.get("close") or 0),
+                            "low": float(r.get("low") or r.get("price") or 0),
+                            "high": float(r.get("high") or r.get("price") or 0)
+                        })
+                    with open(f"{HISTORY_DIR}/{our_id.upper()}.json", "w", encoding="utf-8") as f:
+                        json.dump(out, f, ensure_ascii=False)
+                    print(f"  ✅ Success! Saved {len(out)} points.")
+                    success = True
+                    break
+        except Exception as e:
+            print(f"  Error: {e}")
+            
+    if not success:
+        print(f"  ❌ Could not fetch history for {our_id}")
+        # ساخت فایل خالی برای جلوگیری از خطای گیت‌هاب
+        with open(f"{HISTORY_DIR}/{our_id.upper()}.json", "w") as f:
+            json.dump([], f)
 
-print("\n--- پایان تست ---")
+print("Backfill process completed.")
