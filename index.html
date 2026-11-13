@@ -85,7 +85,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(243,198,35,.2);}
 .search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none;}
 
-/* FIX: Drawer Scrolling */
+/* Drawer Scroll Fix */
 .drawer{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:var(--card1);border-left:1px solid var(--line);transition:right .3s cubic-bezier(.4,0,.2,1);z-index:1000;display:flex;flex-direction:column;padding:20px;padding-bottom:30px;box-shadow:-10px 0 30px rgba(0,0,0,.5);overflow-y:auto;overflow-x:hidden;}
 .drawer::-webkit-scrollbar{width:6px}
 .drawer::-webkit-scrollbar-track{background:transparent}
@@ -455,7 +455,19 @@ function saveIntraday(){try{const today=dayKey(),d={};for(const a of assets){d[a
 function record(id,price,time){if(!(price>0)||!Number.isFinite(time))return;const rows=(intraday[id]||[]).filter(p=>dayKey(p.time)===dayKey(time));const last=rows[rows.length-1];if(last&&time-last.time<15000)return;rows.push({time,price});intraday[id]=rows.slice(-1000)}
 function saveHoldings(){try{localStorage.setItem(HOLDINGS_KEY,JSON.stringify(holdings))}catch(e){}}
 
+// --- CACHES (MASSIVE PERFORMANCE BOOST) ---
+let pointsCache = {};
+let ohlcCache = {};
+let changeCache = {};
+
+function clearCaches() {
+    pointsCache = {};
+    ohlcCache = {};
+    changeCache = {};
+}
+
 async function refreshPrices(){
+    clearCaches();
     $('status').textContent=t('loading');
     try{
         let data=await fetchFirstSuccess(GITHUB_URLS_PRICES);
@@ -476,6 +488,7 @@ async function refreshPrices(){
         const ok=Object.keys(prices).filter(k=>!k.startsWith('_')).length>0;
         $('dot').classList.toggle('bad',!ok);
         $('status').textContent=ok?t('connected'):t('failed');
+        
         updatePricesOnly();
         if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
         if(!$('favPage').classList.contains('hidden')) renderFavorites();
@@ -504,14 +517,23 @@ function todayOHLC(id){
 
 function getRangeOHLC(id){
     const mode=ranges[id]||'daily';
-    if(mode==='daily')return todayOHLC(id);
-    const days = mode==='weekly'?7 : mode==='monthly'?30 : mode==='yearly'?365 : 3650;
-    const cutoff=Date.now()-days*86400000;
-    const rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
-    if(!rawPts.length)return{low:0,high:0};
-    const vals=rawPts.map(p=>p.close||p.price).filter(v=>Number.isFinite(v)&&v>0);
-    if(!vals.length)return{low:0,high:0};
-    return{low:Math.min(...vals),high:Math.max(...vals)}
+    const cacheKey = id + '_' + mode + '_' + (prices[id]||0) + '_' + (intraday[id]?.length||0);
+    if (ohlcCache[cacheKey]) return ohlcCache[cacheKey];
+
+    let result = {low:0, high:0};
+    if(mode==='daily'){
+        result = todayOHLC(id);
+    } else {
+        const days = mode==='weekly'?7 : mode==='monthly'?30 : mode==='yearly'?365 : 3650;
+        const cutoff=Date.now()-days*86400000;
+        const rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
+        if(rawPts.length){
+            const vals=rawPts.map(p=>p.close||p.price).filter(v=>Number.isFinite(v)&&v>0);
+            if(vals.length) result = {low:Math.min(...vals),high:Math.max(...vals)};
+        }
+    }
+    ohlcCache[cacheKey] = result;
+    return result;
 }
 
 function getRangeChange(id){
@@ -584,7 +606,7 @@ function updatePricesOnly(){
             }
         });
         
-        updateChange(a);
+        updateChange(a, true);
     }
     for(const chartKey in charts){let aId=chartKey;if(chartKey.includes('-'))aId=chartKey.split('-')[1];if((ranges[aId]||'daily')==='daily'){const a=assets.find(x=>x.id===aId);if(a)updateChartData(a,charts[chartKey])}}
     renderHoldings();calc();
@@ -626,6 +648,7 @@ function updateChartData(a,chartInstance){
 }
 
 async function loadHistories(){
+    clearCaches();
     const lastCacheTime = Number(localStorage.getItem(HISTORY_CACHE_TIME_KEY) || 0);
     const isCacheValid = Object.keys(history).length > 0 && (Date.now() - lastCacheTime < 3600000); 
     if(isCacheValid){
@@ -678,6 +701,10 @@ function sampleByStep(pts,step){if(step<1)step=1;const out=[];for(let i=0;i<pts.
 function pointsFor(id, overrideMode){
     const all=history[id]||[];
     const mode=overrideMode||ranges[id]||'daily';
+    const cacheKey = id + '_' + mode + '_' + (prices[id]||0) + '_' + (intraday[id]?.length||0) + '_' + all.length;
+    if (pointsCache[cacheKey]) return pointsCache[cacheKey];
+
+    let result = [];
     if(mode==='daily'){
         const today=dayKey();const merged=[];const seen=new Set();
         const addPts=pts=>{
@@ -697,16 +724,25 @@ function pointsFor(id, overrideMode){
         addPts(intraday[id]||[]);
         if(remoteIntraday[today])addPts(remoteIntraday[today][id]||[]);
         addPts(all);
-        if(merged.length>0)return merged.sort((a,b)=>a.time-b.time);
-        const currentPrice = getPrice(id);
-        if (currentPrice > 0) return [{ time: Date.now(), close: currentPrice }];
-        return [];
+        if(merged.length>0) result = merged.sort((a,b)=>a.time-b.time);
+        else {
+            const currentPrice = getPrice(id);
+            if (currentPrice > 0) result = [{ time: Date.now(), close: currentPrice }];
+        }
+    } else if(mode==='weekly'){
+        const merged=getMergedRawPoints(id,7); if(merged.length>0) result = sampleByDay(merged,7);
+    } else if(mode==='monthly'){
+        const merged=getMergedRawPoints(id,30); if(merged.length>0) result = sampleByDay(merged,30);
+    } else if(mode==='yearly'){
+        const merged=getMergedRawPoints(id,365); if(merged.length>0) result = sampleByStep(merged,Math.max(1,Math.floor(merged.length/24)));
+    } else if(mode==='all'){
+        const merged=getMergedRawPoints(id,3650); if(merged.length>0) result = sampleByStep(merged,Math.ceil(merged.length/120));
+    } else {
+        result = all;
     }
-    if(mode==='weekly'){const merged=getMergedRawPoints(id,7);if(merged.length>0)return sampleByDay(merged,7)}
-    if(mode==='monthly'){const merged=getMergedRawPoints(id,30);if(merged.length>0)return sampleByDay(merged,30)}
-    if(mode==='yearly'){const merged=getMergedRawPoints(id,365);if(merged.length>0)return sampleByStep(merged,Math.max(1,Math.floor(merged.length/24)))}
-    if(mode==='all'){const merged=getMergedRawPoints(id,3650);if(merged.length>0)return sampleByStep(merged,Math.ceil(merged.length/120))}
-    return all;
+
+    pointsCache[cacheKey] = result;
+    return result;
 }
 function getMergedRawPoints(id,days){const cutoff=Date.now()-days*86400000;const all=history[id]||[];return all.filter(p=>p.time>=cutoff).sort((a,b)=>a.time-b.time)}
 
@@ -804,7 +840,7 @@ function bindRanges(container,prefix=''){
                         dr.innerHTML=`<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
                     }
                 }
-                updateChange(a);
+                updateChange(a, true);
             }
             container.querySelectorAll(`.range[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.remove('active'));
             b.classList.add('active');
@@ -971,7 +1007,6 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     const chartKey=prefix+a.id;charts[chartKey]=newChart;
 }
 
-// FIX: Chart Creation Queue to Prevent Freezing
 const chartQueue = [];
 let isProcessingQueue = false;
 
@@ -983,7 +1018,7 @@ function processChartQueue() {
     isProcessingQueue = true;
     const task = chartQueue.shift();
     task();
-    setTimeout(processChartQueue, 50); // 50ms delay gives browser time to breathe
+    requestAnimationFrame(processChartQueue); // Use RAF for smoother rendering
 }
 
 const chartObserver=new IntersectionObserver((entries,observer)=>{
@@ -1072,7 +1107,6 @@ function cleanupExpanded(){
     expContainer.innerHTML = '';
 }
 
-// FIX: renderHome Optimization (Zero DOM rebuild on expand)
 function renderHome(force = false){
     const grid=$('gridFeatured');
     const mini=$('gridMini');
@@ -1106,6 +1140,9 @@ function renderHome(force = false){
     if(force || !mini.children.length || mini.innerHTML.includes('skeleton') || miniStateKey !== lastMiniStateKey){
         mini.innerHTML = rest.map(a => miniCardHTML(a)).join('');
         lastMiniStateKey = miniStateKey;
+        rest.forEach(a => updateChange(a, true)); // Force update on DOM rebuild
+    } else {
+        rest.forEach(a => updateChange(a));
     }
     
     // Hide/Show mini cards based on expansion (NO REBUILD)
@@ -1114,7 +1151,6 @@ function renderHome(force = false){
         if(el) {
             el.style.display = (a.id === expandedAssetId) ? 'none' : '';
         }
-        updateChange(a);
     });
     
     // 3. Expanded Container
@@ -1165,13 +1201,18 @@ function renderFavorites(){
 function renderAll(){
     const grid=$('gridAll');
     if(!grid)return;
-    if(!grid.innerHTML){
+    if(!grid.innerHTML || grid.innerHTML.includes('skeleton')){
         grid.innerHTML=assets.map(a=>fullCardHTML(a,'all-')).join('');
         bindRanges(grid,'all-');
     }
     setTimeout(() => { renderCharts(grid, null, 'all-'); }, 10);
 }
-function updateChange(a){
+function updateChange(a, force = false){
+    const mode = ranges[a.id] || 'daily';
+    const cacheKey = a.id + '_' + mode + '_' + (prices[a.id]||0) + '_' + (intraday[a.id]?.length||0) + '_' + (history[a.id]?.length||0);
+    if (!force && changeCache[a.id] === cacheKey) return;
+    changeCache[a.id] = cacheKey;
+
     const pct=getRangeChange(a.id);
     const pts=pointsFor(a.id);
     let text = '—';
@@ -1471,7 +1512,6 @@ function applyTheme(){
     if(compareChartInstance) drawCompareChart();
 }
 
-// FIX: Do NOT clear innerHTML of allPage and favPage to avoid DOM rebuild lag
 function hideAllPages(){
     $('homePage').classList.add('hidden');
     $('favPage').classList.add('hidden');
@@ -1486,8 +1526,6 @@ function hideAllPages(){
             delete charts[key];
         }
     }
-    // We only clear favorites because it changes often
-    $('gridFavorites').innerHTML='';
 }
 
 document.body.addEventListener('click', function(e) {
@@ -1557,9 +1595,26 @@ document.querySelectorAll('.theme-option').forEach(btn => {
 
 $('searchInput').addEventListener('input', (e) => { filterAssets(e.target.value); });
 
-$('homeBtn').onclick=()=>{closeDrawer();hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome()};
-$('favBtn').onclick=()=>{closeDrawer();hideAllPages();$('favPage').classList.remove('hidden');$('favBtn').classList.add('active');renderFavorites()};
-$('allBtn').onclick=()=>{closeDrawer();hideAllPages();$('allPage').classList.remove('hidden');$('allBtn').classList.add('active');renderAll()};
+$('homeBtn').onclick=()=>{
+    closeDrawer();
+    hideAllPages();
+    $('homePage').classList.remove('hidden');
+    $('homeBtn').classList.add('active');
+    
+    requestAnimationFrame(() => {
+        renderHome();
+        setTimeout(() => {
+            for(const key in charts) {
+                if (key.startsWith('feat-') || key.startsWith('exp-')) {
+                    try { charts[key].resize(); } catch(e){}
+                }
+            }
+        }, 10);
+    });
+};
+
+$('favBtn').onclick=()=>{closeDrawer();hideAllPages();$('favPage').classList.remove('hidden');$('favBtn').classList.add('active');requestAnimationFrame(()=>renderFavorites())};
+$('allBtn').onclick=()=>{closeDrawer();hideAllPages();$('allPage').classList.remove('hidden');$('allBtn').classList.add('active');requestAnimationFrame(()=>renderAll())};
 $('calcBtn').onclick=()=>{closeDrawer();hideAllPages();$('calcPage').classList.remove('hidden');$('calcBtn').classList.add('active');fillCalc();calc()};
 $('assetsBtn').onclick=()=>{closeDrawer();hideAllPages();$('assetsPage').classList.remove('hidden');$('assetsBtn').classList.add('active');fillAddSelect();renderHoldings()};
 $('addBtn').onclick=addHolding;
