@@ -54,7 +54,6 @@ body{min-height:100vh;color:var(--txt);font-family:'Vazirmatn', Tahoma, Arial, s
 [data-theme="neon"] body{background:radial-gradient(circle at 10% 0%,#3d0a6b,transparent 45%),radial-gradient(circle at 90% 10%,#00605a,transparent 40%),radial-gradient(circle at 50% 100%,#6b0a4a,transparent 45%),linear-gradient(160deg,var(--bg1),var(--bg2))}
 [data-theme="glass"] body{background:radial-gradient(circle at 15% 10%,rgba(56,189,248,.15),transparent 40%),radial-gradient(circle at 85% 90%,rgba(168,85,247,.15),transparent 40%),linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed}
 
-/* --- Skeleton Loading --- */
 .skeleton{background:#222;background:linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;color:transparent!important;pointer-events:none;}
 [data-theme="light-glass"] .skeleton{background:#e2e8f0;background:linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);background-size:200% 100%;}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -63,7 +62,6 @@ body{min-height:100vh;color:var(--txt);font-family:'Vazirmatn', Tahoma, Arial, s
 .sk-price{width:60%;height:30px;margin-top:10px;}
 .sk-chart{flex:1;margin-top:10px;}
 
-/* --- Flash Animation --- */
 .flash-up{animation:flashUp 0.8s ease-out;}
 .flash-down{animation:flashDown 0.8s ease-out;}
 @keyframes flashUp{0%{color:var(--green);text-shadow:0 0 8px var(--green);}100%{color:var(--txt);text-shadow:none;}}
@@ -88,7 +86,6 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .btn-icon{font-size:20px;padding:8px 12px}
 [data-theme="glass"] .btn{border-color:rgba(56,189,248,.2);background:rgba(30,41,59,.8)}
 
-/* --- Search Bar --- */
 .search-wrap{position:relative;margin-bottom:15px;width:100%;max-width:400px;}
 .search-input{width:100%;padding:12px 40px 12px 15px;border-radius:12px;border:1px solid var(--line);background:var(--card1);color:var(--txt);font-family:inherit;font-size:14px;outline:none;transition:.2s;}
 .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(243,198,35,.2);}
@@ -172,6 +169,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 .modal-close{position:absolute;top:15px;left:15px;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;}
 .modal-close:hover{color:var(--red);}
 .modal h3{font-size:16px;margin-bottom:15px;text-align:center;}
+.compare-ranges{display:flex;justify-content:center;gap:5px;margin-bottom:15px;}
 .compare-chart-wrap{height:250px;position:relative;}
 
 #favPage, #calcPage, #assetsPage { margin-top: 22px; }
@@ -250,6 +248,12 @@ canvas{width:100%!important;height:100%!important;display:block}
     <div class="modal-content">
         <button class="modal-close" id="closeCompare">✖</button>
         <h3 id="compareTitle">مقایسه دارایی‌ها</h3>
+        <div class="compare-ranges">
+            <button class="range" data-r="daily">امروز</button>
+            <button class="range" data-r="weekly">این هفته</button>
+            <button class="range" data-r="monthly">این ماه</button>
+            <button class="range" data-r="yearly">امسال</button>
+        </div>
         <div class="compare-chart-wrap"><canvas id="compareChart"></canvas></div>
     </div>
 </div>
@@ -336,7 +340,7 @@ const assets=[
 const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار',otherAssets:'سایر دارایی‌ها',favsTitle:'⭐ علاقه‌مندی‌ها',favsSub:'دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.',noFavs:'هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.',themeTitle:'🎨 تغییر تم',theme_obsidian:'تیره (Obsidian)',theme_neon:'نئون (Neon)',theme_glass:'شیشه‌ای تیره (Glass)',theme_light_glass:'شیشه‌ای روشن (Light Glass)',searchPlaceholder:'جستجوی دارایی (مثلا: دلار، تتر، طلا...)',compareTitle:'مقایسه دارایی‌ها',selectTwo:'برای مقایسه، دقیقاً دو دارایی را با دکمه 📊 انتخاب کنید.'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD',otherAssets:'Other Assets',favsTitle:'⭐ Favorites',favsSub:'Assets you starred will appear here.',noFavs:'No assets added to favorites yet.',themeTitle:'🎨 Change Theme',theme_obsidian:'Dark (Obsidian)',theme_neon:'Neon',theme_glass:'Dark Glass',theme_light_glass:'Light Glass',searchPlaceholder:'Search assets (e.g. USD, Gold...)',compareTitle:'Assets Comparison',selectTwo:'Select exactly two assets using the 📊 button.'}};
-let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[],selectedForCompare=[],compareChartInstance=null,prevPrices={};
+let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[],selectedForCompare=[],compareChartInstance=null,compareRange='daily',prevPrices={};
 const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV27',FAVORITES_KEY='pulseFavoritesV27',HISTORY_CACHE_TIME_KEY='pulseHistoryTimeV1';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
@@ -598,10 +602,9 @@ function updateChartData(a,chartInstance){
 
 async function loadHistories(){
     const lastCacheTime = Number(localStorage.getItem(HISTORY_CACHE_TIME_KEY) || 0);
-    const isCacheValid = Object.keys(history).length > 0 && (Date.now() - lastCacheTime < 3600000); // 1 hour cache
+    const isCacheValid = Object.keys(history).length > 0 && (Date.now() - lastCacheTime < 3600000); 
     
     if(isCacheValid){
-        console.log("Using cached history data.");
         if(!$('homePage').classList.contains('hidden')) refreshHomeCharts();
         if(!$('favPage').classList.contains('hidden')) renderFavorites();
         for(const chartKey in charts){
@@ -642,9 +645,9 @@ async function loadHistories(){
 function sampleByDay(pts,max){if(pts.length<=max)return pts;const byDay={};pts.forEach(p=>{byDay[dayKey(p.time)]=p});const days=Object.values(byDay).sort((a,b)=>a.time-b.time);if(days.length<=max)return days;return Array.from({length:max},(_,i)=>days[Math.round(i*(days.length-1)/(max-1))])}
 function sampleByStep(pts,step){if(step<1)step=1;const out=[];for(let i=0;i<pts.length;i+=step)out.push(pts[i]);if(out[out.length-1]!==pts[pts.length-1])out.push(pts[pts.length-1]);return out}
 
-function pointsFor(id){
+function pointsFor(id, overrideMode){
     const all=history[id]||[];
-    const mode=ranges[id]||'daily';
+    const mode=overrideMode||ranges[id]||'daily';
     if(mode==='daily'){
         const today=dayKey();const merged=[];const seen=new Set();
         const addPts=pts=>{
@@ -1153,7 +1156,6 @@ function formatCalcInput(e){let val=e.target.value.replace(/,/g,'').replace(/[^0
 function calc(){const amountStr=$('calcAmount')?.value||'0';const amount=parseFloat(amountStr.replace(/,/g,''))||0;const fromId=$('calcFrom')?.value,toId=$('calcTo')?.value;if(!fromId||!toId)return;const fromVal=getTomanValue(fromId),toVal=getTomanValue(toId);if(fromVal<=0||toVal<=0||!Number.isFinite(amount)){$('total').textContent=t('noPrice');$('calcUnit').textContent='';return}const totalToman=amount*fromVal;const result=totalToman/toVal;let decimals=(toId==='usd'||toId==='oil')?4:(toId==='toman')?0:2;const formattedResult=num(result,decimals);const toName=toId==='toman'?t('toman'):nm(assets.find(x=>x.id===toId));const fromName=fromId==='toman'?t('toman'):nm(assets.find(x=>x.id===fromId));let unitLabel=t('tomanUnit');if(toId==='usd')unitLabel='دلار';else if(toId==='oil')unitLabel='دلار';else if(toId!=='toman'){const a=assets.find(x=>x.id===toId);unitLabel=lang==='fa'?a.fa:a.en}$('total').textContent=`${formattedResult} ${unitLabel}`;$('calcUnit').textContent=`${num(amount,4)} ${fromName} ➔ ${formattedResult} ${toName}`}
 function addHolding(){const id=$('addAsset')?.value;const qty=Number($('addQty')?.value||0);if(!id||id==='oil'||!(qty>0))return;const ex=holdings.find(h=>h.id===id);if(ex)ex.qty=Number(ex.qty)+qty;else holdings.push({id,qty,buyPrice:0});saveHoldings();$('addQty').value='';renderHoldings()}
 
-// Search Filter Logic
 function filterAssets(query) {
     query = query.toLowerCase().trim();
     document.querySelectorAll('.card, .mini-card').forEach(card => {
@@ -1173,17 +1175,15 @@ function filterAssets(query) {
     });
 }
 
-// Compare Feature Logic
 function toggleCompare(id) {
     const idx = selectedForCompare.indexOf(id);
     if (idx > -1) {
         selectedForCompare.splice(idx, 1);
     } else {
-        if (selectedForCompare.length >= 2) selectedForCompare.shift(); // keep only last 2
+        if (selectedForCompare.length >= 2) selectedForCompare.shift(); 
         selectedForCompare.push(id);
     }
     
-    // Update UI
     document.querySelectorAll('.cmp-btn').forEach(btn => {
         btn.classList.toggle('active-cmp', selectedForCompare.includes(btn.dataset.id));
     });
@@ -1194,18 +1194,24 @@ function toggleCompare(id) {
 }
 
 function openCompareModal() {
-    if(compareChartInstance) { compareChartInstance.destroy(); compareChartInstance = null; }
     $('compareModal').classList.add('open');
-    
+    document.querySelectorAll('.compare-ranges .range').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.r === compareRange);
+    });
+    drawCompareChart();
+}
+
+function drawCompareChart() {
+    if(compareChartInstance) { compareChartInstance.destroy(); compareChartInstance = null; }
     const a1 = assets.find(x => x.id === selectedForCompare[0]);
     const a2 = assets.find(x => x.id === selectedForCompare[1]);
     if(!a1 || !a2) return;
     
     $('compareTitle').textContent = `${nm(a1)} vs ${nm(a2)}`;
     
-    // Get daily history data for both
-    const pts1 = pointsFor(a1.id).map(p => p.price);
-    const pts2 = pointsFor(a2.id).map(p => p.price);
+    // Get data based on compareRange
+    const pts1 = pointsFor(a1.id, compareRange);
+    const pts2 = pointsFor(a2.id, compareRange);
     
     if(pts1.length === 0 || pts2.length === 0) {
         alert("داده کافی برای مقایسه وجود ندارد.");
@@ -1213,15 +1219,17 @@ function openCompareModal() {
         return;
     }
     
-    // Normalize to percentage change (first point = 0%)
-    const base1 = pts1[0];
-    const base2 = pts2[0];
-    const norm1 = pts1.map(p => ((p - base1) / base1) * 100);
-    const norm2 = pts2.map(p => ((p - base2) / base2) * 100);
+    // Align data by time
+    const times = Array.from(new Set([...pts1.map(p=>p.time), ...pts2.map(p=>p.time)])).sort((a,b)=>a-b);
+    const map1 = new Map(pts1.map(p=>[p.time, p.price]));
+    const map2 = new Map(pts2.map(p=>[p.time, p.price]));
     
-    // Labels
-    const rawPts1 = pointsFor(a1.id);
-    const labels = rawPts1.map((p, i) => i); // Just indices for X axis to keep it simple, or use actual dates
+    const base1 = pts1[0].price;
+    const base2 = pts2[0].price;
+    
+    const data1 = times.map(t => map1.has(t) ? ((map1.get(t) - base1) / base1) * 100 : null);
+    const data2 = times.map(t => map2.has(t) ? ((map2.get(t) - base2) / base2) * 100 : null);
+    const labels = times.map(t => getLabel({time: t}, compareRange));
     
     const ctx = $('compareChart').getContext('2d');
     compareChartInstance = new Chart(ctx, {
@@ -1229,16 +1237,22 @@ function openCompareModal() {
         data: {
             labels: labels,
             datasets: [
-                { label: nm(a1), data: norm1, borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3 },
-                { label: nm(a2), data: norm2, borderColor: '#f59e0b', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3 }
+                { label: nm(a1), data: data1, borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 0, spanGaps: true, tension: 0.3 },
+                { label: nm(a2), data: data2, borderColor: '#f59e0b', backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 0, spanGaps: true, tension: 0.3 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: { labels: { color: theme==='light-glass'?'#1e293b':'#fff', font: { family: 'Vazirmatn' } } },
-                tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.y.toFixed(2) + '%' } }
+                tooltip: { 
+                    backgroundColor: theme==='light-glass'?'rgba(255,255,255,.9)':'rgba(10,10,10,.98)',
+                    titleColor: theme==='light-glass'?'#1e293b':'#fff',
+                    bodyColor: theme==='light-glass'?'#334155':'#fff',
+                    callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y !== null ? c.parsed.y.toFixed(2) + '%' : '—') } 
+                }
             },
             scales: {
                 x: { display: false },
@@ -1340,6 +1354,7 @@ function applyLang(){
             charts[key].update('none');
         }
     }
+    if(compareChartInstance) drawCompareChart();
 
     fillCalc();fillAddSelect();renderHoldings();calc();
 }
@@ -1362,6 +1377,7 @@ function applyTheme(){
         requestAnimationFrame(updateNext);
     }
     requestAnimationFrame(updateNext);
+    if(compareChartInstance) drawCompareChart();
 }
 
 function hideAllPages(){
@@ -1431,6 +1447,15 @@ $('addBtn').onclick=addHolding;
 $('refreshBtn').onclick=async()=>{closeDrawer();await Promise.allSettled([refreshPrices(),loadHistories()])};
 $('closeCompare').onclick=closeCompareModal;
 
+document.querySelectorAll('.compare-ranges .range').forEach(btn => {
+    btn.onclick = () => {
+        compareRange = btn.dataset.r;
+        document.querySelectorAll('.compare-ranges .range').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        drawCompareChart();
+    };
+});
+
 (async function init(){
     loadSettings();
     loadIntraday();
@@ -1439,7 +1464,7 @@ $('closeCompare').onclick=closeCompareModal;
     $('calcTo').addEventListener('change',calc);
     applyTheme();
     applyLang(); 
-    showSkeletons(); // Show skeleton before loading
+    showSkeletons();
     renderHome(); 
     refreshPrices(); 
     setTimeout(()=>{loadHistories()}, 1000);
