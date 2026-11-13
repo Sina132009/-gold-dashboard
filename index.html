@@ -85,7 +85,12 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(243,198,35,.2);}
 .search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none;}
 
-.drawer{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:var(--card1);border-left:1px solid var(--line);transition:right .3s cubic-bezier(.4,0,.2,1);z-index:1000;display:flex;flex-direction:column;padding:20px;box-shadow:-10px 0 30px rgba(0,0,0,.5)}
+/* FIX: Drawer Scrolling */
+.drawer{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:var(--card1);border-left:1px solid var(--line);transition:right .3s cubic-bezier(.4,0,.2,1);z-index:1000;display:flex;flex-direction:column;padding:20px;padding-bottom:30px;box-shadow:-10px 0 30px rgba(0,0,0,.5);overflow-y:auto;overflow-x:hidden;}
+.drawer::-webkit-scrollbar{width:6px}
+.drawer::-webkit-scrollbar-track{background:transparent}
+.drawer::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:3px}
+[data-theme="light-glass"] .drawer::-webkit-scrollbar-thumb{background:rgba(0,0,0,.2)}
 [data-theme="glass"] .drawer{background:rgba(15,23,42,.98)}
 .drawer.open{right:0}
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -264,7 +269,7 @@ canvas{width:100%!important;height:100%!important;display:block}
     <button class="theme-option" data-t="theme_light_glass" data-theme-val="light-glass">شیشه‌ای روشن (Light Glass)</button>
 </div>
 <div class="divider"></div>
-<button class="btn" id="refreshBtn" data-t="refresh" style="margin-top:auto;color:var(--accent)">↻ بروزرسانی داده‌ها</button>
+<button class="btn" id="refreshBtn" data-t="refresh" style="margin-top:20px;color:var(--accent)">↻ بروزرسانی داده‌ها</button>
 </div>
 
 <div id="compareModal" class="modal">
@@ -966,7 +971,48 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     const chartKey=prefix+a.id;charts[chartKey]=newChart;
 }
 
-const chartObserver=new IntersectionObserver((entries,observer)=>{entries.forEach(entry=>{if(entry.isIntersecting){const wrap=entry.target;const canvas=wrap.querySelector('canvas');if(canvas){const aId=canvas.dataset.id;const prefix=canvas.dataset.prefix;if(aId&&prefix!==undefined){const a=assets.find(x=>x.id===aId);if(a){const chartKey=prefix+a.id;if(!charts[chartKey])requestAnimationFrame(()=>{drawOrUpdateChart(a,null,prefix)});else drawOrUpdateChart(a,charts[chartKey],prefix)}}}observer.unobserve(wrap)}})},{rootMargin:'100px'});
+// FIX: Chart Creation Queue to Prevent Freezing
+const chartQueue = [];
+let isProcessingQueue = false;
+
+function processChartQueue() {
+    if (chartQueue.length === 0) {
+        isProcessingQueue = false;
+        return;
+    }
+    isProcessingQueue = true;
+    const task = chartQueue.shift();
+    task();
+    setTimeout(processChartQueue, 50); // 50ms delay gives browser time to breathe
+}
+
+const chartObserver=new IntersectionObserver((entries,observer)=>{
+    entries.forEach(entry=>{
+        if(entry.isIntersecting){
+            const wrap=entry.target;
+            const canvas=wrap.querySelector('canvas');
+            if(canvas){
+                const aId=canvas.dataset.id;
+                const prefix=canvas.dataset.prefix;
+                if(aId&&prefix!==undefined){
+                    const a=assets.find(x=>x.id===aId);
+                    if(a){
+                        const chartKey=prefix+a.id;
+                        if(!charts[chartKey]){
+                            chartQueue.push(()=>{
+                                if(!charts[chartKey]) drawOrUpdateChart(a, null, prefix);
+                            });
+                        } else {
+                            drawOrUpdateChart(a, charts[chartKey], prefix);
+                        }
+                    }
+                }
+            }
+            observer.unobserve(wrap);
+        }
+    });
+    if(!isProcessingQueue && chartQueue.length > 0) processChartQueue();
+},{rootMargin:'200px'});
 
 function renderCharts(container,filterIds,prefix=''){
     const assetsToRender=assets.filter(a=>!filterIds||filterIds.includes(a.id));
@@ -980,7 +1026,7 @@ function renderCharts(container,filterIds,prefix=''){
             if(charts[prefix+a.id])drawOrUpdateChart(a,charts[prefix+a.id],prefix);
             else chartObserver.observe(canvas.parentElement);
         }
-        setTimeout(drawNext, 30); 
+        setTimeout(drawNext, 50); 
     }
     drawNext();
 }
@@ -1026,6 +1072,7 @@ function cleanupExpanded(){
     expContainer.innerHTML = '';
 }
 
+// FIX: renderHome Optimization (Zero DOM rebuild on expand)
 function renderHome(force = false){
     const grid=$('gridFeatured');
     const mini=$('gridMini');
@@ -1033,10 +1080,9 @@ function renderHome(force = false){
     if(!grid||!mini||!expContainer)return;
     
     const featured=assets.filter(a=>a.id==='usd'||a.id==='usdt');
-    // expanded item is removed from mini (it will be shown in expandedContainer)
-    const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt'&&a.id!==expandedAssetId);
+    const rest=assets.filter(a=>a.id!=='usd'&&a.id!=='usdt');
     
-    // --- Featured: build once, update in place afterwards ---
+    // 1. Featured cards (build once)
     if(force || !grid.children.length || grid.innerHTML.includes('skeleton')){
         grid.innerHTML=featured.map(a=>fullCardHTML(a,'feat-')).join('');
         bindRanges(grid, 'feat-');
@@ -1052,18 +1098,26 @@ function renderHome(force = false){
         });
     }
     
-    // --- Mini: rebuild only if state changed (favorites/compare/expand) ---
+    // 2. Mini cards (build once, or when favorites/compare change)
     const miniStateKey = rest.map(a =>
         a.id + ':' + (favorites.includes(a.id) ? '1' : '0') + ':' + (selectedForCompare.includes(a.id) ? '1' : '0')
     ).join('|');
     
-    if(force || miniStateKey !== lastMiniStateKey){
+    if(force || !mini.children.length || mini.innerHTML.includes('skeleton') || miniStateKey !== lastMiniStateKey){
         mini.innerHTML = rest.map(a => miniCardHTML(a)).join('');
         lastMiniStateKey = miniStateKey;
     }
-    rest.forEach(a => updateChange(a));
     
-    // --- Expanded container ---
+    // Hide/Show mini cards based on expansion (NO REBUILD)
+    rest.forEach(a => {
+        const el = $('mini-' + a.id);
+        if(el) {
+            el.style.display = (a.id === expandedAssetId) ? 'none' : '';
+        }
+        updateChange(a);
+    });
+    
+    // 3. Expanded Container
     if(expandedAssetId){
         const a = assets.find(x => x.id === expandedAssetId);
         if(a){
@@ -1071,7 +1125,6 @@ function renderHome(force = false){
             const currentCanvas = expContainer.querySelector('canvas');
             const expectedId = 'ch-exp-' + a.id;
             if(!currentCanvas || currentCanvas.id !== expectedId){
-                // Different asset (or first time) — rebuild container
                 for(const key in charts){
                     if(key.startsWith('exp-')){ try{charts[key].destroy()}catch(e){}; delete charts[key]; }
                 }
@@ -1079,7 +1132,6 @@ function renderHome(force = false){
                 bindRanges(expContainer, 'exp-');
                 setTimeout(()=>drawOrUpdateChart(a, null, 'exp-'), 30);
             } else {
-                // Same asset — just update + resize (handles return-from-hidden case)
                 const key = 'exp-' + a.id;
                 if(charts[key]){
                     updateChartData(a, charts[key]);
@@ -1419,6 +1471,7 @@ function applyTheme(){
     if(compareChartInstance) drawCompareChart();
 }
 
+// FIX: Do NOT clear innerHTML of allPage and favPage to avoid DOM rebuild lag
 function hideAllPages(){
     $('homePage').classList.add('hidden');
     $('favPage').classList.add('hidden');
@@ -1426,14 +1479,14 @@ function hideAllPages(){
     $('calcPage').classList.add('hidden');
     $('assetsPage').classList.add('hidden');
     ['homeBtn','favBtn','allBtn','calcBtn','assetsBtn'].forEach(id=>$(id).classList.remove('active'));
-    // Destroy charts on OTHER pages only. feat- and exp- belong to home and must survive.
+    
     for(const key in charts){
         if(key.startsWith('all-') || key.startsWith('fav-')) {
             try{charts[key].destroy()}catch(e){} 
             delete charts[key];
         }
     }
-    $('gridAll').innerHTML='';
+    // We only clear favorites because it changes often
     $('gridFavorites').innerHTML='';
 }
 
