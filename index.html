@@ -442,6 +442,7 @@ function updateChartData(a,chartInstance){
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
     
     chartInstance._rawPoints = pts;
+    chartInstance._currentMode = mode; // <--- ذخیره حالت فعلی برای تولتیپ
     const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
     chartInstance._isUp = isUp;
     
@@ -449,8 +450,26 @@ function updateChartData(a,chartInstance){
     chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.price)});
     chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
     
-    // همیشه نقاط را مخفی نگه دار، مگر در حالت هاور
     chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=0});
+    
+    // آپدیت تولتیپ بر اساس حالت جدید
+    chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
+        if(!items.length) return '';
+        const idx = items[0].dataIndex;
+        const p = items[0].chart._rawPoints[idx];
+        if(!p || !p.time || p.time < 1e12) return ''; 
+        const d = new Date(p.time);
+        if(items[0].chart._currentMode === 'daily') {
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+        if (p.date) return p.date;
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}/${mm}/${dd}`;
+    };
     
     updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');
 }
@@ -626,7 +645,6 @@ function updateChartTheme(chartInstance,a,isUp){
     const width=chartInstance.width||500;
     
     if(lightGlass){
-        // گرادیان ملایم: بالای نمودار کمی پررنگ‌تر و پایین آن محوتر
         const fillGradient = ctx.createLinearGradient(0, 0, 0, 190);
         fillGradient.addColorStop(0, lightColor + '66');
         fillGradient.addColorStop(0.65, lightColor + '18');
@@ -701,10 +719,30 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     
     if(chartInstance){
         chartInstance._rawPoints = pts;
+        chartInstance._currentMode = mode;
         chartInstance._isUp = isUp;
         chartInstance.data.labels=labels;
         chartInstance.data.datasets.forEach(ds=>{ds.data=dataVals;});
         chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
+        
+        chartInstance.options.plugins.tooltip.callbacks.title = function(items) {
+            if(!items.length) return '';
+            const idx = items[0].dataIndex;
+            const p = items[0].chart._rawPoints[idx];
+            if(!p || !p.time || p.time < 1e12) return ''; 
+            const d = new Date(p.time);
+            if(items[0].chart._currentMode === 'daily') {
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                return `${hh}:${mm}`;
+            }
+            if (p.date) return p.date;
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd}`;
+        };
+        
         updateChartTheme(chartInstance,a,isUp);chartInstance.update('none');return;
     }
     
@@ -748,7 +786,7 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
         const p=items[0].chart._rawPoints[idx];
         if(!p || !p.time || p.time < 1e12) return ''; 
         const d=new Date(p.time);
-        if(mode==='daily') {
+        if(items[0].chart._currentMode === 'daily') {
             const hh = String(d.getHours()).padStart(2, '0');
             const mm = String(d.getMinutes()).padStart(2, '0');
             return `${hh}:${mm}`;
@@ -761,6 +799,7 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     },label:c=>(mode==='daily'?'لحظه‌ای: ':'پایانی: ')+(isUSD?'$':'')+num(c.parsed.y,isUSD?2:0)+' '+(isUSD?'':t('tomanUnit'))}}},scales:{x:{display:false},y:{min:yMin,max:yMax,grid:{color:gc},ticks:{color:tc,font:{family:lightGlass?'"Vazirmatn","Segoe UI",Tahoma':'Tahoma',size:9},callback:v=>(isUSD?'$':'')+num(v,isUSD?2:0)}}}}});
     
     newChart._rawPoints = pts;
+    newChart._currentMode = mode;
     newChart._isUp = isUp;
     const chartKey=prefix+a.id;charts[chartKey]=newChart;
 }
