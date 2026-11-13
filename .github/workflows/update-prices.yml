@@ -1,20 +1,19 @@
-name: Update Market Prices
+name: Auto Update Prices
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # هر ۱۵ دقیقه اجرا می‌شود
-  workflow_dispatch: # امکان اجرای دستی
-
-# دسترسی نوشتن برای اینکه بتونه فایل‌ها رو آپدیت کنه
-permissions:
-  contents: write
+    # اجرای خودکار هر ۵ دقیقه
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # با این گزینه می‌توانید دستی هم ربات را اجرا کنید
 
 jobs:
   update:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -23,17 +22,17 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
+        run: pip install requests
 
-      - name: Run price update script
-        run: python update_prices.py
+      - name: Run Script
+        env:
+          TALASANJ_API_KEY: ${{ secrets.TALASANJ_API_KEY }}
+        run: python fetch_prices.py
 
-      - name: Commit and push changes
+      - name: Commit and Push changes
         run: |
-          git config --global user.name 'GitHub Action Bot'
-          git config --global user.email 'action@github.com'
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add data/
-          git commit -m "Auto-update market prices [skip ci]" || exit 0
+          git commit -m "Auto update prices [skip ci]" || exit 0
           git push
