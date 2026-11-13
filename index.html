@@ -193,12 +193,12 @@ canvas{width:100%!important;height:100%!important;display:block}
 </header>
 <div id="homePage">
 <div class="grid" id="gridFeatured" style="margin-bottom:20px;"></div>
-<div class="section-title">سایر دارایی‌ها</div>
+<div class="section-title" data-t="otherAssets">سایر دارایی‌ها</div>
 <div class="grid-mini" id="gridMini"></div>
 </div>
 <div id="favPage" class="hidden">
-<h2>⭐ علاقه‌مندی‌ها</h2>
-<p style="font-size:12px;color:var(--muted);margin-bottom:16px">دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.</p>
+<h2 data-t="favsTitle">⭐ علاقه‌مندی‌ها</h2>
+<p data-t="favsSub" style="font-size:12px;color:var(--muted);margin-bottom:16px">دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.</p>
 <div class="grid" id="gridFavorites"></div>
 </div>
 <div id="allPage" class="hidden">
@@ -904,20 +904,44 @@ function updateCardTexts() {
         const btn = card.querySelector('.star-btn');
         if(!btn) return;
         const a = assets.find(x => x.id === btn.dataset.id);
-        if(a) { const el = card.querySelector('.card-name'); if(el) el.textContent = nm(a); }
+        if(a) {
+            const el = card.querySelector('.card-name'); if(el) el.textContent = nm(a);
+            const ranges = card.querySelectorAll('.range');
+            if(ranges.length >= 5) {
+                ranges[0].textContent = t('daily');
+                ranges[1].textContent = t('weekly');
+                ranges[2].textContent = t('monthly');
+                ranges[3].textContent = t('yearly');
+                ranges[4].textContent = t('all');
+            }
+            const dr = card.querySelector('.day-range');
+            if(dr) {
+                const isUSD = a.currency === 'USD';
+                const ohlc = getRangeOHLC(a.id);
+                const labels = getRangeLabels(ranges[a.id]||'daily');
+                const lowStr = ohlc.low > 0 ? (isUSD ? `$${num(ohlc.low,2)}` : num(ohlc.low)) : '—';
+                const highStr = ohlc.high > 0 ? (isUSD ? `$${num(ohlc.high,2)}` : num(ohlc.high)) : '—';
+                dr.innerHTML = `<span>${labels.low}: <b>${lowStr}</b></span><span>${labels.high}: <b>${highStr}</b></span>`;
+            }
+        }
     });
+    
     document.querySelectorAll('.mini-card').forEach(card => {
         const btn = card.querySelector('.star-btn');
         if(!btn) return;
         const a = assets.find(x => x.id === btn.dataset.id);
-        if(a) { const el = card.querySelector('.mini-name'); if(el) el.textContent = nm(a); }
+        if(a) {
+            const el = card.querySelector('.mini-name'); if(el) el.textContent = nm(a);
+            const mr = card.querySelector('.mini-range');
+            if(mr) {
+                const isUSD = a.currency === 'USD';
+                const ohlc = todayOHLC(a.id);
+                const lowStr = ohlc.low > 0 ? (isUSD ? `$${num(ohlc.low,2)}` : num(ohlc.low)) : '—';
+                const highStr = ohlc.high > 0 ? (isUSD ? `$${num(ohlc.high,2)}` : num(ohlc.high)) : '—';
+                mr.innerHTML = `<span>${t('lowDaily')}: <b>${lowStr}</b></span><span>${t('highDaily')}: <b>${highStr}</b></span>`;
+            }
+        }
     });
-    const secTitle = document.querySelector('.section-title');
-    if(secTitle) secTitle.textContent = t('otherAssets');
-    const favTitle = document.querySelector('#favPage h2');
-    if(favTitle) favTitle.textContent = t('favsTitle');
-    const favSub = document.querySelector('#favPage p');
-    if(favSub) favSub.textContent = t('favsSub');
 }
 
 function applyLang(){
@@ -929,8 +953,10 @@ function applyLang(){
     });
     $('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';
     
+    // به‌روزرسانی آنی تمام کارت‌ها و متن‌های داینامیک
     updateCardTexts(); 
     
+    // به‌روزرسانی تولتیپ‌های نمودار
     for(const key in charts) {
         let aId = key.includes('-') ? key.split('-')[1] : key;
         const a = assets.find(x=>x.id===aId);
