@@ -4,26 +4,20 @@ import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-# کلید API به صورت خودکار از تنظیمات گیت‌هاب (Secrets) خوانده می‌شود
 API_KEY = os.environ.get("TALASANJ_API_KEY")
+API_URL = "https://talasanj.info/api/v1/prices" 
 
-# آدرس API طلا سنج (اگر ربات آدرس دقیق دیگری بهت داده، اینجا جایگزین کن)
-API_URL = "https://api.talasnj.com/v1/prices" 
-
-# نقشه ارتباطی: اسم در سایت ما -> اسم در طلا سنج
-# ⚠️ توجه: اگر طلا سنج از کلمات دیگری استفاده می‌کند، باید سمت راستِ هر خط را اصلاح کنی
 SYMBOL_MAP = {
-    "usd": "dollar",
-    "usdt": "tether",
+    "usd": "usd",
+    "usdt": "usdt",
     "eur": "euro",
-    "g18": "gold_18k",
-    "g24": "gold_24k",
-    "silver": "silver",
-    "emami": "coin_emami",
+    "g18": "gram18",
+    "g24": "gram24",
+    "emami": "coin_full",
     "bahar": "coin_bahar",
     "half": "coin_half",
     "quarter": "coin_quarter",
-    "btc": "bitcoin",
+    "btc": "btc",
     "oil": "oil"
 }
 
@@ -32,7 +26,6 @@ HISTORY_DIR = os.path.join(DATA_DIR, "history")
 
 def main():
     os.makedirs(HISTORY_DIR, exist_ok=True)
-    
     headers = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else {}
     
     try:
@@ -49,7 +42,6 @@ def main():
     
     prices_file = os.path.join(DATA_DIR, "latest-prices.json")
     
-    # خواندن فایل قبلی برای اینکه دیتای بقیه دارایی‌ها پاک نشود
     try:
         with open(prices_file, "r", encoding="utf-8") as f:
             latest = json.load(f)
