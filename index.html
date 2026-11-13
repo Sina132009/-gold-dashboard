@@ -72,6 +72,17 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 [data-theme="light-glass"] .drawer .btn:hover{background:rgba(0,0,0,.05)}
 [data-theme="light-glass"] .drawer .btn.active{background:var(--accent);color:#fff;}
 .drawer .divider{height:1px;background:var(--line);margin:15px 0}
+
+/* --- استایل لیست تم‌ها --- */
+.theme-list{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;padding-right:10px;}
+[dir="ltr"] .theme-list{padding-right:0;padding-left:10px;}
+.theme-option{padding:8px 12px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--muted);font-size:12px;cursor:pointer;text-align:right;transition:.2s;display:flex;align-items:center;gap:8px;font-family:inherit;}
+[dir="ltr"] .theme-option{text-align:left;}
+.theme-option:hover{background:rgba(255,255,255,.05);color:var(--txt);}
+[data-theme="light-glass"] .theme-option:hover{background:rgba(0,0,0,.05);}
+.theme-option.active-theme{border-color:var(--accent);color:var(--accent);font-weight:bold;background:rgba(255,255,255,.05);}
+[data-theme="light-glass"] .theme-option.active-theme{background:rgba(0,0,0,.02);}
+
 .status{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card2)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
 .dot.bad{background:var(--red);box-shadow:0 0 8px var(--red)}
@@ -176,12 +187,19 @@ canvas{width:100%!important;height:100%!important;display:block}
 <div class="drawer" id="drawer">
 <div class="brand" style="margin-bottom:30px"><div class="logo">P</div><div><h1 data-t="title">پالس</h1><p data-t="subtitle">نبض بازار</p></div></div>
 <button class="btn active" id="homeBtn" data-t="home">📊 صفحه اصلی</button>
-<button class="btn" id="favBtn">⭐ علاقه‌مندی‌ها</button>
+<button class="btn" id="favBtn" data-t="favsTitle">⭐ علاقه‌مندی‌ها</button>
 <button class="btn" id="allBtn" data-t="allCharts">📈 همه نمودارها</button>
 <button class="btn" id="calcBtn" data-t="calc">🧮 ماشین‌حساب</button>
 <button class="btn" id="assetsBtn" data-t="assets">💼 دارایی‌ها</button>
 <div class="divider"></div>
-<button class="btn" id="langBtn">🌐 English</button>
+<button class="btn" id="themeToggleBtn" data-t="themeTitle">🎨 تغییر تم</button>
+<div id="themeList" class="theme-list hidden">
+    <button class="theme-option" data-t="theme_obsidian" data-theme-val="obsidian">تیره (Obsidian)</button>
+    <button class="theme-option" data-t="theme_neon" data-theme-val="neon">نئون (Neon)</button>
+    <button class="theme-option" data-t="theme_glass" data-theme-val="glass">شیشه‌ای تیره (Glass)</button>
+    <button class="theme-option" data-t="theme_light_glass" data-theme-val="light-glass">شیشه‌ای روشن (Light Glass)</button>
+</div>
+<div class="divider"></div>
 <button class="btn" id="refreshBtn" data-t="refresh" style="margin-top:auto;color:var(--accent)">↻ بروزرسانی داده‌ها</button>
 </div>
 <div class="app">
@@ -189,7 +207,7 @@ canvas{width:100%!important;height:100%!important;display:block}
 <div class="brand"><div class="logo">P</div><div><h1 data-t="title">پالس</h1><p data-t="subtitle">نبض بازار</p></div></div>
 <div class="actions">
 <div class="status"><i class="dot" id="dot"></i><span id="status">...</span></div>
-<button class="btn btn-icon" id="themeBtn">👑</button>
+<button class="btn btn-icon" id="langBtn" style="font-size:13px;font-weight:bold;padding:8px 12px;">EN</button>
 <button class="btn btn-icon" id="menuBtn">☰</button>
 </div>
 </header>
@@ -256,8 +274,8 @@ const assets=[
 {id:'btc',symbol:'BTC_USD',nid:'bitcoin',fa:'بیت‌کوین',en:'Bitcoin',unitFa:'هر بیت‌کوین',unitEn:'per BTC'},
 {id:'oil',symbol:'OIL',nid:'oil',fa:'نفت',en:'Oil',unitFa:'هر بشکه',unitEn:'per barrel',currency:'USD'}];
 const words={
-fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار',otherAssets:'سایر دارایی‌ها',favsTitle:'⭐ علاقه‌مندی‌ها',favsSub:'دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.',noFavs:'هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.'},
-en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD',otherAssets:'Other Assets',favsTitle:'⭐ Favorites',favsSub:'Assets you starred will appear here.',noFavs:'No assets added to favorites yet.'}};
+fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار',otherAssets:'سایر دارایی‌ها',favsTitle:'⭐ علاقه‌مندی‌ها',favsSub:'دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.',noFavs:'هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.',themeTitle:'🎨 تغییر تم',theme_obsidian:'تیره (Obsidian)',theme_neon:'نئون (Neon)',theme_glass:'شیشه‌ای تیره (Glass)',theme_light_glass:'شیشه‌ای روشن (Light Glass)'},
+en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD',otherAssets:'Other Assets',favsTitle:'⭐ Favorites',favsSub:'Assets you starred will appear here.',noFavs:'No assets added to favorites yet.',themeTitle:'🎨 Change Theme',theme_obsidian:'Dark (Obsidian)',theme_neon:'Neon',theme_glass:'Dark Glass',theme_light_glass:'Light Glass'}};
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[];
 const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV27',FAVORITES_KEY='pulseFavoritesV27';
 const $=id=>document.getElementById(id);
@@ -1030,6 +1048,12 @@ function updateCardTexts() {
     });
 }
 
+function updateThemeListUI() {
+    document.querySelectorAll('.theme-option').forEach(btn => {
+        btn.classList.toggle('active-theme', btn.dataset.themeVal === theme);
+    });
+}
+
 function applyLang(){
     document.documentElement.lang=lang;
     document.documentElement.dir=lang==='fa'?'rtl':'ltr';
@@ -1037,12 +1061,12 @@ function applyLang(){
         if(el.tagName==='INPUT')el.placeholder=t(el.dataset.t);
         else el.textContent=t(el.dataset.t)
     });
-    $('langBtn').innerHTML=lang==='fa'?'🌐 English':'🌐 فارسی';
+    $('langBtn').innerHTML=lang==='fa'?'🌐 EN':'🌐 FA';
     
-    // به‌روزرسانی آنی تمام کارت‌ها و متن‌های داینامیک
+    // اصلاح عددها و واحد تومان
+    updatePricesOnly(); 
     updateCardTexts(); 
     
-    // به‌روزرسانی تولتیپ‌های نمودار
     for(const key in charts) {
         let aId = key.includes('-') ? key.split('-')[1] : key;
         const a = assets.find(x=>x.id===aId);
@@ -1051,13 +1075,13 @@ function applyLang(){
             charts[key].update('none');
         }
     }
-
     fillCalc();fillAddSelect();renderHoldings();calc();
 }
 
 function applyTheme(){
     document.documentElement.setAttribute('data-theme',theme);
-    $('themeBtn').textContent = theme==='obsidian' ? '👑' : theme==='neon' ? '⚡' : theme==='glass' ? '💎' : '☀️';
+    updateThemeListUI();
+    
     const chartKeys = Object.keys(charts);
     let i = 0;
     function updateNext() {
@@ -1125,14 +1149,15 @@ $('menuBtn').onclick=()=>{$('drawer').classList.add('open');$('drawerOverlay').c
 const closeDrawer=()=>{$('drawer').classList.remove('open');$('drawerOverlay').classList.remove('open')};
 $('drawerOverlay').onclick=closeDrawer;
 $('langBtn').onclick=()=>{lang=lang==='fa'?'en':'fa';try{localStorage.setItem('mktLang',lang)}catch(e){}applyLang();closeDrawer()};
-$('themeBtn').onclick=()=>{
-    if(theme==='obsidian') theme='neon';
-    else if(theme==='neon') theme='glass';
-    else if(theme==='glass') theme='light-glass';
-    else theme='obsidian';
-    try{localStorage.setItem('mktTheme',theme)}catch(e){}
-    applyTheme();
-};
+$('themeToggleBtn').onclick=()=>{$('themeList').classList.toggle('hidden')};
+document.querySelectorAll('.theme-option').forEach(btn => {
+    btn.onclick = () => {
+        theme = btn.dataset.themeVal;
+        try { localStorage.setItem('mktTheme', theme); } catch(e) {}
+        applyTheme();
+    };
+});
+
 $('homeBtn').onclick=()=>{closeDrawer();hideAllPages();$('homePage').classList.remove('hidden');$('homeBtn').classList.add('active');renderHome()};
 $('favBtn').onclick=()=>{closeDrawer();hideAllPages();$('favPage').classList.remove('hidden');$('favBtn').classList.add('active');renderFavorites()};
 $('allBtn').onclick=()=>{closeDrawer();hideAllPages();$('allPage').classList.remove('hidden');$('allBtn').classList.add('active');renderAll()};
