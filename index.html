@@ -4,14 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>پالس | Pulse Market</title>
-<!-- Meta Tags -->
 <meta property="og:title" content="پالس | نبض بازار">
 <meta property="og:description" content="داشبورد حرفه‌ای رصد لحظه‌ای قیمت ارز، طلا، سکه و ارز دیجیتال">
 <meta property="og:image" content="https://sina132009.github.io/og-image.jpg">
 <meta property="og:url" content="https://sina132009.github.io/">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- Vazirmatn Font -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
@@ -162,7 +160,6 @@ canvas{width:100%!important;height:100%!important;display:block}
 .mini-range b{color:var(--txt);font-weight:600}
 .mini-card .star-btn,.mini-card .cmp-btn{font-size:14px;}
 
-/* --- Compare Modal --- */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.3s;}
 .modal.open{opacity:1;pointer-events:auto;}
 .modal-content{background:var(--card1);border:1px solid var(--line);border-radius:16px;width:90%;max-width:600px;padding:20px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.5);}
@@ -243,7 +240,6 @@ canvas{width:100%!important;height:100%!important;display:block}
 <button class="btn" id="refreshBtn" data-t="refresh" style="margin-top:auto;color:var(--accent)">↻ بروزرسانی داده‌ها</button>
 </div>
 
-<!-- Compare Modal -->
 <div id="compareModal" class="modal">
     <div class="modal-content">
         <button class="modal-close" id="closeCompare">✖</button>
@@ -268,13 +264,11 @@ canvas{width:100%!important;height:100%!important;display:block}
 </div>
 </header>
 
-<!-- Search Bar -->
 <div class="search-wrap">
     <span class="search-icon">🔍</span>
     <input type="text" id="searchInput" class="search-input" placeholder="جستجوی دارایی (مثلا: دلار، تتر، طلا...)" autocomplete="off">
 </div>
 
-<!-- Talasanj Source Link -->
 <div style="text-align: center; margin-bottom: 15px; font-size: 13px; font-weight: bold;">
     <a href="https://talasanj.info" style="color: var(--accent); text-decoration: none;">قیمت‌ها از طلاسنج</a>
 </div>
@@ -334,24 +328,27 @@ const HISTORY_URLS = [
 ];
 const GITHUB_URLS_PRICES=['./data/latest-prices.json','https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/latest-prices.json','https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/latest-prices.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/latest-prices.json'];
 const GITHUB_URLS_INTRADAY=['./data/intraday.json','https://cdn.jsdelivr.net/gh/iran-market/iran-market.github.io@main/data/intraday.json','https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/intraday.json','https://raw.githubusercontent.com/sina132009/sina132009.github.io/main/data/intraday.json'];
+
+// نقره حذف شد
 const assets=[
 {id:'usd',symbol:'USD_IRR_FREE',nid:'usd',fa:'دلار آمریکا',en:'US Dollar',unitFa:'هر دلار',unitEn:'per USD'},
 {id:'usdt',symbol:'USDT_IRR',nid:'tether',fa:'تتر',en:'Tether',unitFa:'هر تتر',unitEn:'per USDT'},
 {id:'eur',symbol:'EUR_IRR_FREE',nid:'eur',fa:'یورو',en:'Euro',unitFa:'هر یورو',unitEn:'per EUR'},
 {id:'g18',symbol:'GOLD_18K_IRR',nid:'gold-18k',fa:'طلای ۱۸ عیار',en:'18K Gold',unitFa:'هر گرم',unitEn:'per gram'},
 {id:'g24',symbol:'GOLD_24K_IRR',nid:'gold-24k',fa:'طلای ۲۴ عیار',en:'24K Gold',unitFa:'هر گرم',unitEn:'per gram'},
-{id:'silver',symbol:'SILVER_999',nid:'silver',fa:'نقره',en:'Silver',unitFa:'هر گرم',unitEn:'per gram'},
 {id:'emami',symbol:'COIN_EMAMI_IRR',nid:'coin-emami',fa:'سکه امامی',en:'Emami Coin',unitFa:'هر قطعه',unitEn:'per coin'},
 {id:'bahar',symbol:'COIN_BAHAR_IRR',nid:'coin-bahar-azadi',fa:'سکه بهار آزادی',en:'Bahar Coin',unitFa:'هر قطعه',unitEn:'per coin'},
 {id:'half',symbol:'COIN_HALF_IRR',nid:'coin-half',fa:'نیم سکه',en:'Half Coin',unitFa:'هر قطعه',unitEn:'per coin'},
 {id:'quarter',symbol:'COIN_QUARTER_IRR',nid:'coin-quarter',fa:'ربع سکه',en:'Quarter Coin',unitFa:'هر قطعه',unitEn:'per coin'},
-{id:'btc',symbol:'BTC_USD',nid:'bitcoin',fa:'بیت‌کوین',en:'Bitcoin',unitFa:'هر بیت‌کوین',unitEn:'per BTC'},
+{id:'btc',symbol:'BTC_USD',nid:'bitcoin',fa:'بیت‌کوین',en:'Bitcoin',unitFa:'هر بیت‌کوین',unitEn:'per BTC',currency:'USD'},
 {id:'oil',symbol:'OIL',nid:'oil',fa:'نفت',en:'Oil',unitFa:'هر بشکه',unitEn:'per barrel',currency:'USD'}];
+
 const words={
 fa:{title:'پالس',subtitle:'نبض بازار',home:'صفحه اصلی',allCharts:'همه نمودارها',calc:'ماشین‌حساب',assets:'دارایی‌ها',refresh:'↻ بروزرسانی',showAll:'مشاهده همه نمودارها',daily:'امروز',weekly:'این هفته',monthly:'این ماه',yearly:'امسال',all:'از اول',loading:'در حال دریافت...',noPrice:'قیمت ناموجود',connected:'متصل',failed:'خطا',tomanUnit:'تومان',calcTitle:'ماشین‌حساب قیمت',calcSub:'مقدار، واحد ورودی و واحد خروجی را انتخاب کن.',choose:'انتخاب دارایی',qty:'تعداد / مقدار',totalLabel:'مبلغ محاسبه‌شده',disclaimer:'اطلاعات صرفاً جهت اطلاع‌رسانی است.',lowDaily:'کمترین امروز',highDaily:'بیشترین امروز',lowWeekly:'کمترین هفته',highWeekly:'بیشترین هفته',lowMonthly:'کمترین ماه',highMonthly:'بیشترین ماه',lowYearly:'کمترین سال',highYearly:'بیشترین سال',lowAll:'کمترین کل',highAll:'بیشترین کل',assetsTitle:'دارایی‌های من',assetsSub:'دارایی‌ها و مقدارشان را وارد کن تا ارزش روزشان محاسبه شود.',add:'+ افزودن',qtyPlaceholder:'مقدار',totalAssets:'مجموع کل دارایی',emptyAssets:'هنوز دارایی‌ای اضافه نکردی.',del:'حذف',showChart:'مشاهده نمودار',hideChart:'بستن نمودار',amount:'مقدار',from:'از',to:'به',toman:'تومان',usd:'دلار',otherAssets:'سایر دارایی‌ها',favsTitle:'⭐ علاقه‌مندی‌ها',favsSub:'دارایی‌هایی که ستاره دار کردی اینجا نمایش داده میشن.',noFavs:'هنوز دارایی‌ای به علاقه‌مندی‌ها اضافه نکردی.',themeTitle:'🎨 تغییر تم',theme_obsidian:'تیره (Obsidian)',theme_neon:'نئون (Neon)',theme_glass:'شیشه‌ای تیره (Glass)',theme_light_glass:'شیشه‌ای روشن (Light Glass)',searchPlaceholder:'جستجوی دارایی (مثلا: دلار، تتر، طلا...)',compareTitle:'مقایسه دارایی‌ها',selectTwo:'برای مقایسه، دقیقاً دو دارایی را با دکمه 📊 انتخاب کنید.'},
 en:{title:'Pulse',subtitle:'Market Pulse',home:'Home',allCharts:'All charts',calc:'Calculator',assets:'Assets',refresh:'↻ Refresh',showAll:'View all charts',daily:'Today',weekly:'This week',monthly:'This month',yearly:'This year',all:'All history',loading:'Loading...',noPrice:'No price',connected:'Connected',failed:'Failed',tomanUnit:'Toman',calcTitle:'Price Calculator',calcSub:'Choose amount, input unit and output unit.',choose:'Choose asset',qty:'Quantity',totalLabel:'Calculated total',disclaimer:'For information only.',lowDaily:'Today low',highDaily:'Today high',lowWeekly:'Week low',highWeekly:'Week high',lowMonthly:'Month low',highMonthly:'Month high',lowYearly:'Year low',highYearly:'Year high',lowAll:'All-time low',highAll:'All-time high',assetsTitle:'My Assets',assetsSub:'Enter your assets and quantities to calculate their value.',add:'+ Add',qtyPlaceholder:'Quantity',totalAssets:'Total assets value',emptyAssets:'No assets added yet.',del:'Delete',showChart:'Show Chart',hideChart:'Hide Chart',amount:'Amount',from:'From',to:'To',toman:'Toman',usd:'USD',otherAssets:'Other Assets',favsTitle:'⭐ Favorites',favsSub:'Assets you starred will appear here.',noFavs:'No assets added to favorites yet.',themeTitle:'🎨 Change Theme',theme_obsidian:'Dark (Obsidian)',theme_neon:'Neon',theme_glass:'Dark Glass',theme_light_glass:'Light Glass',searchPlaceholder:'Search assets (e.g. USD, Gold...)',compareTitle:'Assets Comparison',selectTwo:'Select exactly two assets using the 📊 button.'}};
+
 let lang='fa',theme='obsidian',prices={},history={},intraday={},remoteIntraday={},ranges={},charts={},sources={},holdings=[],favorites=[],selectedForCompare=[],compareChartInstance=null,compareRange='daily',prevPrices={};
-const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV27',FAVORITES_KEY='pulseFavoritesV27',HISTORY_CACHE_TIME_KEY='pulseHistoryTimeV1';
+const INTRADAY_KEY='mktDashV29',HOLDINGS_KEY='mktDashHoldingsV2',HISTORY_CACHE_KEY='pulseHistoryCacheV29',FAVORITES_KEY='pulseFavoritesV27',HISTORY_CACHE_TIME_KEY='pulseHistoryTimeV2';
 const $=id=>document.getElementById(id);
 const t=k=>words[lang][k]||k;
 const nm=a=>lang==='fa'?a.fa:a.en;
@@ -462,7 +459,10 @@ async function refreshPrices(){
 }
 
 function getTomanValue(id){if(id==='toman')return 1;const p=getPrice(id);if(p<=0)return 0;const a=assets.find(x=>x.id===id);if(a&&a.currency==='USD'){const usdRate=getPrice('usd');return usdRate>0?p*usdRate:0}return p}
-function getPrice(id){if(prices[id]>0)return prices[id];const h=history[id]||[];if(h.length>0)return h[h.length-1].price;return 0}
+
+// ** باگ بیت کوین و نفت اینجا برطرف شد (استفاده از close به جای price) **
+function getPrice(id){if(prices[id]>0)return prices[id];const h=history[id]||[];if(h.length>0)return h[h.length-1].close||h[h.length-1].price;return 0}
+
 function formatPrice(a,p){if(p<=0)return t('noPrice');if(a.currency==='USD')return`$${num(p,2)}`;return`${num(p)} <span class="unit">${t('tomanUnit')}</span>`}
 
 function todayOHLC(id){
@@ -486,7 +486,7 @@ function getRangeOHLC(id){
     const cutoff=Date.now()-days*86400000;
     const rawPts=(history[id]||[]).filter(p=>p.time>=cutoff);
     if(!rawPts.length)return{low:0,high:0};
-    const vals=rawPts.map(p=>p.price).filter(v=>Number.isFinite(v)&&v>0);
+    const vals=rawPts.map(p=>p.close||p.price).filter(v=>Number.isFinite(v)&&v>0);
     if(!vals.length)return{low:0,high:0};
     return{low:Math.min(...vals),high:Math.max(...vals)}
 }
@@ -509,7 +509,7 @@ function getRangeChange(id){
     }
     if(rawPts.length<2)return 0;
     rawPts.sort((a,b)=>a.time-b.time);
-    const first=rawPts[0].price;const last=rawPts[rawPts.length-1].price;
+    const first=rawPts[0].close||rawPts[0].price;const last=rawPts[rawPts.length-1].close||rawPts[rawPts.length-1].price;
     return first<=0?0:((last-first)/first)*100
 }
 
@@ -573,17 +573,17 @@ function updateChartData(a,chartInstance){
     if(!chartInstance)return;
     const pts=pointsFor(a.id);if(pts.length===0)return;
     const mode=ranges[a.id]||'daily';
-    const vals=pts.map(p=>p.price).filter(v=>Number.isFinite(v)&&v>0);
+    const vals=pts.map(p=>p.close||p.price).filter(v=>Number.isFinite(v)&&v>0);
     let yMin=0,yMax=100;
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
     
     chartInstance._rawPoints = pts;
     chartInstance._currentMode = mode; 
-    const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
+    const isUp=pts.length>1?((pts[pts.length-1].close||pts[pts.length-1].price)>=(pts[0].close||pts[0].price)):true;
     chartInstance._isUp = isUp;
     
     chartInstance.data.labels=pts.map(p=>getLabel(p,mode));
-    chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.price)});
+    chartInstance.data.datasets.forEach(ds=>{ds.data=pts.map(p=>p.close||p.price)});
     chartInstance.options.scales.y.min=yMin;chartInstance.options.scales.y.max=yMax;
     
     chartInstance.data.datasets.forEach(ds=>{if(ds.pointRadius!==undefined)ds.pointRadius=0});
@@ -634,10 +634,10 @@ async function loadHistories(){
                 const pts = rows.map(r=>({
                     time:parseTime(r.t_tehran||r.t||r.timestamp||r.date),
                     date:r.date_jalali||r.date||'',
-                    price:Number(r.close??r.price??r.value),
+                    close:Number(r.close??r.price??r.value),
                     low:Number(r.low??r.min??0),
                     high:Number(r.high??r.max??0)
-                })).filter(p=>Number.isFinite(p.time)&&p.price>0).sort((a,b)=>a.time-b.time);
+                })).filter(p=>Number.isFinite(p.time)&&p.close>0).sort((a,b)=>a.time-b.time);
                 
                 if (pts.length > 0 && (!bestPts || pts[0].time < bestPts[0].time)) {
                     bestPts = pts;
@@ -678,7 +678,7 @@ function pointsFor(id, overrideMode){
             if(!pts)return;
             for(const p of pts){
                 if(!p)continue;
-                const price=Number(p.price);
+                const price=Number(p.close||p.price);
                 if(!(price>0))continue;
                 const time=parseTime(p.time);
                 if(!Number.isFinite(time)||time<1e12||dayKey(time)!==today)continue;
@@ -687,7 +687,7 @@ function pointsFor(id, overrideMode){
 
                 const key=Math.floor(time/60000);
                 if(seen.has(key))continue;
-                seen.add(key);merged.push({time,price})
+                seen.add(key);merged.push({time,close:price})
             }
         };
         addPts(intraday[id]||[]);
@@ -696,7 +696,7 @@ function pointsFor(id, overrideMode){
         
         if(merged.length>0)return merged.sort((a,b)=>a.time-b.time);
         const currentPrice = getPrice(id);
-        if (currentPrice > 0) return [{ time: Date.now(), price: currentPrice }];
+        if (currentPrice > 0) return [{ time: Date.now(), close: currentPrice }];
         return [];
     }
     if(mode==='weekly'){const merged=getMergedRawPoints(id,7);if(merged.length>0)return sampleByDay(merged,7)}
@@ -803,7 +803,7 @@ function updateChartTheme(chartInstance,a,isUp){
     
     const colorMap = { 
         usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', 
-        g24: '#eab308', silver: '#94a3b8', emami: '#ec4899', bahar: '#f43f5e', 
+        g24: '#eab308', emami: '#ec4899', bahar: '#f43f5e', 
         half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' 
     };
     const lightColor = colorMap[a.id] || '#3b82f6';
@@ -883,12 +883,12 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     const mode=ranges[a.id]||'daily';
     const neon=theme==='neon',glass=theme==='glass',obsidian=theme==='obsidian',lightGlass=theme==='light-glass';
     const isUSD=a.currency==='USD';
-    const isUp=pts.length>1?(pts[pts.length-1].price>=pts[0].price):true;
-    const vals=pts.map(p=>p.price).filter(v=>Number.isFinite(v)&&v>0);
+    const isUp=pts.length>1?((pts[pts.length-1].close||pts[pts.length-1].price)>=(pts[0].close||pts[0].price)):true;
+    const vals=pts.map(p=>p.close||p.price).filter(v=>Number.isFinite(v)&&v>0);
     let yMin=0,yMax=100;
     if(vals.length>0){yMin=Math.min(...vals);yMax=Math.max(...vals);if(yMin===yMax){yMin*=.99;yMax*=1.01}const pad=(yMax-yMin)*.1;yMin-=pad;yMax+=pad}
     const labels=pts.map(p=>getLabel(p,mode));
-    const dataVals=pts.map(p=>p.price);
+    const dataVals=pts.map(p=>p.close||p.price);
     
     if(chartInstance){
         chartInstance._rawPoints = pts;
@@ -923,7 +923,7 @@ function drawOrUpdateChart(a,chartInstance,prefix=''){
     const ctx=cv.getContext('2d');let dataset={};
     
     if(lightGlass){
-        const colorMap = { usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', g24: '#eab308', silver: '#94a3b8', emami: '#ec4899', bahar: '#f43f5e', half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' };
+        const colorMap = { usd: '#3b82f6', usdt: '#10b981', eur: '#8b5cf6', g18: '#f59e0b', g24: '#eab308', emami: '#ec4899', bahar: '#f43f5e', half: '#f97316', quarter: '#06b6d4', btc: '#fbbf24', oil: '#78716c' };
         const c = colorMap[a.id] || '#3b82f6';
         
         const fillGrad = ctx.createLinearGradient(0, 0, 0, 190);
@@ -1243,11 +1243,11 @@ function drawCompareChart() {
     }
     
     const times = Array.from(new Set([...pts1.map(p=>p.time), ...pts2.map(p=>p.time)])).sort((a,b)=>a-b);
-    const map1 = new Map(pts1.map(p=>[p.time, p.price]));
-    const map2 = new Map(pts2.map(p=>[p.time, p.price]));
+    const map1 = new Map(pts1.map(p=>[p.time, p.close||p.price]));
+    const map2 = new Map(pts2.map(p=>[p.time, p.close||p.price]));
     
-    const base1 = pts1[0].price;
-    const base2 = pts2[0].price;
+    const base1 = pts1[0].close||pts1[0].price;
+    const base2 = pts2[0].close||pts2[0].price;
     
     const data1 = times.map(t => map1.has(t) ? ((map1.get(t) - base1) / base1) * 100 : null);
     const data2 = times.map(t => map2.has(t) ? ((map2.get(t) - base2) / base2) * 100 : null);
@@ -1486,7 +1486,7 @@ document.querySelectorAll('.compare-ranges .range').forEach(btn => {
     $('calcTo').addEventListener('change',calc);
     applyTheme();
     applyLang(); 
-    showSkeletons(); // Show skeleton before loading
+    showSkeletons();
     renderHome(); 
     refreshPrices(); 
     setTimeout(()=>{loadHistories()}, 1000);
